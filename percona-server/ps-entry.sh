@@ -109,6 +109,8 @@ if [ "$1" = 'mysqld' ]; then
 	fi
 	touch $DATADIR/init.ok
 	chown -R mysql:mysql "$DATADIR"
+	sed '/\[mysqld\]/a user = mysql\' -i "/etc/my.cnf"
+cat /etc/my.cnf
 fi
 
 exec "$@"
