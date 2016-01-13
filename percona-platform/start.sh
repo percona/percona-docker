@@ -5,7 +5,7 @@ set -eu
 service mysql start
 
 cd ~
-PKG="percona-datastore-1.0.0-20160112.ed7d5e2"
+PKG="percona-datastore-1.0.0-20160113.3881a00"
 curl -LO https://www.percona.com/redir/downloads/TESTING/ppl/open-source/${PKG}.tar.gz
 tar xvfz ${PKG}.tar.gz
 cd $PKG
