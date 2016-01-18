@@ -4,18 +4,24 @@ set -eu
 
 service mysql start
 
+export HOSTNAME="${HOSTNAME:-"$(hostname -f)"}"
+
 cd ~
-PKG="percona-datastore-1.0.0-20160113.3881a00"
-curl -LO https://www.percona.com/redir/downloads/TESTING/ppl/open-source/${PKG}.tar.gz
-tar xvfz ${PKG}.tar.gz
-cd $PKG
+PKG="ppl-datastore"
+[ -d $PKG ] && rm -rf $PKG
+mkdir $PKG
+curl -LO https://www.percona.com/downloads/TESTING/ppl/open-source/${PKG}.tar.gz
+tar xvfz ${PKG}.tar.gz -C $PKG
+cd $PKG/*
 ./install
 
 cd ~
-PKG="percona-qan-app-1.0.0-20160112.ebbc7f7"
-curl -LO https://www.percona.com/redir/downloads/TESTING/ppl/open-source/${PKG}.tar.gz
-tar xvfz ${PKG}.tar.gz
-cd ${PKG}
+PKG="ppl-qan-app"
+[ -d $PKG ] && rm -rf $PKG
+mkdir $PKG
+curl -LO https://www.percona.com/downloads/TESTING/ppl/open-source/${PKG}.tar.gz
+tar xvfz ${PKG}.tar.gz -C $PKG
+cd ${PKG}/*
 START="no" ./install
 
 cd /usr/local/percona/qan-app
