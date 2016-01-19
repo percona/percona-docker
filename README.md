@@ -1,4 +1,4 @@
-![logo](https://www.mysql.com/common/logos/logo-mysql-170x115.png)
+![logo](https://www.percona.com/blog/wp-content/uploads/2014/05/percona_server.jpeg)
 
 # What is Percona Server?
 
@@ -8,7 +8,7 @@ For more information and related downloads for Percona Server and other Percona 
 
 # Percona Server Docker Images
 
-These are optimized MySQL Server Docker images, created and maintained by the MySQL team at Oracle. The available versions are:
+These are the only official Percona Server Docker images, created and maintained by the Percona team. The available versions are:
 
     Percona Server 5.5 (tag: 5.5)
     Percona Server 5.6 (tag: 5.6)
@@ -31,23 +31,23 @@ This image exposes the standard MySQL port (3306), so container linking makes th
 
     docker run --name app-container-name --link container-name -d app-that-uses-mysql
 
-## Connect to MySQL from the MySQL Command Line Client
+## Connect to Percona Server from the MySQL Command Line Client
 
-The following command starts another MySQL container instance and runs the `mysql` command line client against your original MySQL container, allowing you to execute SQL statements against your database:
+The following command starts another container instance and runs the `mysql` command line client against your original container, allowing you to execute SQL statements against your database:
 
-    docker run -it --link container-name --rm mysql/mysql-server:tag mysql -h -P -uroot -p'
+    docker run -it --link container-name --rm percona/percona-server:tag mysql -h container-name -P 3306 -uroot -psecret'
 
 ... where `container-name` is the name of your database container.
 
 # Environment Variables
 
-When you start a Percona Server container, you can adjust the configuration of the MySQL instance by passing one or more environment variables on the `docker run` command line. Do note that none of the variables below will have any effect if you start the container with a data directory that already contains a database: any pre-existing database will always be left untouched on container startup.
+When you start a Percona Server container, you can adjust the configuration of the instance by passing one or more environment variables on the `docker run` command line. Do note that none of the variables below will have any effect if you start the container with a data directory that already contains a database: any pre-existing database will always be left untouched on container startup.
 
 Most of the variables listed below are optional, but one of the variables `MYSQL_ROOT_PASSWORD`, `MYSQL_ALLOW_EMPTY_PASSWORD`, `MYSQL_RANDOM_ROOT_PASSWORD` must be given.
 
 ## `MYSQL_ROOT_PASSWORD`
 
-This variable specifies a password that will be set for the MySQL root superuser account. In the above example, it was set to `secret`. **NOTE:** Setting the MySQL root user password on the command line is insecure. See the section *Secure Container Startup* below for an alternative.
+This variable specifies a password that will be set for the root superuser account. In the above example, it was set to `secret`. **NOTE:** Setting the MySQL root user password on the command line is insecure.
 
 ## `MYSQL_RANDOM_ROOT_PASSWORD`
 
@@ -55,7 +55,7 @@ When this variable is set to `yes`, a random password for the server's root user
 
 ## `MYSQL_ONETIME_PASSWORD`
 
-This variable is optional. When set to `yes`, the root user's password will be set as expired, and must be changed before MySQL can be used normally. This is only supported by version 5.6 or newer.
+This variable is optional. When set to `yes`, the root user's password will be set as expired, and must be changed before we can login normally. This is only supported by version 5.6 or newer.
 
 ## `MYSQL_DATABASE`
 
@@ -69,13 +69,13 @@ Do note that there is no need to use this mechanism to create the `root` superus
 
 ## `MYSQL_ALLOW_EMPTY_PASSWORD`
 
-Set to `yes` to allow the container to be started with a blank password for the root user. **NOTE:** Setting this variable to `yes` is not recommended unless you really know what you are doing, since this will leave your MySQL instance completely unprotected, allowing anyone to gain complete superuser access.
+Set to `yes` to allow the container to be started with a blank password for the root user. **NOTE:** Setting this variable to `yes` is not recommended unless you really know what you are doing, since this will leave your instance completely unprotected, allowing anyone to gain complete superuser access.
 
 # Notes, Tips, Gotchas
 
 ## Secure Container Startup
 
-In many use cases, employing the `MYSQL_ROOT_PASSWORD` variable to specify the MySQL root user password on initial container startup is insecure. Instead, to keep your setup as secure as possible, we strongly recommend using the `MYSQL_RANDOM_ROOT_PASSWORD` option. To further secure your instance, we also recommend using the `MYSQL_ONETIME_PASSWORD` variable if you use MySQL version 5.6 or higher.
+In many use cases, employing the `MYSQL_ROOT_PASSWORD` variable to specify the MySQL root user password on initial container startup is insecure. Instead, to keep your setup as secure as possible, we strongly recommend using the `MYSQL_RANDOM_ROOT_PASSWORD` option. To further secure your instance, we also recommend using the `MYSQL_ONETIME_PASSWORD` variable if you use version 5.6 or higher.
 
 This is the full procedure:
 
@@ -145,7 +145,7 @@ If you want to base your changes on the standard configuration file, start your 
 
 ... where ´/local/config-file´ is the path and name of the new configuration file. Then start a new MySQL container like this:
 
-    docker run --name my-new-container-name -v /my/custom/config-file:/etc/my.cnf -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql/mysql-server:tag
+    docker run --name my-new-container-name -v /my/custom/config-file:/etc/my.cnf -e MYSQL_ROOT_PASSWORD=secret -d mysql/mysql-server:tag
 
 This will start a new MySQL container ´my-new-container-name´ where the MySQL instance uses the startup options specified in ´/my/custom/config-file´.
 
