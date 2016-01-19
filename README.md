@@ -23,7 +23,7 @@ Start a Percona Server container as follows:
 
     docker run --name container-name -e MYSQL_ROOT_PASSWORD=secret -d percona/percona-server:tag
 
-... where `my-container-name` is the name you want to assign to your container, `secret` is the password to be set for the root user and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://registry.hub.docker.com/u/percona/percona-server/tags/manage/).
+Where `container-name` is the name you want to assign to your container, `secret` is the password to be set for the root user and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://registry.hub.docker.com/u/percona/percona-server/tags/manage/).
 
 ## Connect to Percona Server from an Application in Another Docker Container
 
