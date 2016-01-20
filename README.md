@@ -46,7 +46,9 @@ Most of the variables listed below are optional, but one of the variables `MYSQL
 
 ## `MYSQL_ROOT_PASSWORD`
 
-This variable specifies a password that will be set for the root superuser account. In the above example, it was set to `secret`. **NOTE:** Setting the MySQL root user password on the command line is insecure.
+This variable specifies a password that will be set for the root superuser account. In the above example, it was set to `secret`. 
+
+**NOTE:** Setting the MySQL root user password on the command line is insecure.
 
 ## `MYSQL_RANDOM_ROOT_PASSWORD`
 
