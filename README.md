@@ -78,7 +78,7 @@ In many use cases, employing the `MYSQL_ROOT_PASSWORD` variable to specify the M
 
 ## Where to Store Data
 
-There are many two ways to store data used by applications that run in Docker containers. We encourage users of MySQL with Docker to familiarize themselves with the options available, including:
+There are many two ways to store data used by applications that run in Docker containers. We maintain our usual stance and encourage users to investigate the options and use the method that best suits their use case. Here are some of the options available:
 
 * Let Docker manage the storage of your database data by writing the database files to disk on the host system using its own internal volume management. The current solutions, devicemapper, aufs and overlayfs have negative performance records.
 * Create a data directory on the host system (outside the container on high performance storage) and mount this to a directory visible from inside the container. This places the database files in a known location on the host system, and makes it easy for tools and applications on the host system to access the files. The user needs to make sure that the directory exists, and that permissions and other security mechanisms on the host system are set up correctly.
