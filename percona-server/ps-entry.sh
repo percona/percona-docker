@@ -82,16 +82,6 @@ fi
 			echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
 		fi
 
-		echo
-		for f in /docker-entrypoint-initdb.d/*; do
-			case "$f" in
-				*.sh)  echo "$0: running $f"; . "$f" ;;
-				*.sql) echo "$0: running $f"; "${mysql[@]}" < "$f" && echo ;;
-				*)     echo "$0: ignoring $f" ;;
-			esac
-			echo
-		done
-
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
 			"${mysql[@]}" <<-EOSQL
 				ALTER USER 'root'@'%' PASSWORD EXPIRE;
@@ -105,10 +95,9 @@ fi
 		echo
 		echo 'MySQL init process done. Ready for start up.'
 		echo
-		sed '/\[mysqld\]/a user = mysql\' -i "/etc/my.cnf"
-		mv /etc/my.cnf $DATADIR
+		#mv /etc/my.cnf $DATADIR
 	fi
 	touch $DATADIR/init.ok
 	chown -R mysql:mysql "$DATADIR"
 
-exec mysqld --defaults-file=${DATADIR}my.cnf --log-error=${DATADIR}error.log $CMDARG
+exec mysqld --user=mysql --log-error=${DATADIR}error.log $CMDARG
