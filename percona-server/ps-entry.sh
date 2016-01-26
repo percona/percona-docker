@@ -3,15 +3,14 @@ set -e
 
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
-	set -- mysqld "$@"
+	CMDARG="$@"
 fi
 
-if [ "$1" = 'mysqld' ]; then
 	if [ -n "$INIT_TOKUDB" ]; then
 		export LD_PRELOAD=/lib64/libjemalloc.so.1
 	fi
 	# Get config
-	DATADIR="$("$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
+	DATADIR="$("mysqld" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 
 	if [ ! -e "$DATADIR/init.ok" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
@@ -106,11 +105,10 @@ if [ "$1" = 'mysqld' ]; then
 		echo
 		echo 'MySQL init process done. Ready for start up.'
 		echo
+		sed '/\[mysqld\]/a user = mysql\' -i "/etc/my.cnf"
+		mv /etc/my.cnf $DATADIR
 	fi
 	touch $DATADIR/init.ok
 	chown -R mysql:mysql "$DATADIR"
-	sed '/\[mysqld\]/a user = mysql\' -i "/etc/my.cnf"
-cat /etc/my.cnf
-fi
 
-exec "$@"
+exec mysqld --defaults-file=${DATADIR}my.cnf --log-error=${DATADIR}error.log $CMDARG
