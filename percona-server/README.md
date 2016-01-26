@@ -121,7 +121,7 @@ In this case, the values of option1 and option2 will be passed directly to the s
 
 ## Using a Custom MySQL Config File
 
-The MySQL startup configuration in these Docker images is specified in the file `/etc/my.cnf`. If you want to customize this configuration for your own purposes, you can create your alternative configuration file in a directory on the host machine and then mount this file in the appropriate location inside the MySQL container, effectively replacing the standard configuration file.
+The MySQL startup configuration in these Docker images is specified in the file `/var/lib/mysql/my.cnf`. If you want to customize this configuration for your own purposes, you can make changes to this file.
 
 # Supported Docker Versions
 
