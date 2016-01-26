@@ -1,12 +1,14 @@
 FROM centos:centos7
 MAINTAINER Percona Development <info@percona.com>
 
-#ENV PACKAGE_URL https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64/mysql-community-server-minimal-5.6.28-2.el7.x86_64.rpm
 
 RUN rpmkeys --import https://www.percona.com/downloads/RPM-GPG-KEY-percona
 
+ARG PS_VERSION
+ENV PS_VERSION ${PS_VERSION:-5.6.28}
+
 RUN yum install -y http://www.percona.com/downloads/percona-release/redhat/0.1-3/percona-release-0.1-3.noarch.rpm
-RUN yum install -y which Percona-Server-server-56 Percona-Server-tokudb-56
+RUN yum install -y which Percona-Server-server-56-${PS_VERSION} Percona-Server-client-56-${PS_VERSION} Percona-Server-shared-56-${PS_VERSION} Percona-Server-tokudb-56-${PS_VERSION}
 
 # Install server
 
