@@ -119,9 +119,19 @@ In this case, the values of option1 and option2 will be passed directly to the s
 
     docker run --name container-name -d  percona/percona-server --character-set-server=utf8 --collation-server=utf8_general_ci
 
-## Using a Custom MySQL Config File
+## Using a Custom Percona Server Config File
 
-The MySQL startup configuration in these Docker images is specified in the file `/var/lib/mysql/my.cnf`. If you want to customize this configuration for your own purposes, you can make changes to this file.
+The Percona Server startup configuration in these Docker images is specified in the file `/etc/my.cnf`. If you want to customize this configuration for your own purposes, you can create your alternative configuration file in a directory on the host machine and then mount this file in the appropriate location inside the Percona Server container, effectively replacing the standard configuration file.
+
+If you want to base your changes on the standard configuration file, start your Percona Server container in the standard way described above, then do:
+
+    docker exec -it my-container-name cat /etc/my.cnf > /my/custom/config-file
+
+... where `/my/custom/config-file` is the path and name of the new configuration file. Then start a new Percona Server container like this:
+
+    docker run --name my-new-container-name -v /my/custom/config-file:/etc/my.cnf -e MYSQL_ROOT_PASSWORD=my-secret-pw -d percona/percona-server:tag
+
+This will start a new Percona Server container `my-new-container-name` where the Percona Server instance uses the startup options specified in `/my/custom/config-file`.
 
 # Supported Docker Versions
 
