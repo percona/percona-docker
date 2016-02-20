@@ -8,7 +8,7 @@ scrape_configs:
     scrape_interval:    1s
     scrape_timeout:     1s
     target_groups:
-      - targets: ['MYSQL_IP:9101']
+      - targets: ['MYSQL_IP:9200']
         labels:
           alias: db1
 
@@ -16,7 +16,7 @@ scrape_configs:
     scrape_interval:    5s
     scrape_timeout:     1s
     target_groups:
-      - targets: ['MYSQL_IP:9102']
+      - targets: ['MYSQL_IP:9201']
         labels:
           alias: db1
 
@@ -24,7 +24,7 @@ scrape_configs:
     scrape_interval:    60s
     scrape_timeout:     5s
     target_groups:
-      - targets: ['MYSQL_IP:9103']
+      - targets: ['MYSQL_IP:9202']
         labels:
           alias: db1
 
@@ -39,4 +39,3 @@ scrape_configs:
       - targets: ['localhost:9090']
         labels:
           alias: monitor
-

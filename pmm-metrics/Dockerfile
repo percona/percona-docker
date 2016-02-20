@@ -1,6 +1,6 @@
 FROM centos
 
-EXPOSE 9100 9101 9102 9103
+EXPOSE 9100 9200 9201 9202
 
 WORKDIR /opt
 RUN yum -y install git make python-setuptools

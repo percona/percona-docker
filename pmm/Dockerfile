@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 
-EXPOSE 9000 9001 9002 9090
+EXPOSE 3000 9001 9002 9090
 
 WORKDIR /opt
 
@@ -54,5 +54,5 @@ RUN /opt/install-qan.sh
 # Run everything with supervisor #
 # ############################## #
 
-COPY supervisord.conf /etc/supervisor/conf.d/percona-mms.conf
+COPY supervisord.conf /etc/supervisor/conf.d/pmm.conf
 CMD ["supervisord"]
