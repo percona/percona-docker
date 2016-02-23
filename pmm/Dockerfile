@@ -36,6 +36,7 @@ RUN echo "deb https://packagecloud.io/grafana/stable/debian/ wheezy main" > /etc
 RUN git clone https://github.com/percona/grafana-dashboards.git \
 	&& cp grafana-dashboards/dashboards/* /var/lib/grafana/dashboards/
 COPY grafana.ini /etc/grafana/grafana.ini
+COPY add-graf-data-source.sh /opt
 RUN chgrp grafana /etc/grafana/grafana.ini
 
 # ####################### #
