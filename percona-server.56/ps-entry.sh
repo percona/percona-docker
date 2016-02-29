@@ -19,12 +19,11 @@ fi
                         exit 1
                 fi
 		mkdir -p "$DATADIR"
-
-		echo 'Running --initialize-insecure'
-		mysqld --initialize-insecure
 		chown -R mysql:mysql "$DATADIR"
-		chown mysql:mysql /var/log/mysqld.log
-		echo 'Finished --initialize-insecure'
+
+		echo 'Running mysql_install_db'
+		mysql_install_db --user=mysql --datadir="$DATADIR" --rpm --keep-my-cnf
+		echo 'Finished mysql_install_db'
 
 		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
 		pid="$!"
