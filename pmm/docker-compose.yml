@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  pmm:
+    build: .
+    container_name: pmm 
+    image: percona/pmm
+    environment:
+      - HOST_IP=192.168.56.107
+    ports:
+      - "9001-9003:9001-9003"
+      - "3000:3000"
+      - "9090:9090"
+
