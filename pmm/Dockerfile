@@ -14,7 +14,6 @@ RUN apt-get -y update && apt-get install -y \
 	git \
 	mysql-server \
 	python \
-	golang \
 	supervisor
 
 # ########## #
@@ -61,13 +60,7 @@ RUN /opt/install-qan.sh
 # prom-config-api  #
 # ################ #
 
-RUN git clone https://github.com/percona/prom-config-api.git && \
-	cd prom-config-api && \
-	mkdir /opt/gopath && \
-	export GOPATH=/opt/gopath && \
-	go get github.com/julienschmidt/httprouter && \
-	go get github.com/percona/prom-config-api/prom && \
-	go build -o prom-config-api main.go     
+COPY prom-config-api /opt
 
 # ############################## #
 # Run everything with supervisor #
