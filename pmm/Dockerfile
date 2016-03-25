@@ -35,7 +35,8 @@ RUN echo "deb https://packagecloud.io/grafana/stable/debian/ wheezy main" > /etc
 	apt-get -y install grafana
 RUN git clone https://github.com/percona/grafana-dashboards.git && \
 	mkdir /var/lib/grafana/dashboards && \
-	cp grafana-dashboards/dashboards/* /var/lib/grafana/dashboards/
+	cp grafana-dashboards/dashboards/* /var/lib/grafana/dashboards/ && \
+	rm -f /var/lib/grafana/dashboards/*InfluxDB*
 COPY grafana.ini /etc/grafana/grafana.ini
 COPY add-grafana-datasource.sh /opt
 RUN chgrp grafana /etc/grafana/grafana.ini && \

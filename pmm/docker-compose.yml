@@ -6,7 +6,7 @@ services:
     container_name: pmm 
     image: percona/pmm
     environment:
-      - HOST_IP=192.168.56.107
+      - ADDRESS=192.168.56.107
     ports:
       - "9001-9003:9001-9003"
       - "3000:3000"
