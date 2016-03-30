@@ -61,7 +61,7 @@ RUN /opt/install-qan.sh
 # prom-config-api  #
 # ################ #
 
-COPY prom-config-api /opt
+COPY prom-config-api /opt/prometheus
 
 # ############################## #
 # Run everything with supervisor #

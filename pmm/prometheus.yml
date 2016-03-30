@@ -10,21 +10,21 @@ scrape_configs:
 
   - job_name: linux
     file_sd_configs:
-    - names: ['/etc/prometheus/targets_9100.yml']
+    - names: ['/opt/prometheus/targets_9100.yml']
 
   - job_name: mysql-hr
     file_sd_configs:
-    - names: ['/etc/prometheus/targets_9104.yml']
+    - names: ['/opt/prometheus/targets_9104.yml']
 
   - job_name: mysql-mr
     scrape_interval:    5s
     scrape_timeout:     1s
     file_sd_configs:
-    - names: ['/etc/prometheus/targets_9105.yml']
+    - names: ['/opt/prometheus/targets_9105.yml']
 
   - job_name: mysql-lr
     scrape_interval:   60s
     scrape_timeout:     5s
     file_sd_configs:
-    - names: ['/etc/prometheus/targets_9106.yml']
+    - names: ['/opt/prometheus/targets_9106.yml']
 
