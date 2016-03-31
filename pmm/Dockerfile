@@ -48,12 +48,13 @@ RUN chgrp grafana /etc/grafana/grafana.ini && \
 # Percona Query Analytics #
 # ####################### #
 
-ADD https://www.percona.com/downloads/TESTING/ppl/open-source/ppl-datastore.tar.gz \
-	https://www.percona.com/downloads/TESTING/ppl/open-source/ppl-qan-app.tar.gz /opt/
+ADD https://www.percona.com/downloads/TESTING/pmm/percona-qan-api.tar.gz \
+    https://www.percona.com/downloads/TESTING/pmm/percona-qan-app.tar.gz \
+    /opt/
 RUN mkdir qan-api && \
-	tar zxf ppl-datastore.tar.gz --strip-components=1 -C qan-api && \
+	tar zxf percona-qan-api.tar.gz --strip-components=1 -C qan-api && \
 	mkdir qan-app && \
-	tar zxf ppl-qan-app.tar.gz --strip-components=1 -C qan-app
+	tar zxf percona-qan-app.tar.gz --strip-components=1 -C qan-app
 COPY install-qan.sh /opt
 RUN /opt/install-qan.sh
 
