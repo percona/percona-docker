@@ -64,6 +64,12 @@ RUN /opt/install-qan.sh
 
 COPY prom-config-api /opt/prometheus
 
+# ############ #
+# Landing page # 
+# ############ #
+
+COPY landing-page/ /opt/landing-page/
+
 # ############################## #
 # Run everything with supervisor #
 # ############################## #
