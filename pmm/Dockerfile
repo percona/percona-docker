@@ -58,6 +58,10 @@ RUN mkdir qan-api && \
 COPY install-qan.sh /opt
 RUN /opt/install-qan.sh
 
+COPY pt-archiver /usr/bin/
+COPY purge-qan-data /etc/cron.daily
+RUN rm /etc/cron.daily/apt
+
 # ################ #
 # prom-config-api  #
 # ################ #
