@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css" />
+	<link rel="shortcut icon" type="image/png" href="favicon.png"/>
+    <title>Percona Monitoring and Management</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/grayscale.css" rel="stylesheet">
+</head>
+
+<body>
+		
+		<div class="container">
+			<br />
+		  <div class="row">
+            <div class="col-lg-12 col-md-12 text-center">
+				<img src="img/PMMLogo.png" alt="PMM Logo">
+                <h1 style="font-family: 'Open Sans'; font-weight: 700; color:#EC8117 ">Percona Monitoring and Management</h1>
+				<a style="color:#EC8117; font-size:large"> Beta </a>
+            </div>
+        </div>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 text-center">
+
+                        <!-- i class="icon-lg ion-android-laptop wow fadeIn" data-wow-delay=".3s"></i -->
+						<a href="#" target="_blank" id="qanURL">
+						<img src="img/QAN128.png" alt="PMM Query Analytics">
+						</a>
+                        <h3>Query Analytics</h3>
+ 
+                </div>
+                <div class="col-lg-6 col-md-6 text-center">
+                    <div class="feature">
+                        <!-- i class="icon-lg ion-social-sass wow fadeInUp" data-wow-delay=".2s"></i -->
+						<a href="#" target="_blank" id="grafURL">
+						<img src="img/Monitor128.png" alt="PMM Monitor">
+						</a>	
+                        <h3>Metrics Monitor</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <!-- /section -->
+
+    <section id="last">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="margin-top-0 wow fadeIn">Tell Us What You Think</h2>
+                    <hr class="primary">
+                    <p>We love feedback. Click below to send us an email and we'll get back to you pretty fast.</p>
+                </div>
+                <div class="col-lg-10 col-lg-offset-1 text-center">
+                    <form class="contact-form row" action="mailto:me@my.com?subject=PMM Feeback">
+                        <div class="col-md-4 col-md-offset-4">
+                            <label></label>
+							<a href="mailto:pmm@percona.com?subject=Feedback"class="btn btn-block btn-lg btn-info">Send Feedback Email</a> 
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center">
+            <p  class="text-muted">Copyright &copy; Percona 2016</p>
+        </div>
+    </footer>
+
+    <script src="js/jquery-2.2.2.min.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			var hostname = window.location.hostname;
+			if (hostname) {
+				$("#qanURL").attr("href", "http://"+hostname+":9002");
+				$("#grafURL").attr("href", "http://"+hostname+":3000");
+			} else {
+				$("#qanURL").attr("href", "http://localhost:9002");
+				$("#grafURL").attr("href", "http://localhost:3000");
+			}
+		});
+	</script>
+
+</body>
+
+</html>
