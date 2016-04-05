@@ -67,6 +67,7 @@ RUN rm /etc/cron.daily/apt
 # ################ #
 
 COPY prom-config-api /opt/prometheus
+RUN mkdir /opt/prometheus/targets
 
 # ############ #
 # Landing page # 
