@@ -1,6 +1,15 @@
 version: '2'
 
 services:
+  pmm_data:
+    image: percona/pmm
+    container_name: pmm_data
+    volumes:
+      - /var/lib/mysql
+      - /opt/prometheus/data
+      - /opt/prometheus/targets
+    entrypoint: /bin/true
+
   pmm:
     build: .
     container_name: pmm 
@@ -12,3 +21,5 @@ services:
       - "3000:3000"
       - "9090:9090"
       - "80:80"
+    volumes_from:
+      - pmm_data
