@@ -2,7 +2,7 @@ version: '2'
 
 services:
   pmm_data:
-    image: percona/pmm
+    image: percona/pmm-server
     container_name: pmm_data
     volumes:
       - /var/lib/mysql
@@ -13,7 +13,7 @@ services:
   pmm:
     build: .
     container_name: pmm 
-    image: percona/pmm
+    image: percona/pmm-server
     environment:
       - ADDRESS=192.168.56.107
     ports:
