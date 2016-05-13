@@ -1,3 +1,0 @@
-#!/bin/sh
-cd /opt/qan-api
-./percona-qan-purge ./templates/percona.my.cnf 'NOW() - INTERVAL 8 DAY' >> /var/log/purge-qan-data.log 2>&1
