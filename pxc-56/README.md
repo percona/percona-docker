@@ -91,7 +91,7 @@ Example output:
 ```
 
 Currently there is no automatic cleanup for the discovery service registry. You can remove all entries using
-`curl http://ETCD_HOST/v2/keys/pxc-cluster/$CLUSTER_NAME?recursive=true -XDELETE`.
+`curl http://$ETCD_HOST/v2/keys/pxc-cluster/$CLUSTER_NAME?recursive=true -XDELETE`.
 
 Starting a discovery service
 --------------------------
