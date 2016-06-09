@@ -1,7 +1,7 @@
 Percona XtraDB Cluster docker image
 ===================================
 
-The docker image is available right now at perconalab/percona-xtradb-cluster.
+The docker image is available right now at `percona/percona-xtradb-cluster`.
 The image supports work in Docker Network, including overlay networks,
 so that you can install Percona XtraDB Cluster nodes on different boxes.
 There is an initial support for the etcd discovery service.
@@ -91,7 +91,7 @@ Example output:
 ```
 
 Currently there is no automatic cleanup for the discovery service registry. You can remove all entries using
-`curl http://10.20.2.4:2379/v2/keys/pxc-cluster/$CLUSTER_NAME?recursive=true -XDELETE`.
+`curl http://ETCD_HOST/v2/keys/pxc-cluster/$CLUSTER_NAME?recursive=true -XDELETE`.
 
 Starting a discovery service
 --------------------------
