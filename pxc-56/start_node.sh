@@ -11,7 +11,7 @@ docker run -d -p 3306 --net=$NETWORK_NAME \
 	 -e DISCOVERY_SERVICE=$ETCD_HOST \
 	 -e CLUSTER_NAME=${CLUSTER_NAME} \
 	 -e XTRABACKUP_PASSWORD=Theistare \
-	 percona/percona-xtradb-cluster 
+	 percona/percona-xtradb-cluster:5.6
 
 echo "Started $(docker ps -l -q)"
 

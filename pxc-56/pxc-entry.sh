@@ -12,7 +12,7 @@ if [ -z "$CLUSTER_NAME" ]; then
 fi
 
 	# Get config
-	DATADIR="$("mysqld" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
+	DATADIR="$("mysqld" --verbose --wsrep_on=OFF --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 
 	if [ ! -e "$DATADIR/init.ok" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
@@ -24,10 +24,10 @@ fi
 		chown -R mysql:mysql "$DATADIR"
 
 		echo 'Running mysql_install_db'
-		mysql_install_db --user=mysql --datadir="$DATADIR" --rpm --keep-my-cnf
+		mysql_install_db --user=mysql --wsrep_on=OFF --datadir="$DATADIR" --rpm --keep-my-cnf
 		echo 'Finished mysql_install_db'
 
-		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
+		mysqld --no-defaults --user=mysql --wsrep_on=OFF --datadir="$DATADIR" --skip-networking &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot )
@@ -53,15 +53,17 @@ fi
 		"${mysql[@]}" <<-EOSQL
 			-- What's done in this file shouldn't be replicated
 			--  or products like mysql-fabric won't work
-			SET @@SESSION.SQL_LOG_BIN=0;
-			DELETE FROM mysql.user ;
-			CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
-			GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
-			CREATE USER 'xtrabackup'@'localhost' IDENTIFIED BY '$XTRABACKUP_PASSWORD';
-			GRANT RELOAD,LOCK TABLES,REPLICATION CLIENT ON *.* TO 'xtrabackup'@'localhost';
-			GRANT REPLICATION CLIENT ON *.* TO monitor@'%' IDENTIFIED BY 'monitor';
-			DROP DATABASE IF EXISTS test ;
-			FLUSH PRIVILEGES ;
+                        SET @@SESSION.SQL_LOG_BIN=0;
+                        DELETE FROM mysql.user ;
+                        CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
+                        GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
+                        CREATE USER 'xtrabackup'@'localhost' IDENTIFIED BY '$XTRABACKUP_PASSWORD';
+                        GRANT RELOAD,PROCESS,LOCK TABLES,REPLICATION CLIENT ON *.* TO 'xtrabackup'@'localhost';
+			CREATE USER 'monitor'@'%' IDENTIFIED BY 'monitor';
+                        GRANT REPLICATION CLIENT ON *.* TO 'monitor'@'%';
+                        GRANT PROCESS ON *.* TO monitor@localhost IDENTIFIED BY 'monitor';
+                        DROP DATABASE IF EXISTS test ;
+                        FLUSH PRIVILEGES ;
 		EOSQL
 		if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
 			mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
@@ -146,5 +148,5 @@ set -e
 
 fi
 
-exec mysqld --user=mysql --wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$cluster_join" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --log-error=${DATADIR}error.log $CMDARG
+exec mysqld --user=mysql --wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$cluster_join" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --log-error=${DATADIR}error.log  $CMDARG
 
