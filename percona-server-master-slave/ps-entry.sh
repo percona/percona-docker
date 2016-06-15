@@ -114,30 +114,49 @@ exec mysqld --user=mysql --server-id=$server_id --log-error=${DATADIR}error.log 
 
 else
 # perform slave routine
-  echo $ipaddr | nc ${MASTER_HOST} 4566
+  set +e
+  while : 
+  do
+  # do infinite loop till we can connect
+  if  [ -z "$SLAVE_HOST" ]; then
+    echo $ipaddr | nc ${MASTER_HOST} 4566
+  else
+    # connect to slave if defined
+    echo $ipaddr | nc ${SLAVE_HOST} 4566
+  fi
+  if [ "$?" -eq 0 ]; then
+     break
+  fi
+  echo "connection failed, trying again..."
+
+  done
+  set -e
+
   DATADIR=/var/lib/mysql
   cd $DATADIR
+  
+  echo "Receiving stream ..."
   nc -l -p 4565 | xbstream -x
+
   innobackupex --apply-log --use-memory=2G ./
   slavepass="$(pwmake 128)"
   mysql -h${MASTER_HOST} -uroot -p${MYSQL_ROOT_PASSWORD} -e "GRANT REPLICATION SLAVE ON *.*  TO 'repl'@'$ipaddr' IDENTIFIED BY '$slavepass';"
   chown -R mysql:mysql "$DATADIR"
 
 # start slave 
-# --log-error=${DATADIR}error.log
   echo "Starting slave..."
   mysqld --user=mysql --server-id=$server_id  $CMDARG &
   pid="$!"
   
   echo "Started with PID $pid, waiting for initialization..."
-    set +e
-    for i in {30..0}; do
+  set +e
+    for i in {300..0}; do
 	    mysql -uroot -p${MYSQL_ROOT_PASSWORD} -Bse "SELECT 1" mysql
 	    if [ "$?" -eq 0 ]; then
 		    break
 	    else
 		    echo 'MySQL init process in progress...'
-		    sleep 1
+		    sleep 5
 	    fi
 	    
     done
@@ -145,20 +164,28 @@ else
 	    echo >&2 'MySQL init process failed.'
 	    exit 1
     fi
-    set -e
 
 
-binlogname=$(cat /var/lib/mysql/xtrabackup_binlog_info | awk ' { print $1 } ')
-binlogpos=$(cat /var/lib/mysql/xtrabackup_binlog_info | awk ' { print $2 } ')
-echo "Slave initialized, connecting to master with $binlogname:$binlogpos"
+  if  [ -z "$SLAVE_HOST" ]; then
+    binlogname=$(cat /var/lib/mysql/xtrabackup_binlog_info | awk ' { print $1 } ')
+    binlogpos=$(cat /var/lib/mysql/xtrabackup_binlog_info | awk ' { print $2 } ')
+    echo "Slave initialized, connecting to master with $binlogname:$binlogpos"
+  
+    mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "CHANGE MASTER TO MASTER_HOST='${MASTER_HOST}', MASTER_USER='repl', MASTER_PASSWORD='$slavepass', MASTER_LOG_FILE='$binlogname', MASTER_LOG_POS=$binlogpos; START SLAVE"
+  else
+    mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "RESET SLAVE; CHANGE MASTER TO MASTER_HOST='${MASTER_HOST}', MASTER_USER='repl', MASTER_PASSWORD='$slavepass'"
+    mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "$(cat xtrabackup_slave_info)"
+    mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "START SLAVE"
 
-mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "CHANGE MASTER TO MASTER_HOST='${MASTER_HOST}', MASTER_USER='repl', MASTER_PASSWORD='$slavepass', MASTER_LOG_FILE='$binlogname', MASTER_LOG_POS=$binlogpos; START SLAVE"
+  fi
 
-# loop while the process exist
-wait $pid
-#while [[ ( -d /proc/$pid ) && ( -z `grep zombie /proc/$pid/status` ) ]]; do
-#    sleep 5
-#done
+  set -e
+
+  echo "Starting listener for slave requests"
+  /usr/bin/master_nc >> /tmp/master_nc.log &
+
+  # loop while the process exist
+  wait $pid
 
 echo "mysqld process $pid has been terminated... exiting"
 sleep 1000
