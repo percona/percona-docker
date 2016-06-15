@@ -1,0 +1,23 @@
+#!/bin/bash 
+#
+# Script to listen on a slave request and perform xtrabackup copy
+#
+# Authors:
+# Vadim Tkachenko <vadim@percona.com>
+
+#Timeout exists for instances where mysqld may be hung
+TIMEOUT=10
+
+ipaddr=$(hostname -i | awk ' { print $1 } ')
+hostname=$(hostname)
+
+while true
+do
+  # listen for slave request. expected incoming: IP address of the slave
+  nc -l -p 4566 0<&0 1>/tmp/slaveip
+  echo "Received request from $(cat /tmp/slaveip)"
+  innobackupex --stream=xbstream --user=root --password=Theistareyk --socket=/var/lib/mysql/mysql.sock /tmp | nc $(cat /tmp/slaveip) 4565
+
+  sleep 5
+
+done
