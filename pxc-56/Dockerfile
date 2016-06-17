@@ -22,4 +22,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 EXPOSE 3306 4567 4568
 ONBUILD RUN yum update -y
 
+LABEL vendor=Percona
+LABEL com.percona.package="Percona XtraDB Cluster"
+LABEL com.percona.version="5.6"
+
 CMD [""]
