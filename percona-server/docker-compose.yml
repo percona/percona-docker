@@ -7,7 +7,6 @@ percona:
     - "3306"
   volumes:
     # create volumes for use
-    - /var/log/mysql
     - /var/lib/mysql
     # bind mount my local my.cnf
     # - $PWD/my.cnf:/etc/my.cnf
