@@ -5,6 +5,8 @@ set -e
 if [ "${1:0:1}" = '-' ]; then
 	CMDARG="$@"
 fi
+	# comment out log output in my.cnf
+	sed -e '/log-error/s/^/#/g' -i /etc/my.cnf
 
 	if [ -n "$INIT_TOKUDB" ]; then
 		export LD_PRELOAD=/lib64/libjemalloc.so.1
@@ -20,17 +22,17 @@ fi
                 fi
 		mkdir -p "$DATADIR"
 
-		echo 'Running --initialize-insecure'
-		mysqld --initialize-insecure
+		echo "Running --initialize-insecure datadir: $DATADIR"
+		mysqld --no-defaults --initialize-insecure --datadir="$DATADIR"
 		chown -R mysql:mysql "$DATADIR"
 		echo 'Finished --initialize-insecure'
 
-		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
+		mysqld --no-defaults --user=mysql --datadir="$DATADIR" --skip-networking &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot )
 
-		for i in {30..0}; do
+		for i in {3000..0}; do
 			if echo 'SELECT 1' | "${mysql[@]}" ; then
 				break
 			fi
