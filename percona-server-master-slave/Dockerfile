@@ -11,6 +11,7 @@ RUN yum install -y which nc perl-Digest-MD5 percona-xtrabackup-24 Percona-Server
 
 ADD my.cnf /etc/my.cnf
 VOLUME /var/lib/mysql
+VOLUME /var/log/mysql
 
 COPY ps-entry.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

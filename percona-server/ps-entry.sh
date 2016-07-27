@@ -47,7 +47,7 @@ fi
 		mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
 		# install TokuDB engine
 		if [ -n "$INIT_TOKUDB" ]; then
-			ps_tokudb_admin --enable
+			ps_tokudb_admin --force-mycnf --enable
 		fi
 
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
