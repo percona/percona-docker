@@ -6,7 +6,7 @@ if [ "${1:0:1}" = '-' ]; then
 	CMDARG="$@"
 fi
 	# comment out log output in my.cnf
-	sed -e '/log-error/s/^/#/g' -i /etc/my.cnf
+	#sed -e '/log-error/s/^/#/g' -i /etc/my.cnf
 
 	if [ -n "$INIT_TOKUDB" ]; then
 		export LD_PRELOAD=/lib64/libjemalloc.so.1
