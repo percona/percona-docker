@@ -14,7 +14,7 @@ bind_address = 0.0.0.0
 
 wsrep_slave_threads=2
 wsrep_cluster_address=gcomm://
-wsrep_provider=/usr/lib64/galera3/libgalera_smm.so
+wsrep_provider=/usr/lib/galera3/libgalera_smm.so
 
 wsrep_cluster_name=Theistareykjarbunga
 
