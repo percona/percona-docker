@@ -46,7 +46,7 @@ VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
 RUN sed -Ei '/log-error/s/^/#/g' -i /etc/mysql/my.cnf
 
-#ADD node.cnf /etc/my.cnf
+ADD node.cnf /etc/mysql/conf.d/node.cnf
 
 COPY pxc-entry.sh /entrypoint.sh
 COPY jq /usr/bin/jq
