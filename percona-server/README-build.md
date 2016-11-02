@@ -4,7 +4,7 @@ Build image
 
 or
 
-  `docker build --build-arg PS_VERSION=5.6.27 -t percona-server Dockerfile`
+  `docker build -t percona-server Dockerfile`
 
 Tag image
   
