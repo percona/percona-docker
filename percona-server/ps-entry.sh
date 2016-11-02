@@ -1,12 +1,13 @@
 #!/bin/bash
 set -e
 
+USER_ID=$(id -u)
+
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
 	CMDARG="$@"
 fi
 	# comment out log output in my.cnf
-	#sed -e '/log-error/s/^/#/g' -i /etc/my.cnf
 
 	if [ -n "$INIT_TOKUDB" ]; then
 		export LD_PRELOAD=/lib64/libjemalloc.so.1
@@ -24,10 +25,9 @@ fi
 
 		echo "Running --initialize-insecure datadir: $DATADIR"
 		mysqld --no-defaults --initialize-insecure --datadir="$DATADIR"
-		chown -R mysql:mysql "$DATADIR"
 		echo 'Finished --initialize-insecure'
 
-		mysqld --no-defaults --user=mysql --datadir="$DATADIR" --skip-networking &
+		mysqld --no-defaults --datadir="$DATADIR" --skip-networking &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot )
@@ -99,6 +99,5 @@ fi
 		echo
 		#mv /etc/my.cnf $DATADIR
 	fi
-	chown -R mysql:mysql "$DATADIR"
 
-exec mysqld --user=mysql $CMDARG
+exec mysqld $CMDARG
