@@ -12,7 +12,7 @@ RUN echo 'deb https://repo.percona.com/apt jessie main' > /etc/apt/sources.list.
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
-            -c "Default Application User" default
+            -c "Default Application User" mysql
 
 ENV PERCONA_MAJOR 5.7
 ENV PERCONA_VERSION 5.7.15-9-1.jessie
