@@ -10,7 +10,7 @@ docker run -d -p 3306 --net=$NETWORK_NAME \
 	 -e DISCOVERY_SERVICE=$ETCD_HOST \
 	 -e CLUSTER_NAME=${CLUSTER_NAME} \
 	 -e XTRABACKUP_PASSWORD=Theistare \
-	 perconalab/percona-xtradb-cluster:5.7
+	 percona/percona-xtradb-cluster
 #--general-log=1 --general_log_file=/var/lib/mysql/general.log
 echo "Started $(docker ps -l -q)"
 
