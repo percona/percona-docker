@@ -13,7 +13,7 @@ RUN wget https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb
     dpkg -i percona-release_0.1-4.jessie_all.deb
 
 ENV PERCONA_MAJOR 5.7
-ENV PERCONA_VERSION 5.7.16-i27.19-1.jessie
+ENV PERCONA_VERSION 5.7.16-27.19-1.jessie
 
 # the "/var/lib/mysql" stuff here is because the mysql-server postinst doesn't have an explicit way to disable the mysql_install_db codepath besides having a database already "configured" (ie, stuff in /var/lib/mysql/mysql)
 # also, we set debconf keys to make APT a little quieter
