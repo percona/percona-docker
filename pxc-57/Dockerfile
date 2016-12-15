@@ -3,21 +3,17 @@ MAINTAINER Percona Development <info@percona.com>
 
 RUN groupadd -r mysql && useradd -r -g mysql mysql
 
-#RUN dpkg -i https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb
-#dpkg -i percona-release_0.1-4.jessie_all.deb
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
 		apt-transport-https ca-certificates \
-		pwgen \
+		pwgen wget \
 	&& rm -rf /var/lib/apt/lists/*
 
-
-RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A
-
-RUN echo 'deb https://repo.percona.com/apt jessie main' > /etc/apt/sources.list.d/percona.list
+RUN wget https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb
+    dpkg -i percona-release_0.1-4.jessie_all.deb
 
 ENV PERCONA_MAJOR 5.7
-ENV PERCONA_VERSION 5.7.15-9-1.jessie
+ENV PERCONA_VERSION 5.7.16-27.19-1.jessie
 
 # the "/var/lib/mysql" stuff here is because the mysql-server postinst doesn't have an explicit way to disable the mysql_install_db codepath besides having a database already "configured" (ie, stuff in /var/lib/mysql/mysql)
 # also, we set debconf keys to make APT a little quieter
