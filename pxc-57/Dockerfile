@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		pwgen wget \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN wget https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb
-    dpkg -i percona-release_0.1-4.jessie_all.deb
+RUN wget https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb \
+  && dpkg -i percona-release_0.1-4.jessie_all.deb
 
 ENV PERCONA_MAJOR 5.7
 ENV PERCONA_VERSION 5.7.16-27.19-1.jessie
