@@ -3,18 +3,35 @@ set -e
 
 cat<<TODO
 
+    TODO
     dont create xtrabackup user if not in cluster mode
-    exclude my ip when getting running tasks
-    myIP sometimes returns the ingress network ip and not the service defined network - not sure if this is a problem
+    check myIp logic when the service is part 
+
     HEALTHCHECK 
     mysql -srNe -p$MYSQL_ROOT_PASSWORD "SHOW GLOBAL STATUS LIKE 'wsrep_ready';" | awk '{ print $2; }'
     mysql -srNe "SHOW GLOBAL STATUS LIKE 'wsrep_ready';" | awk '{ print $2; }'
 
+
+    RUN 
+    docker service create \
+    --publish 3306:3306 \
+    --name mysql --replicas 3 \
+    --network x \
+    -e MYSQL_ROOT_PASSWORD=1 -e CLUSTER_NAME=cl  \
+    --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+    --mount type=bind,src=/home/Dockers/dockerfiles/percona-docker/pxc-57/entrypoint.sh,dst=/entrypoint.sh \
+    percona-xtradb-cluster bash -c "ping www.google.com"
+
+    
     >>>>>>>>>>>>>>>>>>>>>>
 TODO
 
-# in case you want to start the container with a different command or some special mysqld parameter
-if [ "$1" != "mysqld" ] || [ ! -z "$2" ]; then
+
+# if command starts with an option, prepend mysqld
+if [ "${1:0:1}" = '-' ]; then
+	set -- mysqld --user=mysql "$@"
+# in case you want to start the container with a different command
+elif [ "$1" != "mysqld" ] || [ ! -z "$2" ]; then
     exec "$@"
     exit
 else
@@ -126,12 +143,12 @@ if [ !  -z "$CLUSTER_NAME" ]; then
 
     echo -e "Starting percona in a cluster  \n"
 
-    myIp=$(hostname -i | awk ' { print $1 } ')
+    myIp=$(dig -t A +short $(hostname))
 
-    # get all task IP's (excluding non running, the ingres network)
+    # get all task IP's (excluding non running, myIp and all ips from  the ingres network )
     readarray -t serviceIpArray <<< "$(curl -s --unix-socket /var/run/docker.sock \
             http://localhost/tasks?service=$serviceName | \
-            jq -r '.[] | select(.Status.State == "running") | .NetworksAttachments[] | select(.Network.Spec.Name != "ingress") | .Addresses[]' |\
+            jq -r '.[] | select(.Status.State == "running") | .NetworksAttachments[] | select(.Network.Spec.Name != "ingress") | .Addresses[] | select( . != "'"$myIp"'")' |\
             awk -F '/' {'print $1'})"
 
     echo -e "Trying to find a cluster node \n"

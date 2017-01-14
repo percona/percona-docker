@@ -6,7 +6,7 @@ RUN groupadd -r mysql && useradd -r -g mysql mysql
 RUN apt-get update && apt-get install -y --no-install-recommends \
 		apt-transport-https ca-certificates \
 		pwgen wget \
-                && rm -rf /var/lib/apt/lists/*
+	&& rm -rf /var/lib/apt/lists/*
 
 RUN wget https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb \
   && dpkg -i percona-release_0.1-4.jessie_all.deb
@@ -20,7 +20,6 @@ ENV PERCONA_VERSION 5.7.16-27.19-1.jessie
 ENV DEBIAN_FRONTEND noninteractive
 
 # testing repo is used to install a curl versoin that supports unix sockets
-
 RUN     echo "deb http://deb.debian.org/debian testing main contrib non-free" >> /etc/apt/sources.list \
         && apt-get update \
 	&& apt-get install -y --force-yes --no-install-recommends percona-xtradb-cluster-57 jq \
@@ -38,11 +37,10 @@ RUN     echo "deb http://deb.debian.org/debian testing main contrib non-free" >>
 # don't reverse lookup hostnames, they are usually another container
 RUN sed -Ei 's/^(bind-address|log)/#&/' /etc/mysql/my.cnf \
 	&& echo 'skip-host-cache\nskip-name-resolve' | awk '{ print } $1 == "[mysqld]" && c == 0 { c = 1; system("cat") }' /etc/mysql/my.cnf > /tmp/my.cnf \
-	&& mv /tmp/my.cnf /etc/mysql/my.cnf
+	&& mv /tmp/my.cnf /etc/mysql/my.cnf \
+        && sed -Ei '/log-error/s/^/#/g' -i /etc/mysql/my.cnf
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
-
-RUN sed -Ei '/log-error/s/^/#/g' -i /etc/mysql/my.cnf
 
 ADD node.cnf /etc/mysql/conf.d/node.cnf
 
