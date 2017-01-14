@@ -1,20 +1,30 @@
 #!/bin/bash
 set -e
 
-# if command starts with an option, prepend mysqld
-if [ "${1:0:1}" = '-' ]; then
-	CMDARG="$@"
-fi
+cat<<TODO
 
-if [ -z "$CLUSTER_NAME" ]; then
-	echo >&2 'Error:  You need to specify CLUSTER_NAME'
-	exit 1
+    dont create xtrabackup user if not in cluster mode
+    exclude my ip when getting running tasks
+    myIP sometimes returns the ingress network ip and not the service defined network - not sure if this is a problem
+    HEALTHCHECK 
+    mysql -srNe -p$MYSQL_ROOT_PASSWORD "SHOW GLOBAL STATUS LIKE 'wsrep_ready';" | awk '{ print $2; }'
+    mysql -srNe "SHOW GLOBAL STATUS LIKE 'wsrep_ready';" | awk '{ print $2; }'
+
+    >>>>>>>>>>>>>>>>>>>>>>
+TODO
+
+# in case you want to start the container with a different command or some special mysqld parameter
+if [ "$1" != "mysqld" ] || [ ! -z "$2" ]; then
+    exec "$@"
+    exit
+else
+    set -- "$@" --user=mysql
 fi
 
 	# Get config
 	DATADIR="$("mysqld" --verbose --wsrep_provider= --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 
-	if [ ! -e "$DATADIR/init.ok" ]; then
+	if [ ! -d "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
                         echo >&2 'error: database is uninitialized and password option is not specified '
                         echo >&2 '  You need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD'
@@ -29,7 +39,7 @@ fi
 		chown mysql:mysql /var/log/mysqld.log
 		echo 'Finished --initialize-insecure'
 
-		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
+                exec "$@" --datadir="$DATADIR" --skip-networking &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot )
@@ -98,62 +108,61 @@ fi
 		echo
 		echo 'MySQL init process done. Ready for start up.'
 		echo
-		#mv /etc/my.cnf $DATADIR
 	fi
-	touch $DATADIR/init.ok
 	chown -R mysql:mysql "$DATADIR"
 
-if [ -z "$DISCOVERY_SERVICE" ]; then
-	cluster_join=$CLUSTER_JOIN
+#--log-error=${DATADIR}error.log
+# run in standalone mode or as a cluster
+if [ !  -z "$CLUSTER_NAME" ]; then
+    containerId=$(cat /proc/self/cgroup |  awk -F  ":" '/pids/ {print $3}' | awk -F  "/" '{print $3}');
+    serviceName=$(curl -s --unix-socket /var/run/docker.sock \
+                    http://localhost/containers/$containerId/json  | \
+                    jq -r '.Config.Labels["com.docker.swarm.service.name"]')
+
+    if [ -z "$serviceName" ]; then
+        echo  "to run as a cluster you need to run it  as a service"
+        exit 1
+    fi
+
+    echo -e "Starting percona in a cluster  \n"
+
+    myIp=$(hostname -i | awk ' { print $1 } ')
+
+    # get all task IP's (excluding non running, the ingres network)
+    readarray -t serviceIpArray <<< "$(curl -s --unix-socket /var/run/docker.sock \
+            http://localhost/tasks?service=$serviceName | \
+            jq -r '.[] | select(.Status.State == "running") | .NetworksAttachments[] | select(.Network.Spec.Name != "ingress") | .Addresses[]' |\
+            awk -F '/' {'print $1'})"
+
+    echo -e "Trying to find a cluster node \n"
+
+    # find at least one node from the cluster that is in a cluster state or bootstrap as a new cluster
+    for nodeIp in "${serviceIpArray[@]}"; do
+            nodeState=$(mysql -h $nodeIp -srN -p$MYSQL_ROOT_PASSWORD -e "SHOW GLOBAL STATUS LIKE 'wsrep_cluster_status';" 2>&1 | awk '/wsrep_cluster_status/ {print $2}')
+            nodeState="${nodeState// /}" # trim empty space
+            echo "Checking cluster state of service node: $nodeIp $nodeState"
+            
+            #  there is  a primary node or bootstrap the cluster
+            if [ ! -z "$nodeState" ] || [ "$nodeIp" == "${serviceIpArray[-1]}" ]; then
+                if [[ ! -z "$nodeState" ]]; then
+                    echo -e  "Joining Primary cluster node : $nodeIp \n"
+                    joinNode=$nodeIp
+                else
+                    # if no node is in primary state then wsrep_cluster_address will be empty and the cluster will bootstrap
+                    echo "Boostraping a new cluster"
+                fi
+
+                exec "$@" --wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$joinNode" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --wsrep_node_address="$myIp" 
+            fi
+    done
+    
+    
+    # NOTE: the container healthcheck ensures that all de-synced nodes will be removed
+
 else
-
-echo
-echo 'Registering in the discovery service'
-echo
-
-function join {
-  local IFS="$1"
-  shift
-  joined=$(tr "$IFS" '\n' <<< "$*" | sort -un | tr '\n' "$IFS")
-  echo "${joined%?}"
-}
-
-# Read the list of registered IP addresses
-set +e
-
-ipaddr=$(hostname -i | awk ' { print $1 } ')
-hostname=$(hostname)
-
-curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME -XPOST -d value=$ipaddr -d ttl=60
-
-#get list of IP from queue 
-i=$(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME | jq -r '.node.nodes[].value')
-
-# this remove my ip from the list
-i1="${i[@]/$ipaddr}"
-cluster_join1=$(join , $i1)
-
-# Register the current IP in the discovery service
-
-# key set to expire in 30 sec. There is a cronjob that should update them regularly
-curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr/ipaddr -XPUT -d value="$ipaddr" -d ttl=30
-curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr/hostname -XPUT -d value="$hostname" -d ttl=30
-curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr -XPUT -d ttl=30 -d dir=true -d prevExist=true
-
-#i=`curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/ | jq -r '.node.nodes[].value'`
-i=$(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/?quorum=true | jq -r '.node.nodes[]?.key' | awk -F'/' '{print $(NF)}')
-# this remove my ip from the list
-i2="${i[@]/$ipaddr}"
-cluster_join2=$(join , $i1)
-cluster_join=$(join , $i1 $i2 )
-echo "Joining cluster $cluster_join"
-
-
-/usr/bin/clustercheckcron monitor monitor 1 /var/lib/mysql/clustercheck.log 1 & 
-set -e
-
+    echo -e "Starting  percona in a standalone mode \n\n"
+    exec "$@"
 fi
 
-#--log-error=${DATADIR}error.log
-exec mysqld --user=mysql --wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$cluster_join" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --wsrep_node_address="$ipaddr" $CMDARG
+
 
