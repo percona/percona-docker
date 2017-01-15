@@ -5,11 +5,7 @@ cat<<TODO
 
     TODO
     dont create xtrabackup user if not in cluster mode
-    check myIp logic when the service is part 
 
-    HEALTHCHECK 
-    mysql -srNe -p$MYSQL_ROOT_PASSWORD "SHOW GLOBAL STATUS LIKE 'wsrep_ready';" | awk '{ print $2; }'
-    mysql -srNe "SHOW GLOBAL STATUS LIKE 'wsrep_ready';" | awk '{ print $2; }'
 
 
     RUN 
@@ -19,7 +15,8 @@ cat<<TODO
     --network x \
     -e MYSQL_ROOT_PASSWORD=1 -e CLUSTER_NAME=cl  \
     --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
-    --mount type=bind,src=/home/Dockers/dockerfiles/percona-docker/pxc-57/entrypoint.sh,dst=/entrypoint.sh \
+    --mount type=bind,src=/home/Dockers/dockerfiles/percona/pxc-57/entrypoint.sh,dst=/entrypoint.sh \
+    --mount type=bind,src=/home/Dockers/dockerfiles/percona/pxc-57/healthcheck.sh,dst=/healthcheck.sh \
     percona-xtradb-cluster bash -c "ping www.google.com"
 
     
@@ -76,7 +73,7 @@ fi
 		# sed is for https://bugs.mysql.com/bug.php?id=20545
 		mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			MYSQL_ROOT_PASSWORD="$(pwmake 128)"
+			export MYSQL_ROOT_PASSWORD="$(pwmake 128)"
 			echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 		fi
 		"${mysql[@]}" <<-EOSQL
@@ -177,7 +174,7 @@ if [ !  -z "$CLUSTER_NAME" ]; then
     # NOTE: the container healthcheck ensures that all de-synced nodes will be removed
 
 else
-    echo -e "Starting  percona in a standalone mode \n\n"
+    echo -e "WARNING!!!  Starting  percona in a standalone mode \n\n"
     exec "$@"
 fi
 

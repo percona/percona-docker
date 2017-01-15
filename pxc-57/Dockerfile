@@ -22,7 +22,7 @@ ENV DEBIAN_FRONTEND noninteractive
 # testing repo is used to install a curl versoin that supports unix sockets
 RUN     echo "deb http://deb.debian.org/debian testing main contrib non-free" >> /etc/apt/sources.list \
         && apt-get update \
-	&& apt-get install -y --force-yes --no-install-recommends percona-xtradb-cluster-57 jq \
+	&& apt-get install -y --force-yes --no-install-recommends percona-xtradb-cluster-57 jq dnsutils \
         && apt-get install -y -t testing --no-install-recommends curl \
 	&& rm -rf /var/lib/apt/lists/* \
 # comment out any "user" entires in the MySQL config ("docker-entrypoint.sh" or "--user" will handle user switching)
@@ -45,6 +45,7 @@ VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 ADD node.cnf /etc/mysql/conf.d/node.cnf
 
 COPY entrypoint.sh /
+COPY healthcheck.sh /
 
 EXPOSE 3306 4567 4568
 
@@ -52,5 +53,6 @@ LABEL vendor=Percona
 LABEL com.percona.package="Percona XtraDB Cluster"
 LABEL com.percona.version="5.7"
 
+HEALTHCHECK --timeout=5s CMD ["/healthcheck.sh"]
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["mysqld"]
