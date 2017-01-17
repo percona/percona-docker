@@ -142,3 +142,31 @@ where `MYSQL_ROOT_PASSWORD` is the root password for the MySQL nodes. The passwo
 
 Running `docker exec -it ${CLUSTER_NAME}_proxysql add_cluster_nodes.sh` will register all nodes in the ProxySQL.
 
+
+
+TODO 
+    
+    dont create xtrabackup user if not in cluster mode
+    allow setting up mysql config variables at runtime using env variabes
+
+
+    HEALTCHECK during initial mysql bootstrap shuts down the container before is syncs with the other nodes
+    issue - https://github.com/docker/docker/issues/26664
+    dig +short tasks.serviceName - no way to get which service am I part of
+    docker returns tasks with dig even if they are still starting(unhealthy) - dig +short tasks.serviceName
+    when scaling up start tasks Consecutively - https://github.com/docker/docker/issues/30194
+    containers loose connectivity between each other after some time
+
+
+    RUN 
+    docker service create \
+    --publish 3306:3306 \
+    --name mysql --replicas 1 \
+    --network x \
+    -e MYSQL_ROOT_PASSWORD=1 \
+    -e SERVICE_NAME=mysql \
+    -e CLUSTER_NAME=cl  \
+    --mount type=bind,src=/home/Dockers/dockerfiles/percona/pxc-57/entrypoint.sh,dst=/entrypoint.sh \
+    --mount type=bind,src=/home/Dockers/dockerfiles/percona/pxc-57/healthcheck.sh,dst=/healthcheck.sh \
+    percona-xtradb-cluster bash -c "(/entrypoint.sh mysqld &) && while true; do  dig +short tasks.mysql | xargs -n1 ping -w1 -c1 ; sleep 2; done"
+

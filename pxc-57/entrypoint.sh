@@ -1,29 +1,6 @@
 #!/bin/bash
 set -e
 
-cat<<TODO
-
-    TODO
-    dont create xtrabackup user if not in cluster mode
-
-
-
-    RUN 
-    docker service create \
-    --publish 3306:3306 \
-    --name mysql --replicas 3 \
-    --network x \
-    -e MYSQL_ROOT_PASSWORD=1 -e CLUSTER_NAME=cl  \
-    --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
-    --mount type=bind,src=/home/Dockers/dockerfiles/percona/pxc-57/entrypoint.sh,dst=/entrypoint.sh \
-    --mount type=bind,src=/home/Dockers/dockerfiles/percona/pxc-57/healthcheck.sh,dst=/healthcheck.sh \
-    percona-xtradb-cluster bash -c "ping www.google.com"
-
-    
-    >>>>>>>>>>>>>>>>>>>>>>
-TODO
-
-
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld --user=mysql "$@"
@@ -125,16 +102,11 @@ fi
 	fi
 	chown -R mysql:mysql "$DATADIR"
 
-#--log-error=${DATADIR}error.log
 # run in standalone mode or as a cluster
 if [ !  -z "$CLUSTER_NAME" ]; then
-    containerId=$(cat /proc/self/cgroup |  awk -F  ":" '/pids/ {print $3}' | awk -F  "/" '{print $3}');
-    serviceName=$(curl -s --unix-socket /var/run/docker.sock \
-                    http://localhost/containers/$containerId/json  | \
-                    jq -r '.Config.Labels["com.docker.swarm.service.name"]')
-
-    if [ -z "$serviceName" ]; then
-        echo  "to run as a cluster you need to run it  as a service"
+    
+    if [ -z "$SERVICE_NAME" ]; then
+        echo  "$SERVICE_NAME variable not set."
         exit 1
     fi
 
@@ -142,11 +114,8 @@ if [ !  -z "$CLUSTER_NAME" ]; then
 
     myIp=$(dig -t A +short $(hostname))
 
-    # get all task IP's (excluding non running, myIp and all ips from  the ingres network )
-    readarray -t serviceIpArray <<< "$(curl -s --unix-socket /var/run/docker.sock \
-            http://localhost/tasks?service=$serviceName | \
-            jq -r '.[] | select(.Status.State == "running") | .NetworksAttachments[] | select(.Network.Spec.Name != "ingress") | .Addresses[] | select( . != "'"$myIp"'")' |\
-            awk -F '/' {'print $1'})"
+    # get all task IP's
+    readarray -t serviceIpArray <<< "$(dig -t A +short tasks.$SERVICE_NAME)"
 
     echo -e "Trying to find a cluster node \n"
 
@@ -159,14 +128,17 @@ if [ !  -z "$CLUSTER_NAME" ]; then
             #  there is  a primary node or bootstrap the cluster
             if [ ! -z "$nodeState" ] || [ "$nodeIp" == "${serviceIpArray[-1]}" ]; then
                 if [[ ! -z "$nodeState" ]]; then
-                    echo -e  "Joining Primary cluster node : $nodeIp \n"
-                    joinNode=$nodeIp
+                    #build the array with nodes to pass to the cluster for joining
+                    joinNodes=$(printf ",%s" "${serviceIpArray[@]}")
+                    joinNodes=${joinNodes:1}
+                    echo -e  "Joining cluster node(s) : $joinNodes \n"
+
                 else
                     # if no node is in primary state then wsrep_cluster_address will be empty and the cluster will bootstrap
-                    echo "Boostraping a new cluster"
+                    echo "NOTICE: No primary node so boostraping a new cluster!"
                 fi
 
-                exec "$@" --wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$joinNode" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --wsrep_node_address="$myIp" 
+                exec "$@" --wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$joinNodes" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --wsrep_node_address="$myIp" 
             fi
     done
     
@@ -177,6 +149,3 @@ else
     echo -e "WARNING!!!  Starting  percona in a standalone mode \n\n"
     exec "$@"
 fi
-
-
-
