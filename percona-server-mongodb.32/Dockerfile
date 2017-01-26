@@ -1,22 +1,40 @@
-FROM centos:centos7
-MAINTAINER Percona Development <info@percona.com>
+FROM debian:jessie
+MAINTAINER Percona Development Team <opensource-dev@percona.com>
 
-RUN groupadd -r mongodb && useradd -r -g mongodb mongodb
+RUN apt-get update && apt-get install -y --no-install-recommends \
+                apt-transport-https ca-certificates \
+                pwgen \
+        && rm -rf /var/lib/apt/lists/*
 
-RUN rpmkeys --import https://www.percona.com/downloads/RPM-GPG-KEY-percona
+RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A
 
-RUN yum install -y http://www.percona.com/downloads/percona-release/redhat/0.1-3/percona-release-0.1-3.noarch.rpm
-RUN yum install -y which Percona-Server-MongoDB-32
+RUN echo 'deb https://repo.percona.com/apt jessie main' > /etc/apt/sources.list.d/percona.list
 
-# Install server
+# the numeric UID is needed for OpenShift
+RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
+            -c "Default Application User" mongodb
+
+ENV PERCONA_MAJOR 32
+ENV PERCONA_VERSION 3.2.11-3.1.jessie
 
 
-RUN mkdir -p /data/db && chown -R mongodb:mongodb /data/db
+RUN \
+        apt-get update \
+        && apt-get install -y --force-yes \
+          percona-server-mongodb-$PERCONA_MAJOR=$PERCONA_VERSION \
+        && rm -rf /var/lib/apt/lists/* \
+        && rm -rf /data/db && mkdir -p /data/db \ 
+        && chown -R 1001:0 /data/db
 
-VOLUME /data/db
+VOLUME ["/data/db"]
+
 
 COPY ps-entry.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
+
 EXPOSE 27017
+
+USER 1001
+
 CMD ["mongod"]
