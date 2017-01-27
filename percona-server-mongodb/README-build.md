@@ -1,7 +1,7 @@
 
 Build image
 
-  `docker build -t percona-server-mongodb`
+  `docker build -t percona-server-mongodb .`
 
 Tag image
   
