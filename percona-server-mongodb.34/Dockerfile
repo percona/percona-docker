@@ -1,4 +1,4 @@
-M debian:jessie
+FROM debian:jessie
 MAINTAINER Percona Development Team <opensource-dev@percona.com>
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
