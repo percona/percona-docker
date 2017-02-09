@@ -23,9 +23,6 @@ echo "ID : $hostn"
 
 sleep 10
 
-docker exec -it $hostn mysql -uroot -p$mysql_password -e "SET GLOBAL group_replication_bootstrap_group=ON;START GROUP_REPLICATION;SET GLOBAL group_replication_bootstrap_group=OFF;"
-
-
 for i in $(seq 2 $nodes)
 do
 echo "Starting extra node $i"
@@ -46,5 +43,4 @@ echo "ID : $hostnode"
 
 sleep 10
 
-docker exec -it $hostnode mysql -uroot -p$mysql_password -e "SET GLOBAL group_replication_allow_local_disjoint_gtids_join=ON;START GROUP_REPLICATION;SET GLOBAL group_replication_allow_local_disjoint_gtids_join=OFF;"
 done

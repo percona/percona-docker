@@ -108,11 +108,13 @@ fi
 		#mv /etc/my.cnf $DATADIR
 	fi
 
+start_boot="--group_replication_bootstrap_group=ON"
 if [ -n "$CLUSTER_JOIN" ]; then
 	cluster_join=$CLUSTER_JOIN
-echo "loose-group_replication_group_seeds=$cluster_join:24901" >> /etc/mysql/conf.d/node.cnf
+	start_boot="--group_replication_bootstrap_group=OFF"
+	echo "loose-group_replication_group_seeds=$cluster_join:24901" >> /etc/mysql/conf.d/node.cnf
 fi
 
 #--log-error=${DATADIR}error.log
-exec mysqld $CMDARG
+exec mysqld $start_boot $CMDARG
 

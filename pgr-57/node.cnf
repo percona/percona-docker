@@ -15,7 +15,8 @@ transaction-write-set-extraction=XXHASH64
 
 loose-group_replication_group_name="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 loose-group_replication_single_primary_mode=OFF
+loose-group_replication_allow_local_disjoint_gtids_join=ON
 
-loose-group_replication_start_on_boot=off
-loose-group_replication_bootstrap_group=off
+loose-group_replication_start_on_boot=on
+#loose-group_replication_bootstrap_group=off
 
