@@ -2,7 +2,8 @@ apiVersion: v1
 kind: ReplicationController
 metadata:
   name: pxc-rc
-  app: pxc-app
+  labels:
+    app: pxc-app
 spec:
   replicas: 3 # tells deployment to run N pods matching the template
   selector:
@@ -15,42 +16,57 @@ spec:
     spec:
       containers:
       - name: percona-xtradb-cluster
-        image: perconalab/percona-xtradb-cluster:5.6test
+        imagePullPolicy: Always
+        image: perconalab/percona-xtradb-cluster:5.7
         ports:
         - containerPort: 3306
+          name: mysql
         - containerPort: 4567
         - containerPort: 4568
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: "Theistareyk"
+          valueFrom:
+            configMapKeyRef:
+              name: pxc-config
+              key: root_password
         - name: DISCOVERY_SERVICE
-          value: "172.18.0.4:4001"
+          valueFrom:
+            configMapKeyRef:
+              name: pxc-config
+              key: discovery_service
         - name: CLUSTER_NAME
-          value: "k8scluster2"
+          valueFrom:
+            configMapKeyRef:
+              name: pxc-config
+              key: cluster_name
         - name: XTRABACKUP_PASSWORD
-          value: "Theistare"
+          valueFrom:
+            configMapKeyRef:
+              name: pxc-config
+              key: xtrabackup_passwod
         volumeMounts:
         - name: mysql-persistent-storage
           mountPath: /var/lib/mysql
       volumes:
       - name: mysql-persistent-storage
         emptyDir: {}
-      imagePullPolicy: Always
 ---
 apiVersion: v1
 kind: ReplicationController
 metadata:
   name: proxysql-rc
-  app: proxysql-app
+  labels:
+    app: proxysql-app
 spec:
-  replicas: 1 # tells deployment to run N pods matching the template
+  replicas: 2 # tells deployment to run N pods matching the template
   selector:
+    app: pxc-proxysql
     front: proxysql
   template: # create pods using pod definition in this template
     metadata:
       name: proxysql
       labels:
-        app: pxc-app
+        app: pxc-proxysql
         front: proxysql
     spec:
       containers:
@@ -58,25 +74,42 @@ spec:
         image: perconalab/proxysql
         ports:
         - containerPort: 3306
+          name: "mysql"
         - containerPort: 6032
+          name: "proxyadm"
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: "Theistareyk"
+          valueFrom:
+            configMapKeyRef:
+              name: pxc-config
+              key: root_password
         - name: DISCOVERY_SERVICE
-          value: "172.18.0.4:4001"
+          valueFrom:
+            configMapKeyRef:
+              name: pxc-config
+              key: discovery_service
         - name: CLUSTER_NAME
-          value: "k8scluster2"
+          valueFrom:
+            configMapKeyRef:
+              name: pxc-config
+              key: cluster_name
         - name: MYSQL_PROXY_USER
-          value: "proxyuser"
+          valueFrom:
+            configMapKeyRef:
+              name: pxc-config
+              key: mysql_proxy_user
         - name: MYSQL_PROXY_PASSWORD
-          value: "s3cret"
+          valueFrom:
+            configMapKeyRef:
+              name: pxc-config
+              key: mysql_proxy_password
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: pxc-service
   labels:
-    app: pxc-app
+    app: pxc-proxysql
 spec:
   ports:
     # the port that this service should serve on
@@ -88,4 +121,5 @@ spec:
       name: "proxyadm"
   # label keys and values that must match in order to receive traffic for this service
   selector:
+    app: pxc-proxysql
     front: proxysql
