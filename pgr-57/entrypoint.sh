@@ -7,7 +7,15 @@ ipaddr=$(hostname -i | awk ' { print $1 } ')
 hostname=$(hostname)
 
 echo "loose-group_replication_local_address=$hostname:24901" >> /etc/mysql/conf.d/node.cnf
-echo "loose-group-replication-ip-whitelist=$ipaddr/24" >> /etc/mysql/conf.d/node.cnf
+
+if [ -n "$ipaddr" ]; then
+	echo "loose-group-replication-ip-whitelist=$ipaddr/24" >> /etc/mysql/conf.d/node.cnf
+else
+	# this is needed for docker --net=host
+	# get list of ip addresses 
+	listip=`ip addr | grep 'state UP' -A2 | grep -P "inet\s" |  awk '{print $2}'  | paste -sd "," -`
+	echo "loose-group-replication-ip-whitelist=$listip" >> /etc/mysql/conf.d/node.cnf
+fi
 
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then

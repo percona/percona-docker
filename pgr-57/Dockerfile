@@ -53,6 +53,9 @@ RUN  chown -R 1001:0 /etc/mysql/conf.d/node.cnf
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
+LABEL vendor=Percona
+LABEL com.percona.package="Percona Server Group Replication"
+LABEL com.percona.version="5.7.17"
 
 EXPOSE 3306
 
