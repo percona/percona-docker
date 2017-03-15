@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pxc-config
+data:
+  root_password: my_secure_root_password
+  discovery_service: etcd:2379
+  cluster_name: k8scluster1
+  xtrabackup_passwod: my_secure_xtrabackup_password
+  mysql_proxy_user: proxyuser
+  mysql_proxy_password: s3cret
