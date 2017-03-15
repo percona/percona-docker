@@ -15,7 +15,7 @@ skip-name-resolve
 
 wsrep_slave_threads=2
 wsrep_cluster_address=gcomm://
-wsrep_provider=/usr/lib64/galera3/libgalera_smm.so
+wsrep_provider=/usr/lib/galera3/libgalera_smm.so
 
 wsrep_sst_method=xtrabackup-v2
 wsrep_sst_auth="root:"
