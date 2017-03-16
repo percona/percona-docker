@@ -3,7 +3,6 @@ MAINTAINER Percona Development <info@percona.com>
 
 RUN groupadd -r mysql && useradd -r -g mysql mysql
 
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
 		apt-transport-https ca-certificates \
 		pwgen wget \
@@ -21,8 +20,7 @@ ENV PERCONA_VERSION 5.7.16-27.19-1.jessie
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN     apt-get update \
-	&& apt-get install -y --force-yes \
-		percona-xtradb-cluster-57 curl \
+	&& apt-get install -y --force-yes --no-install-recommends percona-xtradb-cluster-57 jq dnsutils \
 	&& rm -rf /var/lib/apt/lists/* \
 # comment out any "user" entires in the MySQL config ("docker-entrypoint.sh" or "--user" will handle user switching)
 	&& sed -ri 's/^user\s/#&/' /etc/mysql/my.cnf \
@@ -36,21 +34,15 @@ RUN     apt-get update \
 # don't reverse lookup hostnames, they are usually another container
 RUN sed -Ei 's/^(bind-address|log)/#&/' /etc/mysql/my.cnf \
 	&& echo 'skip-host-cache\nskip-name-resolve' | awk '{ print } $1 == "[mysqld]" && c == 0 { c = 1; system("cat") }' /etc/mysql/my.cnf > /tmp/my.cnf \
-	&& mv /tmp/my.cnf /etc/mysql/my.cnf
+	&& mv /tmp/my.cnf /etc/mysql/my.cnf \
+        && sed -Ei '/log-error/s/^/#/g' -i /etc/mysql/my.cnf
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
-RUN sed -Ei '/log-error/s/^/#/g' -i /etc/mysql/my.cnf
-
 ADD node.cnf /etc/mysql/conf.d/node.cnf
 
-COPY entrypoint.sh /entrypoint.sh
-COPY jq /usr/bin/jq
-COPY clustercheckcron /usr/bin/clustercheckcron
-
-RUN chmod a+x /usr/bin/jq
-RUN chmod a+x /usr/bin/clustercheckcron
-
+COPY entrypoint.sh /
+COPY healthcheck.sh /
 
 EXPOSE 3306 4567 4568
 
@@ -58,7 +50,6 @@ LABEL vendor=Percona
 LABEL com.percona.package="Percona XtraDB Cluster"
 LABEL com.percona.version="5.7"
 
+HEALTHCHECK --timeout=5s --retries=30 CMD ["/healthcheck.sh"]
 ENTRYPOINT ["/entrypoint.sh"]
-
-EXPOSE 3306
-CMD [""]
+CMD ["mysqld"]
