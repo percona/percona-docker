@@ -29,7 +29,6 @@ if [ -z "$MASTER_HOST" ]; then
 
 		echo 'Running --initialize-insecure'
 		mysqld --initialize-insecure
-		chown -R mysql:mysql "$DATADIR"
 		echo 'Finished --initialize-insecure'
 
 		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
@@ -105,7 +104,6 @@ if [ -z "$MASTER_HOST" ]; then
 		#mv /etc/my.cnf $DATADIR
 	fi
 	touch $DATADIR/init.ok
-	chown -R mysql:mysql "$DATADIR"
 
 echo "Starting listener for slave requests"
 /usr/bin/master_nc >> /tmp/master_nc.log &
