@@ -22,7 +22,13 @@ Start a Percona Server container as follows:
 
     docker run --name container-name -e MYSQL_ROOT_PASSWORD=secret -d percona/percona-server:tag
 
+Start a Percona Server container with enabled TokuDB as follows:
+
+    docker run --name container-name -e INIT_TOKUDB=1 -e MYSQL_ROOT_PASSWORD=secret -d percona/percona-server:tag
+
 Where `container-name` is the name you want to assign to your container, `secret` is the password to be set for the root user and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://registry.hub.docker.com/u/percona/percona-server/tags/manage/).
+
+WARNING:  If Transparent Huge Page allocation is enabled in the system kernel TokuDB will not be available as a storage engine
 
 ## Connect to Percona Server from an Application in Another Docker Container
 

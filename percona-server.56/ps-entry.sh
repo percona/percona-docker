@@ -1,15 +1,14 @@
 #!/bin/bash
 set -e
-
 USER_ID=$(id -u)
 
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
         CMDARG="$@"
 fi
-
-        if [ -n "$INIT_TOKUDB" ]; then
-                export LD_PRELOAD=/lib64/libjemalloc.so.1
+THP_ENABLED=$(cat /tmp/transparent_hugepage | grep -v '\[never\]' | wc -l )
+        if [ -n "$INIT_TOKUDB" ] && [ $THP_ENABLED == 0 ]; then
+                export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.1
         fi
         # Get config
         DATADIR="$("mysqld" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
@@ -46,7 +45,7 @@ fi
                 # sed is for https://bugs.mysql.com/bug.php?id=20545
                 mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
                 # install TokuDB engine
-                if [ -n "$INIT_TOKUDB" ]; then
+                if [ -n "$INIT_TOKUDB" ] && [ $THP_ENABLED == 0 ]; then
                         ps_tokudb_admin --enable
                 fi
 
@@ -63,7 +62,7 @@ fi
                         GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
                         DROP DATABASE IF EXISTS test ;
                         FLUSH PRIVILEGES ;
-                EOSQL
+EOSQL
                 if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
                         mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
                 fi
@@ -86,7 +85,7 @@ fi
                 if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
                         "${mysql[@]}" <<-EOSQL
                                 ALTER USER 'root'@'%' PASSWORD EXPIRE;
-                        EOSQL
+EOSQL
                 fi
                 if ! kill -s TERM "$pid" || ! wait "$pid"; then
                         echo >&2 'MySQL init process failed.'
@@ -98,5 +97,4 @@ fi
                 echo
                 #mv /etc/my.cnf $DATADIR
         fi
-
 exec mysqld --user=mysql --log-error=${DATADIR}error.log $CMDARG
