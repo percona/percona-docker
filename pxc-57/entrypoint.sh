@@ -14,7 +14,12 @@ fi
 	# Get config
 	DATADIR="$("mysqld" --verbose --wsrep_provider= --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 
-	if [ ! -e "$DATADIR/init.ok" ]; then
+	# if we have CLUSTER_JOIN - then we do not need to perform datadir initialize
+	# the data will be copied from another node
+
+	if [ -z "$CLUSTER_JOIN" ]; then
+
+	if [ ! -e "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
                         echo >&2 'error: database is uninitialized and password option is not specified '
                         echo >&2 '  You need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD'
@@ -100,8 +105,8 @@ fi
 		echo
 		#mv /etc/my.cnf $DATADIR
 	fi
-	touch $DATADIR/init.ok
 	chown -R mysql:mysql "$DATADIR"
+	fi
 
 if [ -z "$DISCOVERY_SERVICE" ]; then
 	cluster_join=$CLUSTER_JOIN
