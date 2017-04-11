@@ -48,6 +48,10 @@ Most of the variables listed below are optional, but one of the variables `MYSQL
 
 This variable specifies a password that will be set for the root superuser account. In the above example, it was set to `secret`. **NOTE:** Setting the MySQL root user password on the command line is insecure.
 
+## `MYSQL_ROOT_PASSWORD_FILE`
+
+This variable specifies a file that will be read for the root user account. This can be a mounted file when you run your container. This can also be used in the scope of the Docker Secrets (Swarm mode) functionality.
+
 ## `MYSQL_RANDOM_ROOT_PASSWORD`
 
 When this variable is set to `yes`, a random password for the server's root user will be generated. The password will be printed to stdout in the container, and it can be obtained by using the command `docker logs container-name`.
