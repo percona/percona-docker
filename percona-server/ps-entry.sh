@@ -26,10 +26,6 @@ fi
 		  MYSQL_ROOT_PASSWORD=$(cat $MYSQL_ROOT_PASSWORD_FILE)
 		fi
 
-		if [ ! -z "$XTRABACKUP_PASSWORD_FILE" ]; then
-		  XTRABACKUP_PASSWORD=$(cat $XTRABACKUP_PASSWORD_FILE)
-		fi
-
 		mkdir -p "$DATADIR"
 
 		echo "Running --initialize-insecure datadir: $DATADIR"
