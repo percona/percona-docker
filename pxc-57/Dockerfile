@@ -3,7 +3,7 @@ MAINTAINER Percona Development <info@percona.com>
 
 RUN groupadd -r mysql && useradd -r -g mysql mysql
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update -qq && apt-get install -qqy --no-install-recommends \
 		apt-transport-https ca-certificates \
 		pwgen wget \
 	&& rm -rf /var/lib/apt/lists/*
@@ -16,8 +16,8 @@ RUN wget https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb \
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN     apt-get update \
-	&& apt-get install -y --force-yes \
+RUN     apt-get update -qq \
+	&& apt-get install -qqy --force-yes \
 		percona-xtradb-cluster-57 curl \
 	&& rm -rf /var/lib/apt/lists/* \
 # comment out any "user" entires in the MySQL config ("docker-entrypoint.sh" or "--user" will handle user switching)
