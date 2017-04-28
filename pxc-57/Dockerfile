@@ -3,7 +3,7 @@ MAINTAINER Percona Development <info@percona.com>
 
 RUN groupadd -r mysql && useradd -r -g mysql mysql
 
-RUN apt-get update && apt-get install -qqy --no-install-recommends \
+RUN apt-get update -qq && apt-get install -qqy --no-install-recommends \
 		apt-transport-https ca-certificates \
 		pwgen wget \
 	&& rm -rf /var/lib/apt/lists/*
