@@ -123,7 +123,7 @@ echo
 function join {
   local IFS="$1"
   shift
-  joined=$(tr "$IFS" '\n' <<< "$*" | sort -un | tr '\n' "$IFS")
+  joined=$(tr "$IFS" '\n' <<< "$*" | sort -u | tr '\n' "$IFS")
   echo "${joined%?}"
 }
 
@@ -139,21 +139,17 @@ curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME -XPOST -d
 i=$(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME | jq -r '.node.nodes[].value')
 
 # this remove my ip from the list
-i1="${i[@]/$ipaddr}"
-cluster_join1=$(join , $i1)
+i1="${i[@]//$ipaddr}"
 
 # Register the current IP in the discovery service
-
 # key set to expire in 30 sec. There is a cronjob that should update them regularly
 curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr/ipaddr -XPUT -d value="$ipaddr" -d ttl=30
 curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr/hostname -XPUT -d value="$hostname" -d ttl=30
 curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr -XPUT -d ttl=30 -d dir=true -d prevExist=true
 
-#i=`curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/ | jq -r '.node.nodes[].value'`
 i=$(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/?quorum=true | jq -r '.node.nodes[]?.key' | awk -F'/' '{print $(NF)}')
 # this remove my ip from the list
-i2="${i[@]/$ipaddr}"
-cluster_join2=$(join , $i1)
+i2="${i[@]//$ipaddr}"
 cluster_join=$(join , $i1 $i2 )
 echo "Joining cluster $cluster_join"
 
