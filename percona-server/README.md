@@ -74,6 +74,14 @@ Do note that there is no need to use this mechanism to create the `root` superus
 
 Set to `yes` to allow the container to be started with a blank password for the root user. **NOTE:** Setting this variable to `yes` is not recommended unless you really know what you are doing, since this will leave your instance completely unprotected, allowing anyone to gain complete superuser access.
 
+## `INIT_TOKUDB`
+
+Set to `1` to allow the container to be started with enabled TOKUDB engine.
+
+## `INIT_ROCKSDB`
+
+Set to `1` to allow the container to be started with enabled ROCKSDB engine.
+
 # Notes, Tips, Gotchas
 
 ## Secure Container Startup
