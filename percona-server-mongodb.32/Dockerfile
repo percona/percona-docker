@@ -15,7 +15,7 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mongodb
 
 ENV PERCONA_MAJOR 32
-ENV PERCONA_VERSION 3.2.11-3.1.jessie
+ENV PERCONA_VERSION 3.2.17-3.8.jessie
 
 
 RUN \
