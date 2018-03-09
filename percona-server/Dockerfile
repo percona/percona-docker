@@ -7,14 +7,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         && rm -rf /var/lib/apt/lists/*
 
 RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 8507EFA5
-RUN echo 'deb https://repo.percona.com/apt jessie testing' > /etc/apt/sources.list.d/percona.list
+RUN echo 'deb https://repo.percona.com/apt jessie main' > /etc/apt/sources.list.d/percona.list
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mysql
 
 ENV PERCONA_MAJOR 5.7
-ENV PERCONA_VERSION 5.7.18-16-4.jessie
+ENV PERCONA_VERSION 5.7.21-20-1.jessie
 
 
 # the "/var/lib/mysql" stuff here is because the mysql-server postinst doesn't have an explicit way to disable the mysql_install_db codepath besides having a database already "configured" (ie, stuff in /var/lib/mysql/mysql)
@@ -48,6 +48,8 @@ RUN echo "LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.1" >> /etc/default
 RUN echo "THP_SETTING=never" >> /etc/default/mysql
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+RUN sed -Ei '/log-error/s/^/#/g' -i /etc/mysql/my.cnf
 
 COPY ps-entry.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

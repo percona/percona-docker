@@ -55,15 +55,15 @@ fi
                         echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
                 fi
                 "${mysql[@]}" <<-EOSQL
-                        -- What's done in this file shouldn't be replicated
-                        --  or products like mysql-fabric won't work
-                        SET @@SESSION.SQL_LOG_BIN=0;
-                        DELETE FROM mysql.user ;
-                        CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
-                        GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
-                        DROP DATABASE IF EXISTS test ;
-                        FLUSH PRIVILEGES ;
-                EOSQL
+-- What's done in this file shouldn't be replicated
+--  or products like mysql-fabric won't work
+SET @@SESSION.SQL_LOG_BIN=0;
+DELETE FROM mysql.user ;
+CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
+GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
+DROP DATABASE IF EXISTS test ;
+FLUSH PRIVILEGES ;
+EOSQL
                 if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
                         mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
                 fi
@@ -85,8 +85,8 @@ fi
 
                 if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
                         "${mysql[@]}" <<-EOSQL
-                                ALTER USER 'root'@'%' PASSWORD EXPIRE;
-                        EOSQL
+ALTER USER 'root'@'%' PASSWORD EXPIRE;
+EOSQL
                 fi
                 if ! kill -s TERM "$pid" || ! wait "$pid"; then
                         echo >&2 'MySQL init process failed.'
