@@ -26,7 +26,7 @@ EOF
 }
 
 append_arg_to_args () {
-  args="$args "`shell_quote_string "$1"`
+  args="$args "$(shell_quote_string "$1")
 }
 
 parse_arguments() {
@@ -38,8 +38,7 @@ parse_arguments() {
     fi
   
     for arg do
-        val=`echo "$arg" | sed -e 's;^--[^=]*=;;'`
-        optname=`echo "$arg" | sed -e 's/^\(--[^=]*\)=.*$/\1/'`
+        val=$(echo "$arg" | sed -e 's;^--[^=]*=;;')
         case "$arg" in
             --install_docker=*) INSTALL="$val" ;;
             --clean_docker=*) CLEAN="$val" ;;
@@ -69,7 +68,6 @@ parse_arguments() {
 red=$(tput setaf 1)
 green=$(tput setaf 2)
 reset=$(tput sgr0)
-CURDIR=$(pwd)
 args=
 WORKDIR=
 INSTALL=0
@@ -81,8 +79,6 @@ SAVE=0
 LOAD=0
 BRANCH=master
 TEST=0
-OS_NAME=
-ARCH=
 OS=
 REPO="https://github.com/percona/percona-docker.git"
 AUTO=0
@@ -91,20 +87,15 @@ parse_arguments PICK-ARGS-FROM-ARGV "$@"
 
 get_system(){
     if [ -f /etc/redhat-release ]; then
-        RHEL=$(rpm --eval %rhel)
-        ARCH=$(echo $(uname -m) | sed -e 's:i686:i386:g')
-        OS_NAME="el$RHEL"
         OS="rpm"
     else
-        ARCH=$(uname -m)
-        OS_NAME="$(lsb_release -sc)"
         OS="deb"
     fi
     return
 }
 
 check_root() {
-  if [ ! $( id -u ) -eq 0 ]
+  if [ ! "$( id -u )" -eq 0 ]
   then
     echo "It is not possible to proceed. Please run as root"
     exit 1
@@ -112,6 +103,7 @@ check_root() {
 }
 
 install_docker() {
+  check_root
   if [ $INSTALL = 0 ]
   then
     echo "Docker will not be installed"
@@ -149,7 +141,7 @@ install_docker() {
   service docker start
 
   groupadd docker || true
-  gpasswd -a $USER docker
+  gpasswd -a "$USER" docker
   service docker restart
 }
 
@@ -160,16 +152,16 @@ clean_dockers() {
     return
   fi
   if [ $AUTO = 1 ]; then
-    docker rm -f $(docker ps -aq) || true
-    docker rmi -f $(docker images -q) || true
+    docker rm -f "$(docker ps -aq)" || true
+    docker rmi -f "$(docker images -q)" || true
     return
   fi
   echo "${red}Please note that ALL docker images and ALL docker containers will be REMOVED${reset}"
   read -p "Continue (y/n)?" choice
   case "$choice" in 
     y|Y )
-      docker rm -f $(docker ps -aq) || true
-      docker rmi -f $(docker images -q) || true
+      docker rm -f "$(docker ps -aq)" || true
+      docker rmi -f "$(docker images -q)" || true
       ;;
     n|N ) return;;
     * ) echo "${green}Dockers will not be deleted${reset}";;
@@ -231,8 +223,8 @@ test_docker() {
     return
   fi
   clean_dockers
-  EXISTS=$(docker images | grep ${DOCKER_NAME} | grep latest | wc -l)
-  if [ ${EXISTS} = 0 ]; then
+  EXISTS=$(docker images | grep ${DOCKER_NAME} | grep -c latest)
+  if [ "${EXISTS}" = 0 ]; then
     load_docker
   fi
   case $DOCKER_NAME in
@@ -255,10 +247,10 @@ test_docker() {
 
 check_running() {
   RUNNING=$(docker ps --filter status=running | grep -c container-name_${DOCKER_NAME})
-  if [ ${RUNNING} = 0 ]; then
+  if [ "${RUNNING}" = 0 ]; then
     CONTAINER=$(docker ps | grep container-name_${DOCKER_NAME} | awk '{print $1}')
     echo "${red} Docker ${DOCKER_NAME} is not running!${reset}"
-    docker logs ${CONTAINER}
+    docker logs "${CONTAINER}"
     exit 1
   else
     echo "${green} Docker ${DOCKER_NAME} is running correctly!${reset}"
@@ -276,7 +268,6 @@ case $DOCKER_NAME in
       ;;
 esac
 
-check_root
 get_system
 install_docker
 clean_dockers
