@@ -3,7 +3,7 @@ MAINTAINER Percona Development <info@percona.com>
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
                 apt-transport-https ca-certificates \
-                pwgen \
+                libpwquality-tools cracklib-runtime \
         && rm -rf /var/lib/apt/lists/*
 
 RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 8507EFA5
