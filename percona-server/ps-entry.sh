@@ -72,7 +72,7 @@ fi
                         ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
                         DROP DATABASE IF EXISTS test ;
                         FLUSH PRIVILEGES ;
-                EOSQL
+				EOSQL
                 if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
                         mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
                 fi
@@ -95,7 +95,7 @@ fi
                 if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
                         "${mysql[@]}" <<-EOSQL
                                 ALTER USER 'root'@'%' PASSWORD EXPIRE;
-                        EOSQL
+						EOSQL
                 fi
                 if ! kill -s TERM "$pid" || ! wait "$pid"; then
                         echo >&2 'MySQL init process failed.'
