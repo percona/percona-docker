@@ -11,13 +11,13 @@ if [ -z "$CLUSTER_NAME" ]; then
 	exit 1
 fi
 
-	# Get config
-	DATADIR="$("mysqld" --verbose --wsrep_provider= --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
+# Get config
+DATADIR="$("mysqld" --verbose --wsrep_provider= --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 
-	# if we have CLUSTER_JOIN - then we do not need to perform datadir initialize
-	# the data will be copied from another node
+# if we have CLUSTER_JOIN - then we do not need to perform datadir initialize
+# the data will be copied from another node
 
-	if [ -z "$CLUSTER_JOIN" ]; then
+if [ -z "$CLUSTER_JOIN" ]; then
 
 	if [ ! -e "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" -a -z "$MYSQL_ROOT_PASSWORD_FILE" ]; then
@@ -109,53 +109,53 @@ fi
 		echo
 		#mv /etc/my.cnf $DATADIR
 	fi
-	chown -R mysql:mysql "$DATADIR"
-	fi
+chown -R mysql:mysql "$DATADIR"
+fi
 
 if [ -z "$DISCOVERY_SERVICE" ]; then
 	cluster_join=$CLUSTER_JOIN
 else
 
-echo
-echo 'Registering in the discovery service'
-echo
+	echo
+	echo 'Registering in the discovery service'
+	echo
 
-function join {
-  local IFS="$1"
-  shift
-  joined=$(tr "$IFS" '\n' <<< "$*" | sort -u | tr '\n' "$IFS")
-  echo "${joined%?}"
-}
+	function join {
+	  local IFS="$1"
+	  shift
+	  joined=$(tr "$IFS" '\n' <<< "$*" | sort -u | tr '\n' "$IFS")
+	  echo "${joined%?}"
+	}
 
-# Read the list of registered IP addresses
-set +e
+	# Read the list of registered IP addresses
+	set +e
 
-ipaddr=$(hostname -i | awk ' { print $1 } ')
-hostname=$(hostname)
+	ipaddr=$(hostname -i | awk ' { print $1 } ')
+	hostname=$(hostname)
 
-curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME -XPOST -d value=$ipaddr -d ttl=60
+	curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME -XPOST -d value=$ipaddr -d ttl=60
 
-#get list of IP from queue 
-i=$(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME | jq -r '.node.nodes[].value')
+	#get list of IP from queue 
+	i=$(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME | jq -r '.node.nodes[].value')
 
-# this remove my ip from the list
-i1="${i[@]//$ipaddr}"
+	# this remove my ip from the list
+	i1="${i[@]//$ipaddr}"
 
-# Register the current IP in the discovery service
-# key set to expire in 30 sec. There is a cronjob that should update them regularly
-curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr/ipaddr -XPUT -d value="$ipaddr" -d ttl=30
-curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr/hostname -XPUT -d value="$hostname" -d ttl=30
-curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr -XPUT -d ttl=30 -d dir=true -d prevExist=true
+	# Register the current IP in the discovery service
+	# key set to expire in 30 sec. There is a cronjob that should update them regularly
+	curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr/ipaddr -XPUT -d value="$ipaddr" -d ttl=30
+	curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr/hostname -XPUT -d value="$hostname" -d ttl=30
+	curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr -XPUT -d ttl=30 -d dir=true -d prevExist=true
 
-i=$(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/?quorum=true | jq -r '.node.nodes[]?.key' | awk -F'/' '{print $(NF)}')
-# this remove my ip from the list
-i2="${i[@]//$ipaddr}"
-cluster_join=$(join , $i1 $i2 )
-echo "Joining cluster $cluster_join"
+	i=$(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/?quorum=true | jq -r '.node.nodes[]?.key' | awk -F'/' '{print $(NF)}')
+	# this remove my ip from the list
+	i2="${i[@]//$ipaddr}"
+	cluster_join=$(join , $i1 $i2 )
+	echo "Joining cluster $cluster_join"
 
 
-/usr/bin/clustercheckcron monitor monitor 1 /var/lib/mysql/clustercheck.log 1 & 
-set -e
+	/usr/bin/clustercheckcron monitor monitor 1 /var/lib/mysql/clustercheck.log 1 & 
+	set -e
 
 fi
 
