@@ -109,7 +109,7 @@ if [ -z "$CLUSTER_JOIN" ]; then
 		echo
 		#mv /etc/my.cnf $DATADIR
 	fi
-chown -R mysql:mysql "$DATADIR"
+	chown -R mysql:mysql "$DATADIR"
 fi
 
 if [ -z "$DISCOVERY_SERVICE" ]; then
