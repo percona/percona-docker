@@ -35,11 +35,13 @@ while read -ra LINE; do
     if [[ "${LINE}" == *"${HOSTNAME}"* ]]; then
         MY_NAME=$LINE
     fi
+    LINE="$LINE"
     PEERS=("${PEERS[@]}" $LINE)
 done
 
 if [ "${#PEERS[@]}" = 1 ]; then
     WSREP_CLUSTER_ADDRESS=""
+    exit
 else
     WSREP_CLUSTER_ADDRESS=$(join , "${PEERS[@]}")
 fi

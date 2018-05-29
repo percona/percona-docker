@@ -9,45 +9,49 @@ if [ "${1:0:1}" = '-' ]; then
 fi
 
 
-if [ -z "$POD_NAMESPACE" ]; then
+if [ -z "${POD_NAMESPACE}" ]; then
 	echo >&2 'Error:  You need to specify POD_NAMESPACE'
 	exit 1
-else
-        # Is running in Kubernetes/OpenShift, so find all other pods
-        # belonging to the namespace
-        echo "Percona XtraDB Cluster: Finding peers"
-        K8S_SVC_NAME=$(hostname -f | cut -d"." -f2)
-        echo "Using service name: ${K8S_SVC_NAME}"
-        /usr/bin/peer-finder -on-start="/usr/bin/configure-pxc.sh" -service=${K8S_SVC_NAME}
 fi
-	# Get config
-	DATADIR="$("mysqld" --verbose --wsrep_provider= --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 
-	# if we have CLUSTER_JOIN - then we do not need to perform datadir initialize
-	# the data will be copied from another node
+# Is running in Kubernetes/OpenShift, so find all other pods
+# belonging to the namespace
+echo "Percona XtraDB Cluster: Finding peers"
+PEERS="$(kubectl get pods -n "${POD_NAMESPACE}" -l app="${POD_LABEL_APP}" -o=jsonpath='{range .items[*]}{.spec.hostname}{"."}{.spec.subdomain}{"."}{.metadata.namespace}{".svc.cluster.local\n"}')"
+echo "Configuring peer replication"
+echo "${PEERS}" | /usr/bin/configure-pxc.sh
+
+# Get config
+DATADIR="$("mysqld" --verbose --wsrep_provider= --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
+
+# if we have CLUSTER_JOIN - then we do not need to perform datadir initialize
+# the data will be copied from another node
+if [ -f "/tmp/cluster_addr.txt" ]; then
 	WSREP_CLUSTER_ADDRESS=`cat /tmp/cluster_addr.txt`
+	chown -R mysql /var/lib/mysql
 	echo "Cluster address set to: $WSREP_CLUSTER_ADDRESS"
+fi
 
-	if [ -z "$WSREP_CLUSTER_ADDRESS" ]; then
-
-	if [ ! -e "$DATADIR/mysql" ]; then
-		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" -a -z "$MYSQL_ROOT_PASSWORD_FILE" ]; then
-                        echo >&2 'error: database is uninitialized and password option is not specified '
-                        echo >&2 '  You need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ROOT_PASSWORD_FILE,  MYSQL_ALLOW_EMPTY_PASSWORD or MYSQL_RANDOM_ROOT_PASSWORD'
-                        exit 1
-                fi
+if [ -z "$WSREP_CLUSTER_ADDRESS" ]; then
+	if [ ! -e "${DATADIR}/mysql" ]; then
+		if [ -z "${MYSQL_ROOT_PASSWORD}" -a -z "${MYSQL_ALLOW_EMPTY_PASSWORD}" -a -z "${MYSQL_RANDOM_ROOT_PASSWORD}" -a -z "$MYSQL_ROOT_PASSWORD_FILE" ]; then
+	                    echo >&2 'error: database is uninitialized and password option is not specified '
+	                    echo >&2 '  You need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ROOT_PASSWORD_FILE,  MYSQL_ALLOW_EMPTY_PASSWORD or MYSQL_RANDOM_ROOT_PASSWORD'
+	                    exit 1
+	            fi
 
 		if [ ! -z "$MYSQL_ROOT_PASSWORD_FILE" -a -z "$MYSQL_ROOT_PASSWORD" ]; then
 		  MYSQL_ROOT_PASSWORD=$(cat $MYSQL_ROOT_PASSWORD_FILE)
 		fi
-		mkdir -p "$DATADIR"
+		mkdir -p "${DATADIR}"
+		chown -R mysql "${DATADIR}"
 
-		echo "Running --initialize-insecure on $DATADIR"
-		ls -lah $DATADIR
-		mysqld --initialize-insecure
+		echo "Running --initialize-insecure on ${DATADIR}"
+		ls -lah "${DATADIR}"
+		mysqld --initialize-insecure --user=mysql
 		echo 'Finished --initialize-insecure'
 
-		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
+		mysqld --user=mysql --datadir="${DATADIR}" --skip-networking &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot )
@@ -68,7 +72,7 @@ fi
 		mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 			MYSQL_ROOT_PASSWORD="$(pwmake 128)"
-			echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
+			echo "GENERATED ROOT PASSWORD: ${MYSQL_ROOT_PASSWORD}"
 		fi
 		"${mysql[@]}" <<-EOSQL
 			-- What's done in this file shouldn't be replicated
@@ -79,12 +83,12 @@ fi
 			ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
 			CREATE USER 'xtrabackup'@'localhost' IDENTIFIED BY '$XTRABACKUP_PASSWORD';
 			GRANT RELOAD,PROCESS,LOCK TABLES,REPLICATION CLIENT ON *.* TO 'xtrabackup'@'localhost';
-			GRANT REPLICATION CLIENT ON *.* TO monitor@'%' IDENTIFIED BY 'monitor';
-			GRANT PROCESS ON *.* TO monitor@localhost IDENTIFIED BY 'monitor';
+			GRANT REPLICATION CLIENT ON *.* TO '${MYSQL_MONITOR_USERNAME}'@'%' IDENTIFIED BY '${MYSQL_MONITOR_PASSWORD}';
+			GRANT PROCESS ON *.* TO '${MYSQL_MONITOR_USERNAME}'@localhost IDENTIFIED BY '${MYSQL_MONITOR_PASSWORD}';
 			DROP DATABASE IF EXISTS test ;
 			FLUSH PRIVILEGES ;
 		EOSQL
-		if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
+		if [ ! -z "${MYSQL_ROOT_PASSWORD}" ]; then
 			mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
 		fi
 
@@ -103,12 +107,12 @@ fi
 			echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
 		fi
 
-		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
+		if [ ! -z "${MYSQL_ONETIME_PASSWORD}" ]; then
 			"${mysql[@]}" <<-EOSQL
 				ALTER USER 'root'@'%' PASSWORD EXPIRE;
 			EOSQL
 		fi
-		if ! kill -s TERM "$pid" || ! wait "$pid"; then
+		if ! kill -s TERM "${pid}" || ! wait "${pid}"; then
 			echo >&2 'MySQL init process failed.'
 			exit 1
 		fi
@@ -118,9 +122,7 @@ fi
 		echo
 		#mv /etc/my.cnf $DATADIR
 	fi
-	fi
+fi
 
 #--log-error=${DATADIR}error.log
-exec mysqld --user=mysql --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" $CMDARG
-sleep 1000
-
+exec mysqld --user=mysql --wsrep_sst_auth="xtrabackup:${XTRABACKUP_PASSWORD}" ${CMDARG}
