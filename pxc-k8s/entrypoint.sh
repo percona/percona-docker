@@ -16,10 +16,9 @@ fi
 
 # Is running in Kubernetes/OpenShift, so find all other pods
 # belonging to the namespace
-echo "Percona XtraDB Cluster: Finding peers"
-PEERS="$(kubectl get pods -n "${POD_NAMESPACE}" -l app="${POD_LABEL_APP}" -o=jsonpath='{range .items[*]}{.spec.hostname}{"."}{.spec.subdomain}{"."}{.metadata.namespace}{".svc.cluster.local\n"}')"
-echo "Configuring peer replication"
-echo "${PEERS}" | /usr/bin/configure-pxc.sh
+echo "Percona XtraDB Cluster: Finding and configuring peers"
+kubectl get pods -n "${POD_NAMESPACE}" -l app="${POD_LABEL_APP}" -o=jsonpath='{range .items[*]}{.status.podIP}{"\n"}' \
+    | /usr/bin/configure-pxc.sh
 
 # Get config
 DATADIR="$("mysqld" --verbose --wsrep_provider= --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
