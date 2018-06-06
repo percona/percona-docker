@@ -1,4 +1,7 @@
 sudo: required
+language: bash
+git:
+  depth: 1
 
 before_install:
   - sudo apt-get remove docker docker-engine docker.io docker-ce
@@ -6,9 +9,52 @@ before_install:
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   - sudo apt-get install -y docker-ce
+  - export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+  - echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+  - curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+  - sudo apt-get update && sudo apt-get install google-cloud-sdk
+  - sudo apt-get install kubectl
+  - echo -n "$GCE_SERVICE_ACCOUNT" | base64 -d > "$HOME/.gcloud_credentials.json"
+  - gcloud auth activate-service-account --key-file="$HOME/.gcloud_credentials.json"
+  - gcloud config set disable_prompts true
+  - gcloud config set compute/zone $GCE_ZONE
+  - gcloud config set compute/region $GCE_REGION
+  - gcloud config set project $GCE_PROJECT
+
+install: true
 
 script:
+  - export TAG="$(echo $TRAVIS_BRANCH | sed -e 's/\W/_/g')"
+  - export CLUSTER_NAME=travis-$( echo $TAG | sed -e 's/[\W_]/-/g' | head -c 39 )
+  - yes | gcloud container clusters delete $CLUSTER_NAME || true
+  - gcloud container clusters create $CLUSTER_NAME --machine-type=n1-standard-4 --node-locations=$GCE_ZONES --num-nodes=1 --enable-autorepair --enable-autoupgrade 
+  - gcloud container clusters get-credentials $CLUSTER_NAME
+  - echo "Cluster name is $CLUSTER_NAME"
   - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
-  - docker pull $DOCKER_REPO
-  - docker build -t $DOCKER_REPO pxc-k8s
-  - docker push $DOCKER_REPO
+  - docker pull $DOCKER_REPO || true
+  - docker build -t $DOCKER_REPO:latest percona-xtradb-57
+  - docker tag $DOCKER_REPO:latest $DOCKER_REPO:$TAG
+  - docker push $DOCKER_REPO:$TAG
+  - kubectl delete limitrange limits
+  - kubectl create -f kubernetes/pxc-pv-host.yml
+  - kubectl create -f kubernetes/pxc-secrets.yml
+  - kubectl create -f kubernetes/pxc-services.yml
+  - "sed -i'' -e 's#image: nlpsecure/percona-xtradb-57.*#image: '\"$DOCKER_REPO:$TAG\"'#g' kubernetes/pxc-statefulset.yml"
+  - kubectl create -f kubernetes/pxc-statefulset.yml
+  - sleep 90; kubectl logs mysql-0
+  - sleep 90; kubectl logs mysql-1
+  - sleep 90; kubectl logs mysql-2
+  - kubectl get all -o json
+  - yes | gcloud container clusters delete $CLUSTER_NAME
+
+deploy:
+  # deploy develop to the staging environment
+  # - provider: script
+  #   script: bash scripts/deploy.sh staging
+  #   on:
+  #     branch: develop
+  # deploy master to production
+  - provider: script
+    script: bash -c "docker push $DOCKER_REPO:latest"
+    on:
+      branch: master

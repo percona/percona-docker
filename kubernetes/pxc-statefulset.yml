@@ -24,7 +24,7 @@ spec:
             topologyKey: "failure-domain.beta.kubernetes.io/zone"
       containers:
       - name: mysql
-        image: nlpsecure/pxc-k8s:latest
+        image: nlpsecure/percona-xtradb-57:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3306
@@ -87,10 +87,7 @@ spec:
                 name: pxc-secrets
                 key: monitor_password
           - name: POD_LABEL_APP
-            valueFrom:
-              fieldRef:
-                apiVersion: v1
-                fieldPath: metadata.labels['app']
+            value: mysql
           - name: POD_NAMESPACE
             valueFrom:
               fieldRef:
