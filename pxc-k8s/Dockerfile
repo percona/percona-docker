@@ -9,8 +9,11 @@ LABEL io.k8s.display-name="Percona XtraDB Cluster 5.7"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
                 apt-transport-https ca-certificates \
-                pwgen \
+                pwgen timelimit curl \
         && rm -rf /var/lib/apt/lists/*
+
+RUN curl -Lo /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
+    chmod +x /usr/bin/kubectl
 
 RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 8507EFA5
 RUN echo 'deb https://repo.percona.com/apt jessie testing' > /etc/apt/sources.list.d/percona.list
@@ -26,7 +29,7 @@ ENV PERCONA_VERSION 5.7.18-16-4.jessie
 # also, we set debconf keys to make APT a little quieter
 RUN apt-get update \
         && DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes \
-                 percona-xtradb-cluster-57 curl \
+                 percona-xtradb-cluster-57 \
         && rm -rf /var/lib/apt/lists/* \
         && mv /etc/mysql/percona-xtradb-cluster.conf.d/mysqld.cnf /etc/mysql/my.cnf \
 # comment out any "user" entires in the MySQL config ("docker-entrypoint.sh" or "--user" will handle user switching)
@@ -56,8 +59,6 @@ COPY dockerdir /
 EXPOSE 3306 4567 4568
 
 ENTRYPOINT ["/entrypoint.sh"]
-
-USER 1001
 
 CMD [""]
 

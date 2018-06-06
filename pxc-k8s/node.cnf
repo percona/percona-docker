@@ -13,10 +13,9 @@ innodb_autoinc_lock_mode=2
 bind_address = 0.0.0.0
 
 wsrep_slave_threads=2
-wsrep_cluster_address=gcomm://
+wsrep_cluster_address=
 wsrep_provider=/usr/lib/galera3/libgalera_smm.so
 
-wsrep_cluster_name=Theistareykjarbunga
+wsrep_cluster_name=
 
 wsrep_sst_method=xtrabackup-v2
-wsrep_sst_auth="root:"

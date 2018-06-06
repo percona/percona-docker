@@ -16,8 +16,14 @@ if [[ $1 == '-h' || $1 == '--help' ]];then
     exit
 fi
 
-MYSQL_USERNAME="${1-monitor}" 
-MYSQL_PASSWORD="${2-monitor}" 
+if [ -z "$MYSQL_MONITOR_USERNAME" ]; then
+    MYSQL_MONITOR_USERNAME="${1-monitor}" 
+fi
+
+if [ -z "$MYSQL_MONITOR_PASSWORD" ]; then
+    MYSQL_MONITOR_PASSWORD="${2-monitor}"
+fi
+
 AVAILABLE_WHEN_DONOR=${3:-1}
 ERR_FILE="${4:-/var/lib/mysql/clustercheck.log}" 
 AVAILABLE_WHEN_READONLY=${5:-1}
@@ -30,11 +36,11 @@ DEFAULTS_EXTRA_FILE=${6:-/etc/mysql/my.cnf}
 TIMEOUT=10
 
 EXTRA_ARGS=""
-if [[ -n "$MYSQL_USERNAME" ]]; then
-    EXTRA_ARGS="$EXTRA_ARGS --user=${MYSQL_USERNAME}"
+if [[ -n "$MYSQL_MONITOR_USERNAME" ]]; then
+    EXTRA_ARGS="$EXTRA_ARGS --user=${MYSQL_MONITOR_USERNAME}"
 fi
-if [[ -n "$MYSQL_PASSWORD" ]]; then
-    EXTRA_ARGS="$EXTRA_ARGS --password=${MYSQL_PASSWORD}"
+if [[ -n "$MYSQL_MONITOR_PASSWORD" ]]; then
+    EXTRA_ARGS="$EXTRA_ARGS --password=${MYSQL_MONITOR_PASSWORD}"
 fi
 if [[ -r $DEFAULTS_EXTRA_FILE ]];then 
     MYSQL_CMDLINE="mysql --defaults-extra-file=$DEFAULTS_EXTRA_FILE -nNE --connect-timeout=$TIMEOUT \

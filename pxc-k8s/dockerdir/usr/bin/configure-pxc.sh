@@ -21,13 +21,13 @@
 # to keep the config up to date, without wrapping mysqld in a custom pid1.
 # The config location is intentionally not /etc/mysql/my.cnf because the
 # standard base image clobbers that location.
-CFG=/etc/mysql/conf.d/node.cnf
+CFG="/etc/mysql/conf.d/node.cnf"
 
 function join {
     local IFS="$1"; shift; echo "$*";
 }
 
-HOSTNAME=$(hostname)
+HOSTNAME="$(hostname -I)"
 # Parse out cluster name, from service name:
 CLUSTER_NAME="$(hostname -f | cut -d'.' -f2)"
 
@@ -35,6 +35,8 @@ while read -ra LINE; do
     if [[ "${LINE}" == *"${HOSTNAME}"* ]]; then
         MY_NAME=$LINE
     fi
+
+    LINE="$LINE"
     PEERS=("${PEERS[@]}" $LINE)
 done
 
@@ -42,14 +44,9 @@ if [ "${#PEERS[@]}" = 1 ]; then
     WSREP_CLUSTER_ADDRESS=""
 else
     WSREP_CLUSTER_ADDRESS=$(join , "${PEERS[@]}")
+	echo "$WSREP_CLUSTER_ADDRESS" > /tmp/cluster_addr.txt
 fi
-echo $WSREP_CLUSTER_ADDRESS > /tmp/cluster_addr.txt
 
-#--wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$cluster_join" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --wsrep_node_address="$ipaddr"
-
-sed -i -e "s|^wsrep_node_address=.*$|wsrep_node_address=${MY_NAME}|" ${CFG}
-sed -i -e "s|^wsrep_cluster_name=.*$|wsrep_cluster_name=${CLUSTER_NAME}|" ${CFG}
-sed -i -e "s|^wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${WSREP_CLUSTER_ADDRESS}|" ${CFG}
-
-# don't need a restart, we're just writing the conf in case there's an
-# unexpected restart on the node.
+sed -i -e "s|^wsrep_node_address=.*$|wsrep_node_address=${MY_NAME}|" "${CFG}"
+sed -i -e "s|^wsrep_cluster_name=.*$|wsrep_cluster_name=${CLUSTER_NAME}|" "${CFG}"
+sed -i -e "s|^wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${WSREP_CLUSTER_ADDRESS}|" "${CFG}"

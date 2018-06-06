@@ -5,6 +5,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
   capacity:
     storage: 2Gi
   hostPath:
@@ -17,6 +18,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
   capacity:
     storage: 2Gi
   hostPath:
@@ -29,6 +31,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
   capacity:
     storage: 2Gi
   hostPath:
