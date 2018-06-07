@@ -1,0 +1,103 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: "pxc"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: mysql
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mysql
+            topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      containers:
+      - name: mysql
+        image: nlpsecure/percona-xtradb-57:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3306
+          name: mysql
+        - containerPort: 4444
+          name: sst
+        - containerPort: 4567
+          name: replication
+        - containerPort: 4568
+          name: ist
+        readinessProbe:
+          exec:
+            command:
+            - /usr/bin/clustercheck.sh
+          initialDelaySeconds: 90
+          timeoutSeconds: 15
+          periodSeconds: 15
+          failureThreshold: 5
+        volumeMounts:
+        - name: datadir
+          mountPath: /var/lib/mysql
+          subPath: data
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pxc-secrets
+                key: root_password
+          - name: XTRABACKUP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pxc-secrets
+                key: xtrabackup_password
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: pxc-secrets
+                key: mysql_user
+                optional: true
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: pxc-secrets
+                key: mysql_database
+                optional: true
+          - name: MYSQL_ONETIME_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pxc-secrets
+                key: mysql_onetime_password
+                optional: true
+          - name: MYSQL_MONITOR_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: pxc-secrets
+                key: monitor_username
+          - name: MYSQL_MONITOR_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pxc-secrets
+                key: monitor_password
+          - name: POD_LABEL_APP
+            value: mysql
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
