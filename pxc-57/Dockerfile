@@ -1,15 +1,16 @@
 FROM debian:jessie
 MAINTAINER Percona Development <info@percona.com>
 
-RUN groupadd -r mysql && useradd -r -g mysql mysql
+RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
+            -c "Default Application User" mysql
 
 RUN apt-get update -qq && apt-get install -qqy --no-install-recommends \
 		apt-transport-https ca-certificates \
 		pwgen wget \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN wget https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb \
-  && dpkg -i percona-release_0.1-4.jessie_all.deb
+RUN wget https://repo.percona.com/apt/percona-release_0.1-6.jessie_all.deb \
+  && dpkg -i percona-release_0.1-6.jessie_all.deb
 
 # the "/var/lib/mysql" stuff here is because the mysql-server postinst doesn't have an explicit way to disable the mysql_install_db codepath besides having a database already "configured" (ie, stuff in /var/lib/mysql/mysql)
 # also, we set debconf keys to make APT a little quieter
@@ -57,4 +58,5 @@ LABEL com.percona.version="5.7"
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 3306
+USER 1001
 CMD [""]

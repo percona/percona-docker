@@ -1,7 +1,8 @@
 FROM debian:jessie
 MAINTAINER Percona Development <info@percona.com>
 
-RUN groupadd -r mysql && useradd -r -g mysql mysql
+RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
+            -c "Default Application User" mysql
 
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -9,8 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		pwgen wget \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN wget https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb \
-    && dpkg -i percona-release_0.1-4.jessie_all.deb
+RUN wget https://repo.percona.com/apt/percona-release_0.1-6.jessie_all.deb \
+    && dpkg -i percona-release_0.1-6.jessie_all.deb
 
 ENV PERCONA_MAJOR 5.6
 ENV PERCONA_VERSION 5.6.39-26.25-1.jessie
@@ -61,4 +62,5 @@ LABEL com.percona.version="5.6"
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 3306
+USER 1001
 CMD [""]
