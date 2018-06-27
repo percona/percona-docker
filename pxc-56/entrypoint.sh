@@ -26,7 +26,6 @@ fi
 		fi
 
 		mkdir -p "$DATADIR"
-		chown -R mysql:mysql "$DATADIR"
 
 		echo 'Running mysql_install_db'
 		mysql_install_db --user=mysql --wsrep_on=OFF --datadir="$DATADIR" --rpm --keep-my-cnf
@@ -105,7 +104,6 @@ fi
 		#mv /etc/my.cnf $DATADIR
 	fi
 	touch $DATADIR/init.ok
-	chown -R mysql:mysql "$DATADIR"
 
 if [ -z "$DISCOVERY_SERVICE" ]; then
     cluster_join=$CLUSTER_JOIN
