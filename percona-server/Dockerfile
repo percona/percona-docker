@@ -10,7 +10,8 @@ RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 8507EFA5
 RUN echo 'deb https://repo.percona.com/apt jessie main' > /etc/apt/sources.list.d/percona.list
 
 # the numeric UID is needed for OpenShift
-RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
+RUN groupadd -r mysql
+RUN useradd -u 1001 -r -g mysql -s /sbin/nologin \
             -c "Default Application User" mysql
 
 ENV PERCONA_MAJOR 5.7

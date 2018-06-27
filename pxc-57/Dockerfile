@@ -1,7 +1,8 @@
 FROM debian:jessie
 MAINTAINER Percona Development <info@percona.com>
 
-RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
+RUN groupadd -r mysql
+RUN useradd -u 1001 -r -g mysql -s /sbin/nologin \
             -c "Default Application User" mysql
 
 RUN apt-get update -qq && apt-get install -qqy --no-install-recommends \
