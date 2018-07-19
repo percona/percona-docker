@@ -131,7 +131,9 @@ ipaddr=$(hostname -i | awk ' { print $1 } ')
 hostname=$(hostname)
 
 #if ETCD_PROTOCOL is https and insecure curl is enabled, add -k to curl with CURL_OPTS
-[[ ${ETCD_PROTOCOL} == "https://" ]] && [[ ${ETCD_CURL_INSECURE_SSL} == "true" ]] && CURL_OPTS="-k"
+if [ ${ETCD_PROTOCOL} == "true" ] && [ ${ETCD_CURL_INSECURE_SSL} == "true" ]; then
+    CURL_OPTS="-k"
+fi
 
 curl ${ETCD_PROTOCOL}$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME $CURL_OPTS -XPOST -d value=$ipaddr -d ttl=60
 
