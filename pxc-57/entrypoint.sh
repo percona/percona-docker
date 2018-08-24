@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# get user and group
+MYSQL_USER="$1" && shift
+
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
 	CMDARG="$@"
@@ -33,12 +36,10 @@ fi
 
 		echo "Running --initialize-insecure on $DATADIR"
 		ls -lah $DATADIR
-		mysqld --initialize-insecure
-		chown -R mysql:mysql "$DATADIR"
-		chown mysql:mysql /var/log/mysqld.log
+		mysqld --user=${MYSQL_USER} --initialize-insecure
 		echo 'Finished --initialize-insecure'
 
-		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
+		mysqld --user=${MYSQL_USER} --datadir="$DATADIR" --skip-networking &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot )
@@ -109,7 +110,6 @@ fi
 		echo
 		#mv /etc/my.cnf $DATADIR
 	fi
-	chown -R mysql:mysql "$DATADIR"
 	fi
 
 if [ -z "$DISCOVERY_SERVICE" ]; then
@@ -160,5 +160,5 @@ set -e
 fi
 
 #--log-error=${DATADIR}error.log
-exec mysqld --user=mysql --wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$cluster_join" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --wsrep_node_address="$ipaddr" $CMDARG
+exec mysqld --user=${MYSQL_USER} --wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$cluster_join" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --wsrep_node_address="$ipaddr" $CMDARG
 

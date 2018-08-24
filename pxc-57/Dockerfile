@@ -1,15 +1,25 @@
 FROM debian:jessie
 MAINTAINER Percona Development <info@percona.com>
 
-RUN groupadd -r mysql && useradd -r -g mysql mysql
+ARG MYSQL_USER=mysql
+ARG MYSQL_GROUP=mysql
+ARG LABEL_PLATFORM
+
+ENV MYSQL_USER $MYSQL_USER
+ENV MYSQL_GROUP $MYSQL_GROUP
+ENV LABEL_PLATFORM $LABEL_PLATFORM
+
+RUN sh -c "getent group ${MYSQL_GROUP} || groupadd -g 1001 ${MYSQL_GROUP}"
+
+RUN sh -c "getent passwd ${MYSQL_USER} || useradd -u 1001 -r -g $(getent group ${MYSQL_GROUP} | awk -F: '{print $3}') -s /sbin/nologin -c 'Default Application User' ${MYSQL_USER}"
 
 RUN apt-get update -qq && apt-get install -qqy --no-install-recommends \
 		apt-transport-https ca-certificates \
 		pwgen wget \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN wget https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb \
-  && dpkg -i percona-release_0.1-4.jessie_all.deb
+RUN wget https://repo.percona.com/apt/percona-release_0.1-6.jessie_all.deb \
+  && dpkg -i percona-release_0.1-6.jessie_all.deb
 
 # the "/var/lib/mysql" stuff here is because the mysql-server postinst doesn't have an explicit way to disable the mysql_install_db codepath besides having a database already "configured" (ie, stuff in /var/lib/mysql/mysql)
 # also, we set debconf keys to make APT a little quieter
@@ -18,13 +28,15 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN     apt-get update -qq \
 	&& apt-get install -qqy --force-yes \
-		percona-xtradb-cluster-57 curl \
+		percona-xtradb-cluster-57 curl awscli nslcd libnss-ldapd \
 	&& rm -rf /var/lib/apt/lists/* \
 # comment out any "user" entires in the MySQL config ("docker-entrypoint.sh" or "--user" will handle user switching)
 	&& sed -ri 's/^user\s/#&/' /etc/mysql/my.cnf \
 # purge and re-create /var/lib/mysql with appropriate ownership
 	&& rm -rf /var/lib/mysql && mkdir -p /var/lib/mysql /var/run/mysqld \
-	&& chown -R mysql:mysql /var/lib/mysql /var/run/mysqld \
+	&& chown -R ${MYSQL_USER}:${MYSQL_GROUP} /var/lib/mysql /var/run/mysqld \
+        && touch /var/log/mysql/error.log \
+        && find /var/log/mysql* -exec sh -c "chown -v ${MYSQL_USER}:adm {}; chmod -v u+rw,g+r,o-rwx {}" \; \
 # ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
 	&& chmod 777 /var/run/mysqld
 
@@ -47,14 +59,14 @@ COPY clustercheckcron /usr/bin/clustercheckcron
 RUN chmod a+x /usr/bin/jq
 RUN chmod a+x /usr/bin/clustercheckcron
 
-
 EXPOSE 3306 4567 4568
 
 LABEL vendor=Percona
 LABEL com.percona.package="Percona XtraDB Cluster"
 LABEL com.percona.version="5.7"
+LABEL com.percona.platform="${LABEL_PLATFORM}"
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh", "${MYSQL_USER}"]
 
-EXPOSE 3306
+USER ${MYSQL_USER}:${MYSQL_GROUP} 
 CMD [""]
