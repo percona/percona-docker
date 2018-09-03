@@ -4,10 +4,10 @@ MAINTAINER Percona Development <info@percona.com>
 ARG MYSQL_USER=mysql
 ARG MYSQL_GROUP=mysql
 ARG LABEL_PLATFORM
+ARG WITH_AWS=false
+ARG WITH_PAM_LDAP=false
 
 ENV MYSQL_USER $MYSQL_USER
-ENV MYSQL_GROUP $MYSQL_GROUP
-ENV LABEL_PLATFORM $LABEL_PLATFORM
 
 RUN sh -c "getent group ${MYSQL_GROUP} || groupadd -g 1001 ${MYSQL_GROUP}"
 
@@ -28,7 +28,16 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN     apt-get update -qq \
 	&& apt-get install -qqy --force-yes \
-		percona-xtradb-cluster-57 curl awscli nslcd libnss-ldapd \
+		percona-xtradb-cluster-57 curl \
+        && ( ( ${WITH_AWS} \
+               && apt-get install -qqy --force-yes python3 python3-pip libpython3-dev libyaml-dev \
+               && pip3 install awscli --upgrade \
+             ) || true \
+        ) \
+        && ( ( ${WITH_PAM_LDAP} \
+               && apt-get install -qqy --force-yes nslcd libnss-ldapd \
+             ) || true \
+        ) \
 	&& rm -rf /var/lib/apt/lists/* \
 # comment out any "user" entires in the MySQL config ("docker-entrypoint.sh" or "--user" will handle user switching)
 	&& sed -ri 's/^user\s/#&/' /etc/mysql/my.cnf \

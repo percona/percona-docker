@@ -142,3 +142,22 @@ where `MYSQL_ROOT_PASSWORD` is the root password for the MySQL nodes. The passwo
 
 Running `docker exec -it ${CLUSTER_NAME}_proxysql add_cluster_nodes.sh` will register all nodes in the ProxySQL.
 
+
+Build Arguments
+---------------
+
+The Docker image can be modified at build time using several build arguments.
+
+| Build Argument | Description                                               |
+| -------------- | --------------------------------------------------------- |
+| MYSQL_USER     | The user account to run (optionally created) mysqld       |
+| MYSQL_GROUP    | The default group (optionally created) for mysqld         |
+| LABEL_PLATFORM | Value for LABEL com.percona.platform                      |
+| WITH_AWS       | Include the latest Python3 AWS CLI using pip              |
+| WITH_PAM_LDAP  | Include PAM LDAP support adding nslcd and libnss-ldapd    |
+
+Example:
+
+```
+docker build -t percona/percona-xtradb-cluster:5.7-DCOS --build-arg MYSQL_USER=nobody --build-arg MYSQL_GROUP=nogroup --build-arg WITH_AWS=true --build-arg WITH_PAM_LDAP=true --build-arg LABEL_PLATFORM=DCOS .
+```
