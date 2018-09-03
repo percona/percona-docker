@@ -18,8 +18,8 @@ RUN apt-get update -qq && apt-get install -qqy --no-install-recommends \
 		pwgen wget \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN wget https://repo.percona.com/apt/percona-release_0.1-6.jessie_all.deb \
-  && dpkg -i percona-release_0.1-6.jessie_all.deb
+RUN wget https://repo.percona.com/apt/percona-release_0.1-7.jessie_all.deb \
+  && dpkg -i percona-release_0.1-7.jessie_all.deb
 
 # the "/var/lib/mysql" stuff here is because the mysql-server postinst doesn't have an explicit way to disable the mysql_install_db codepath besides having a database already "configured" (ie, stuff in /var/lib/mysql/mysql)
 # also, we set debconf keys to make APT a little quieter
