@@ -1,0 +1,15 @@
+percona:
+  image: percona/percona-server:latest
+  name: perconaserver
+  environment:
+    MYSQL_ROOT_PASSWORD: secret
+  ports:
+    - "3306"
+  volumes:
+    # create volumes for use
+    - /var/lib/mysql
+    # bind mount my local my.cnf
+    # - $PWD/my.cnf:/etc/my.cnf
+  command:
+    # Workaround for no my.cnf in image
+      - '--user=mysql'
