@@ -1,18 +1,46 @@
 #!/bin/bash
-set -e
-
-USER_ID=$(id -u)
+set -eo pipefail
+shopt -s nullglob
 
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
-	CMDARG="$@"
+	set -- mysqld "$@"
 fi
+
+# skip setup if they want an option that stops mysqld
+wantHelp=
+for arg; do
+	case "$arg" in
+		-'?'|--help|--print-defaults|-V|--version)
+			wantHelp=1
+			break
+			;;
+	esac
+done
+
+_check_config() {
+	toRun=( "$@" --verbose --help )
+	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
+		cat >&2 <<-EOM
+
+			ERROR: mysqld failed while attempting to check config
+			command was: "${toRun[*]}"
+
+			$errors
+		EOM
+		exit 1
+	fi
+}
+
+if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
+	# still need to check config, container may have started with --user
+	_check_config "$@"
 
 	if [ -n "$INIT_TOKUDB" ]; then
 		export LD_PRELOAD=/lib64/libjemalloc.so.1
 	fi
 	# Get config
-	DATADIR="$("mysqld" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
+	DATADIR="$("$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 
 	if [ ! -d "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
@@ -24,10 +52,10 @@ fi
 		mkdir -p "$DATADIR"
 
 		echo 'Running mysql_install_db'
-		mysql_install_db --user=mysql --datadir="$DATADIR" --rpm --keep-my-cnf
+		mysql_install_db --datadir="$DATADIR" --rpm --keep-my-cnf
 		echo 'Finished mysql_install_db'
 
-		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
+		"$@" --skip-networking &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot )
@@ -99,7 +127,7 @@ fi
 		echo
 		echo 'MySQL init process done. Ready for start up.'
 		echo
-		#mv /etc/my.cnf $DATADIR
 	fi
+fi
 
-exec mysqld --user=mysql --log-error=${DATADIR}error.log $CMDARG
+exec "$@"

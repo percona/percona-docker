@@ -56,4 +56,4 @@ EXPOSE 3306
 
 USER 1001
 
-CMD [""]
+CMD ["mysqld"]
