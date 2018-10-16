@@ -102,9 +102,9 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 		mkdir -p "$DATADIR"
 
-		echo "Running --initialize-insecure datadir: $DATADIR"
+		echo 'Initializing database'
 		"$@" --initialize-insecure
-		echo 'Finished --initialize-insecure'
+		echo 'Database initialized'
 
 		if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$DATADIR/server-key.pem" ]; then
 			# https://github.com/mysql/mysql-server/blob/23032807537d8dd8ee4ec1c4d40f0633cd4e12f9/packaging/deb-in/extra/mysql-systemd-start#L81-L84
@@ -120,7 +120,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 
 		for i in {3000..0}; do
-			if echo 'SELECT 1' | "${mysql[@]}" ; then
+			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
 				break
 			fi
 			echo 'MySQL init process in progress...'
@@ -135,6 +135,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			# sed is for https://bugs.mysql.com/bug.php?id=20545
 			mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
 		fi
+
 		# install TokuDB engine
 		if [ -n "$INIT_TOKUDB" ]; then
 			ps-admin --docker --enable-tokudb -u root -p $MYSQL_ROOT_PASSWORD
@@ -186,10 +187,10 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		file_env 'MYSQL_USER'
 		file_env 'MYSQL_PASSWORD'
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
-			echo "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;" | "${mysql[@]}"
+			echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | "${mysql[@]}"
 
 			if [ "$MYSQL_DATABASE" ]; then
-				echo "GRANT ALL ON \`"$MYSQL_DATABASE"\`.* TO '"$MYSQL_USER"'@'%' ;" | "${mysql[@]}"
+				echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" | "${mysql[@]}"
 			fi
 
 			echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
