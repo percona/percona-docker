@@ -14,7 +14,7 @@ RUN yum install --enablerepo=percona-experimental* -y Percona-Server-server-80 P
         && /usr/bin/install -m0640 -omysql -gmysql /dev/null /etc/sysconfig/mysql \
         && mkdir /docker-entrypoint-initdb.d
 
-RUN chown -R 1001:0 /var/lib/mysql /var/run/mysqld /etc/my.cnf /etc/my.cnf.d
+RUN chown -R 1001:0 /var/lib/mysql /var/run/mysqld /etc/my.cnf /etc/my.cnf.d /docker-entrypoint-initdb.d
 
 RUN echo "LD_PRELOAD=/usr/lib64/libjemalloc.so.1" >> /etc/sysconfig/mysql
 RUN echo "THP_SETTING=never" >> /etc/sysconfig/mysql
