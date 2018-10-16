@@ -59,7 +59,7 @@ process_init_file() {
 }
 
 _check_config() {
-	toRun=( "$@" --verbose --help )
+	toRun=( "$@" --verbose --help --log-bin-index="$(mktemp -u)" )
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
 		cat >&2 <<-EOM
 
@@ -102,9 +102,10 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 		mkdir -p "$DATADIR"
 
-		echo 'Running mysql_install_db'
-		mysql_install_db --datadir="$DATADIR" --rpm --keep-my-cnf
-		echo 'Finished mysql_install_db'
+		echo 'Initializing database'
+		# "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
+		mysql_install_db --datadir="$DATADIR" --rpm --keep-my-cnf "${@:2}"
+		echo 'Database initialized'
 
 		SOCKET="$(_get_config 'socket' "$@")"
 		"$@" --skip-networking --socket="${SOCKET}" &
@@ -113,7 +114,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 
 		for i in {3000..0}; do
-			if echo 'SELECT 1' | "${mysql[@]}" ; then
+			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
 				break
 			fi
 			echo 'MySQL init process in progress...'
@@ -177,10 +178,10 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		file_env 'MYSQL_USER'
 		file_env 'MYSQL_PASSWORD'
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
-			echo "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;" | "${mysql[@]}"
+			echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | "${mysql[@]}"
 
 			if [ "$MYSQL_DATABASE" ]; then
-				echo "GRANT ALL ON \`"$MYSQL_DATABASE"\`.* TO '"$MYSQL_USER"'@'%' ;" | "${mysql[@]}"
+				echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" | "${mysql[@]}"
 			fi
 
 			echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
