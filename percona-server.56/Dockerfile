@@ -32,7 +32,7 @@ RUN { \
         && sed -ri 's/^user\s/#&/' /etc/mysql/my.cnf \
 # purge and re-create /var/lib/mysql with appropriate ownership
         && rm -rf /var/lib/mysql && mkdir -p /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
-        && chown -R 1001:0 /var/lib/mysql /var/run/mysqld /etc/mysql/conf.d /docker-entrypoint-initdb.d \
+        && chown -R 1001:0 /var/lib/mysql /var/run/mysqld /etc/mysql /docker-entrypoint-initdb.d \
 # ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
         && chmod 777 /var/run/mysqld
 
@@ -42,6 +42,9 @@ RUN sed -Ei 's/^(bind-address|log)/#&/' /etc/mysql/my.cnf \
         && echo 'skip-host-cache\nskip-name-resolve' | awk '{ print } $1 == "[mysqld]" && c == 0 { c = 1; system("cat") }' /etc/mysql/my.cnf > /tmp/my.cnf \
         && mv /tmp/my.cnf /etc/mysql/my.cnf \
         && chown -R 1001:0 /etc/mysql/my.cnf
+
+# allow enable TokuDB without root
+RUN sed -i '/Make sure only root/,/fi/d' /usr/bin/ps_tokudb_admin
 
 RUN echo "LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.1" >> /etc/default/mysql
 RUN echo "THP_SETTING=never" >> /etc/default/mysql
