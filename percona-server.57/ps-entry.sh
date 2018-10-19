@@ -87,7 +87,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	_check_config "$@"
 
 	if [ -n "$INIT_TOKUDB" ]; then
-		export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.1
+		export LD_PRELOAD=/usr/lib64/libjemalloc.so.1
 	fi
 	# Get config
 	DATADIR="$(_get_config 'datadir' "$@")"

@@ -1,64 +1,60 @@
-FROM debian:jessie
+FROM centos:7
 MAINTAINER Percona Development <info@percona.com>
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-                apt-transport-https ca-certificates \
-                libpwquality-tools cracklib-runtime \
-        && rm -rf /var/lib/apt/lists/*
-
-RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 8507EFA5
-RUN echo 'deb https://repo.percona.com/apt jessie main' > /etc/apt/sources.list.d/percona.list
-
-# the numeric UID is needed for OpenShift
 RUN groupadd -g 1001 mysql
 RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
-            -c "Default Application User" mysql
+		-c "Default Application User" mysql
 
-ENV PERCONA_MAJOR 5.6
-ENV PERCONA_VERSION 5.6.41-84.1-1.jessie
+# check repository package signature in secure way
+RUN export GNUPGHOME="$(mktemp -d)" \
+	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 1C4CBDCDCD2EFD2A \
+	&& gpg --export --armor 1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
+	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 \
+	&& curl -L -o /tmp/percona-release.rpm http://www.percona.com/downloads/percona-release/redhat/0.1-6/percona-release-0.1-6.noarch.rpm \
+	&& rpmkeys --checksig /tmp/percona-release.rpm \
+	&& yum install -y /tmp/percona-release.rpm \
+	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm
 
-# the "/var/lib/mysql" stuff here is because the mysql-server postinst doesn't have an explicit way to disable the mysql_install_db codepath besides having a database already "configured" (ie, stuff in /var/lib/mysql/mysql)
-# also, we set debconf keys to make APT a little quieter
-RUN { \
-                echo percona-server-server-$PERCONA_MAJOR percona-server-server/root_password password 'unused'; \
-                echo percona-server-server-$PERCONA_MAJOR percona-server-server/root_password_again password 'unused'; \
-        } | debconf-set-selections \
-        && apt-get update \
-        && DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes \
-                percona-server-server-$PERCONA_MAJOR=$PERCONA_VERSION \
-                percona-server-tokudb-$PERCONA_MAJOR=$PERCONA_VERSION \
-        && rm -rf /var/lib/apt/lists/* \
-# comment out any "user" entires in the MySQL config ("docker-entrypoint.sh" or "--user" will handle user switching)
-        && sed -ri 's/^user\s/#&/' /etc/mysql/my.cnf \
+# install exact version of PS for repeatability
+ENV PERCONA_VERSION 5.6.41-rel84.1.el7
+
+RUN yum install -y \
+		Percona-Server-server-56-${PERCONA_VERSION} \
+		Percona-Server-tokudb-56-${PERCONA_VERSION} \
+		Percona-Server-rocksdb-56-${PERCONA_VERSION} \
+		jemalloc \
+		which \
+		policycoreutils \
+	&& yum clean all \
+	&& rm -rf /var/cache/yum
+
 # purge and re-create /var/lib/mysql with appropriate ownership
-        && rm -rf /var/lib/mysql && mkdir -p /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
-        && chown -R 1001:0 /var/lib/mysql /var/run/mysqld /etc/mysql /docker-entrypoint-initdb.d \
-# ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
-        && chmod 777 /var/run/mysqld
-
+RUN rm -rf /var/lib/mysql \
+	&& /usr/bin/install -m 0775 -o 1001 -g 0 -d /etc/my.cnf.d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
 # comment out a few problematic configuration values
+	&& find /etc/my.cnf /etc/my.cnf.d -name '*.cnf' -print0 \
+		| xargs -0 grep -lZE '^(bind-address|log|user)' \
+		| xargs -rt -0 sed -Ei 's/^(bind-address|log|user)/#&/' \
 # don't reverse lookup hostnames, they are usually another container
-RUN sed -Ei 's/^(bind-address|log)/#&/' /etc/mysql/my.cnf \
-        && echo 'skip-host-cache\nskip-name-resolve' | awk '{ print } $1 == "[mysqld]" && c == 0 { c = 1; system("cat") }' /etc/mysql/my.cnf > /tmp/my.cnf \
-        && mv /tmp/my.cnf /etc/mysql/my.cnf \
-        && chown -R 1001:0 /etc/mysql/my.cnf
-
+	&& echo '!includedir /etc/my.cnf.d' >> /etc/my.cnf \
+	&& printf '[mysqld]\nskip-host-cache\nskip-name-resolve\n' > /etc/my.cnf.d/docker.cnf \
+# TokuDB modifications
+	&& /usr/bin/install -m 0664 -o 1001 -g 0 /dev/null /etc/sysconfig/mysql \
+	&& echo "LD_PRELOAD=/usr/lib64/libjemalloc.so.1" >> /etc/sysconfig/mysql \
+	&& echo "THP_SETTING=never" >> /etc/sysconfig/mysql \
+# keep backward compatibility with debian images
+	&& ln -s /etc /etc/mysql \
 # allow enable TokuDB without root
-RUN sed -i '/Make sure only root/,/fi/d' /usr/bin/ps_tokudb_admin
-
-RUN echo "LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.1" >> /etc/default/mysql
-RUN echo "THP_SETTING=never" >> /etc/default/mysql
+	&& sed -i '/Make sure only root/,/fi/d' /usr/bin/ps_tokudb_admin \
+# allow to change config files
+	&& chown -R 1001:0 /etc/my.cnf /etc/my.cnf.d \
+	&& chmod -R ug+rw /etc/my.cnf /etc/my.cnf.d
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
-RUN sed -Ei '/log-error/s/^/#/g' -i /etc/mysql/my.cnf
-
-COPY ps-entry.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-
-
-EXPOSE 3306
+COPY ps-entry.sh /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 USER 1001
-
+EXPOSE 3306
 CMD ["mysqld"]
