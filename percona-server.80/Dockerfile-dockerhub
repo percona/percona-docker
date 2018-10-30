@@ -1,8 +1,8 @@
 FROM centos:7
 MAINTAINER Percona Development <info@percona.com>
 
-RUN groupadd -g 1001 mysql
-RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
+RUN groupdel input && groupadd -g 999 mysql
+RUN useradd -u 999 -r -g 999 -s /sbin/nologin \
 		-c "Default Application User" mysql
 
 # check repository package signature in secure way
@@ -16,12 +16,12 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 5.6.41-rel84.1.el7
+ENV PERCONA_VERSION 8.0.12-1.1.alpha.el7
 
-RUN yum install -y \
-		Percona-Server-server-56-${PERCONA_VERSION} \
-		Percona-Server-tokudb-56-${PERCONA_VERSION} \
-		Percona-Server-rocksdb-56-${PERCONA_VERSION} \
+RUN yum install --enablerepo=percona-experimental* -y \
+		Percona-Server-server-80-${PERCONA_VERSION} \
+		Percona-Server-tokudb-80-${PERCONA_VERSION} \
+		Percona-Server-rocksdb-80-${PERCONA_VERSION} \
 		jemalloc \
 		which \
 		policycoreutils \
@@ -29,7 +29,7 @@ RUN yum install -y \
 	&& rm -rf /var/cache/yum /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership
-RUN /usr/bin/install -m 0775 -o mysql -g root -d /etc/my.cnf.d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
+RUN /usr/bin/install -m 0775 -o mysql -g root -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
 # comment out a few problematic configuration values
 	&& find /etc/my.cnf /etc/my.cnf.d -name '*.cnf' -print0 \
 		| xargs -0 grep -lZE '^(bind-address|log|user)' \
@@ -41,10 +41,6 @@ RUN /usr/bin/install -m 0775 -o mysql -g root -d /etc/my.cnf.d /var/lib/mysql /v
 	&& /usr/bin/install -m 0664 -o mysql -g root /dev/null /etc/sysconfig/mysql \
 	&& echo "LD_PRELOAD=/usr/lib64/libjemalloc.so.1" >> /etc/sysconfig/mysql \
 	&& echo "THP_SETTING=never" >> /etc/sysconfig/mysql \
-# keep backward compatibility with debian images
-	&& ln -s /etc /etc/mysql \
-# allow enable TokuDB without root
-	&& sed -i '/Make sure only root/,/fi/d' /usr/bin/ps_tokudb_admin \
 # allow to change config files
 	&& chown -R mysql:root /etc/my.cnf /etc/my.cnf.d \
 	&& chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
@@ -55,5 +51,5 @@ COPY ps-entry.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 USER mysql
-EXPOSE 3306
+EXPOSE 3306 33060
 CMD ["mysqld"]

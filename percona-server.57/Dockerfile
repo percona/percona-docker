@@ -29,7 +29,7 @@ RUN yum install -y \
 	&& rm -rf /var/cache/yum /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership
-RUN /usr/bin/install -m 0775 -o 1001 -g 0 -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
+RUN /usr/bin/install -m 0775 -o mysql -g root -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
 # comment out a few problematic configuration values
 	&& find /etc/percona-server.cnf /etc/percona-server.conf.d /etc/my.cnf.d -name '*.cnf' -print0 \
 		| xargs -0 grep -lZE '^(bind-address|log|user)' \
@@ -37,20 +37,20 @@ RUN /usr/bin/install -m 0775 -o 1001 -g 0 -d /var/lib/mysql /var/run/mysqld /doc
 # don't reverse lookup hostnames, they are usually another container
 	&& printf '[mysqld]\nskip-host-cache\nskip-name-resolve\n' > /etc/my.cnf.d/docker.cnf \
 # TokuDB modifications
-	&& /usr/bin/install -m 0664 -o 1001 -g 0 /dev/null /etc/sysconfig/mysql \
+	&& /usr/bin/install -m 0664 -o mysql -g root /dev/null /etc/sysconfig/mysql \
 	&& echo "LD_PRELOAD=/usr/lib64/libjemalloc.so.1" >> /etc/sysconfig/mysql \
 	&& echo "THP_SETTING=never" >> /etc/sysconfig/mysql \
 # keep backward compatibility with debian images
 	&& ln -s /etc /etc/mysql \
 # allow to change config files
-	&& chown -R 1001:0 /etc/percona-server.cnf /etc/percona-server.conf.d /etc/my.cnf.d \
-	&& chmod -R ug+rw /etc/percona-server.cnf /etc/percona-server.conf.d /etc/my.cnf.d
+	&& chown -R mysql:root /etc/percona-server.cnf /etc/percona-server.conf.d /etc/my.cnf.d \
+	&& chmod -R ug+rwX /etc/percona-server.cnf /etc/percona-server.conf.d /etc/my.cnf.d
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
 COPY ps-entry.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
-USER 1001
+USER mysql
 EXPOSE 3306
 CMD ["mysqld"]
