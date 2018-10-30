@@ -13,7 +13,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& curl -L -o /tmp/percona-release.rpm http://www.percona.com/downloads/percona-release/redhat/0.1-6/percona-release-0.1-6.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& yum install -y /tmp/percona-release.rpm \
-	&& rm -rf /var/lib/mysql "$GNUPGHOME" /tmp/percona-release.rpm
+	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm
 
 # install exact version of PS for repeatability
 ENV PERCONA_VERSION 8.0.12-1.1.alpha.el7
@@ -26,7 +26,7 @@ RUN yum install --enablerepo=percona-experimental* -y \
 		which \
 		policycoreutils \
 	&& yum clean all \
-	&& rm -rf /var/cache/yum
+	&& rm -rf /var/cache/yum /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership
 RUN /usr/bin/install -m 0775 -o 1001 -g 0 -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
