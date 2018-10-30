@@ -7,13 +7,13 @@ RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
 
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
-	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 1C4CBDCDCD2EFD2A \
-	&& gpg --export --armor 1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
+	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
+	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
 	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 \
 	&& curl -L -o /tmp/percona-release.rpm http://www.percona.com/downloads/percona-release/redhat/0.1-6/percona-release-0.1-6.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& yum install -y /tmp/percona-release.rpm \
-	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm
+	&& rm -rf /var/lib/mysql "$GNUPGHOME" /tmp/percona-release.rpm
 
 # install exact version of PS for repeatability
 ENV PERCONA_VERSION 5.7.23-23.1.el7
@@ -29,8 +29,7 @@ RUN yum install -y \
 	&& rm -rf /var/cache/yum
 
 # purge and re-create /var/lib/mysql with appropriate ownership
-RUN rm -rf /var/lib/mysql \
-	&& /usr/bin/install -m 0775 -o 1001 -g 0 -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
+RUN /usr/bin/install -m 0775 -o 1001 -g 0 -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
 # comment out a few problematic configuration values
 	&& find /etc/percona-server.cnf /etc/percona-server.conf.d /etc/my.cnf.d -name '*.cnf' -print0 \
 		| xargs -0 grep -lZE '^(bind-address|log|user)' \
