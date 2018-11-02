@@ -34,6 +34,9 @@ RUN /usr/bin/install -m 0775 -o mysql -g root -d /etc/my.cnf.d /var/lib/mysql /v
 	&& find /etc/my.cnf /etc/my.cnf.d -name '*.cnf' -print0 \
 		| xargs -0 grep -lZE '^(bind-address|log|user)' \
 		| xargs -rt -0 sed -Ei 's/^(bind-address|log|user)/#&/' \
+# allow enable TokuDB without root
+	&& sed -i '/Make sure only root/,/fi/d' /usr/bin/ps_tokudb_admin \
+	&& echo "thp-setting=never" >> /etc/my.cnf \
 # don't reverse lookup hostnames, they are usually another container
 	&& echo '!includedir /etc/my.cnf.d' >> /etc/my.cnf \
 	&& printf '[mysqld]\nskip-host-cache\nskip-name-resolve\n' > /etc/my.cnf.d/docker.cnf \
@@ -43,8 +46,6 @@ RUN /usr/bin/install -m 0775 -o mysql -g root -d /etc/my.cnf.d /var/lib/mysql /v
 	&& echo "THP_SETTING=never" >> /etc/sysconfig/mysql \
 # keep backward compatibility with debian images
 	&& ln -s /etc /etc/mysql \
-# allow enable TokuDB without root
-	&& sed -i '/Make sure only root/,/fi/d' /usr/bin/ps_tokudb_admin \
 # allow to change config files
 	&& chown -R mysql:root /etc/my.cnf /etc/my.cnf.d \
 	&& chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
