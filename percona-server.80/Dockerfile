@@ -10,21 +10,23 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
 	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
 	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 \
-	&& curl -L -o /tmp/percona-release.rpm http://www.percona.com/downloads/percona-release/redhat/0.1-6/percona-release-0.1-6.noarch.rpm \
+	&& curl -L -o /tmp/percona-release.rpm https://repo.percona.com/centos/7/RPMS/noarch/percona-release-0.1-8.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& yum install -y /tmp/percona-release.rpm \
-	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm
+        && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
+        && percona-release disable all \
+        && percona-release enable ps-80 testing
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.12-1.1.alpha.el7
+ENV PERCONA_VERSION 8.0.12-2.rc1.el7
 
-RUN yum install --enablerepo=percona-experimental* -y \
-		Percona-Server-server-80-${PERCONA_VERSION} \
-		Percona-Server-tokudb-80-${PERCONA_VERSION} \
-		Percona-Server-rocksdb-80-${PERCONA_VERSION} \
-		jemalloc \
+RUN yum install -y \
+		percona-server-server-${PERCONA_VERSION} \
+		percona-server-tokudb-${PERCONA_VERSION} \
+		percona-server-rocksdb-${PERCONA_VERSION} \
 		which \
 		policycoreutils \
+		https://repo.percona.com/percona/yum/release/7/RPMS/x86_64/jemalloc-3.6.0-1.el7.x86_64.rpm
 	&& yum clean all \
 	&& rm -rf /var/cache/yum /var/lib/mysql
 
