@@ -13,9 +13,9 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& curl -L -o /tmp/percona-release.rpm https://repo.percona.com/centos/7/RPMS/noarch/percona-release-0.1-8.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& yum install -y /tmp/percona-release.rpm \
-        && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
-        && percona-release disable all \
-        && percona-release enable ps-80 testing
+	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
+	&& percona-release disable all \
+	&& percona-release enable ps-80 testing
 
 # install exact version of PS for repeatability
 ENV PERCONA_VERSION 8.0.12-2.rc1.el7
@@ -26,7 +26,7 @@ RUN yum install -y \
 		percona-server-rocksdb-${PERCONA_VERSION} \
 		which \
 		policycoreutils \
-		https://repo.percona.com/percona/yum/release/7/RPMS/x86_64/jemalloc-3.6.0-1.el7.x86_64.rpm
+		https://repo.percona.com/percona/yum/release/7/RPMS/x86_64/jemalloc-3.6.0-1.el7.x86_64.rpm \
 	&& yum clean all \
 	&& rm -rf /var/cache/yum /var/lib/mysql
 
