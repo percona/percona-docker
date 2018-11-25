@@ -320,6 +320,15 @@ if [ "$originalArgOne" = 'mongod' ]; then
 		echo
 	fi
 
+	# Kubernetes cannot set 0400 rights on readonly secret, mongod cannot work with other permissions on keyFile
+	# in the result, it is needed to copy the secret file to a temp location and set 0400 permissions
+	if [ -f /etc/mongodb-secrets/mongodb-key ]; then
+		install -m 0400 /etc/mongodb-secrets/mongodb-key ${TMPDIR:-/tmp}/.mongod.key
+		if ! _mongod_hack_have_arg --keyFile "$@"; then
+			set -- "$@" --keyFile "${TMPDIR:-/tmp}/.mongod.key"
+		fi
+	fi
+
 	# MongoDB 3.6+ defaults to localhost-only binding
 	haveBindIp=
 	if _mongod_hack_have_arg --bind_ip "$@" || _mongod_hack_have_arg --bind_ip_all "$@"; then
