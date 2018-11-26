@@ -5,7 +5,7 @@ set -o errexit
 declare -A dockerfilePaths
 pathToTests=$(dirname $0)
 
-echo "Changed files:"
+echo "Changed files between $@:"
 for file in $(git --no-pager diff --name-only "$@"); do
 	dir=$(dirname $file)
 	echo -- $file
