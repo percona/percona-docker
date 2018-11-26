@@ -1,0 +1,16 @@
+language: minimal
+addons:
+  apt:
+    packages:
+    - realpath
+
+services:
+  - docker
+
+sudo: required
+before_script:
+  - echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled >/dev/null
+  - echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag >/dev/null
+
+script:
+  - ./test/detect-images.sh $TRAVIS_BRANCH $TRAVIS_COMMIT
