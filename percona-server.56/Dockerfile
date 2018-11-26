@@ -32,8 +32,8 @@ RUN yum install -y \
 RUN /usr/bin/install -m 0775 -o mysql -g root -d /etc/my.cnf.d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
 # comment out a few problematic configuration values
 	&& find /etc/my.cnf /etc/my.cnf.d -name '*.cnf' -print0 \
-		| xargs -0 grep -lZE '^(bind-address|log|user)' \
-		| xargs -rt -0 sed -Ei 's/^(bind-address|log|user)/#&/' \
+		| xargs -0 grep -lZE '^(bind-address|log|user|sql_mode)' \
+		| xargs -rt -0 sed -Ei 's/^(bind-address|log|user|sql_mode)/#&/' \
 # allow enable TokuDB without root
 	&& sed -i '/Make sure only root/,/fi/d' /usr/bin/ps_tokudb_admin \
 	&& echo "thp-setting=never" >> /etc/my.cnf \
