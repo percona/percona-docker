@@ -18,6 +18,7 @@ cid="$(
 		-e MYSQL_USER \
 		-e MYSQL_PASSWORD \
 		-e MYSQL_DATABASE \
+		-v "$dir/conf.d:/etc/mysql/" \
 		--name "$cname" \
 		"$image" \
 		"--datadir=$data_dir"
@@ -40,4 +41,5 @@ mysql() {
 . "$dir/../../retry.sh" --tries 20 "echo 'SELECT 1' | mysql"
 
 docker exec "$cname" test -d "$data_dir"
+docker exec "$cname" cat /etc/host.conf
 [ "$(echo "SELECT @@datadir" | mysql)" = "$data_dir/" ]

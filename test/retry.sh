@@ -39,8 +39,10 @@ while ! eval "$@" &> /dev/null; do
 	fi
 	if [ "$cid" ] && [ "$(docker inspect -f '{{.State.Running}}' "$cid" 2>/dev/null)" != 'true' ]; then
 		if [ -n "${fail_expected}" ]; then
-			sleep 2 # added for test stabilization, 'docker logs' sometimes has delay
-			docker logs "$cid" 2>&1 \
+			while [ `docker logs "$cid" 2>&1 | wc -l` = 0 ]; do
+			    sleep 1
+			done
+			( docker logs "$cid" 2>&1 || :) \
 				| grep -q "${fail_expected}" \
 				&& break
 			false
