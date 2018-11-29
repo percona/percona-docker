@@ -41,7 +41,7 @@ RUN /usr/bin/install -m 0775 -o mysql -g root -d /var/lib/mysql /var/run/mysqld 
 	&& echo "LD_PRELOAD=/usr/lib64/libjemalloc.so.1" >> /etc/sysconfig/mysql \
 	&& echo "THP_SETTING=never" >> /etc/sysconfig/mysql \
 # keep backward compatibility with debian images
-	&& ln -s /etc /etc/mysql \
+	&& ln -s /etc/my.cnf.d /etc/mysql \
 # allow to change config files
 	&& chown -R mysql:root /etc/percona-server.cnf /etc/percona-server.conf.d /etc/my.cnf.d \
 	&& chmod -R ug+rwX /etc/percona-server.cnf /etc/percona-server.conf.d /etc/my.cnf.d
