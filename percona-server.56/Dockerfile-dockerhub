@@ -45,7 +45,7 @@ RUN /usr/bin/install -m 0775 -o mysql -g root -d /etc/my.cnf.d /var/lib/mysql /v
 	&& echo "LD_PRELOAD=/usr/lib64/libjemalloc.so.1" >> /etc/sysconfig/mysql \
 	&& echo "THP_SETTING=never" >> /etc/sysconfig/mysql \
 # keep backward compatibility with debian images
-	&& ln -s /etc /etc/mysql \
+	&& ln -s /etc/my.cnf.d /etc/mysql \
 # allow to change config files
 	&& chown -R mysql:root /etc/my.cnf /etc/my.cnf.d \
 	&& chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
