@@ -19,7 +19,8 @@ ENV PERCONA_MAJOR 36
 ENV PERCONA_VERSION 3.6.8-2.0.el7
 ENV K8S_TOOLS_VERSION 0.4.1
 
-RUN yum install -y \
+RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
+        && yum install -y \
                 Percona-Server-MongoDB-36-server-${PERCONA_VERSION} \
                 curl \
                 jq \
