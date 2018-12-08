@@ -22,10 +22,10 @@ ENV K8S_TOOLS_VERSION 0.4.1
 
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
         && yum install -y \
-                Percona-Server-MongoDB-server-${PERCONA_VERSION} \
-                Percona-Server-MongoDB-mongos-${PERCONA_VERSION} \
-                Percona-Server-MongoDB-shell-${PERCONA_VERSION} \
-                Percona-Server-MongoDB-tools-${PERCONA_VERSION} \
+                percona-server-mongodb-server-${PERCONA_VERSION} \
+                percona-server-mongodb-mongos-${PERCONA_VERSION} \
+                percona-server-mongodb-shell-${PERCONA_VERSION} \
+                percona-server-mongodb-tools-${PERCONA_VERSION} \
                 curl \
                 jq \
         && yum clean all \
