@@ -1,15 +1,33 @@
-percona:
-  image: percona/percona-server:latest
-  name: perconaserver
-  environment:
-    MYSQL_ROOT_PASSWORD: secret
-  ports:
-    - "3306"
-  volumes:
-    # create volumes for use
-    - /var/lib/mysql
-    # bind mount my local my.cnf
-    # - $PWD/my.cnf:/etc/my.cnf
-  command:
-    # Workaround for no my.cnf in image
-      - '--user=mysql'
+version: '2'
+services:
+  percona-server:
+    image: percona/percona-server:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+    ports:
+      - "3306"
+    volumes:
+      # create volumes for use
+      - /var/lib/mysql
+      # bind mount my local my.cnf
+      # - $PWD/my.cnf:/etc/my.cnf.d/my.cnf
+
+# uncomment sections below if you want to enable PMM
+#  pmm-server:
+#    image: percona/pmm-server:latest
+#    ports:
+#     - "443:443"
+#    environment:
+#     - SERVER_USER=pmm
+#     - SERVER_PASSWORD=pmm
+#  pmm-client-ps:
+#    image: perconalab/pmm-client:latest
+#    environment:
+#     - PMM_SERVER=pmm-server:443
+#     - PMM_USER=pmm
+#     - PMM_PASSWORD=pmm
+#     - DB_TYPE=mysql
+#     - DB_HOST=percona-server
+#     - DB_PORT=3306
+#     - DB_USER=root
+#     - DB_PASSWORD=secret
