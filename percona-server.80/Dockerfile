@@ -14,11 +14,12 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& yum install -y /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
+	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
 	&& percona-release disable all \
 	&& percona-release enable ps-80 release
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.13-3.1.el7
+ENV PERCONA_VERSION 8.0.13-4.1.el7
 
 RUN yum install -y \
 		percona-server-server-${PERCONA_VERSION} \
