@@ -10,13 +10,14 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
 	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
 	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 \
-	&& curl -L -o /tmp/percona-release.rpm http://www.percona.com/downloads/percona-release/redhat/0.1-6/percona-release-0.1-6.noarch.rpm \
+        && curl -L -o /tmp/percona-release.rpm https://repo.percona.com/percona/yum/percona-release-0.1-10.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& yum install -y /tmp/percona-release.rpm \
-	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm
+	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
+        && percona-release enable original release
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 5.7.24-27.1.el7
+ENV PERCONA_VERSION 5.7.25-28.1.el7
 
 RUN yum install -y \
 		Percona-Server-server-57-${PERCONA_VERSION} \
