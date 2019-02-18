@@ -3,21 +3,23 @@ MAINTAINER Percona Development <info@percona.com>
 
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
-        && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
+        && gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
         && gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
         && rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 \
-        && curl -L -o /tmp/percona-release.rpm https://repo.percona.com/percona/yum/percona-release-0.1-10.noarch.rpm \
+        && curl -L -o /tmp/percona-release.rpm https://repo.percona.com/percona/yum/percona-release-1.0-7.noarch.rpm \
         && rpmkeys --checksig /tmp/percona-release.rpm \
         && yum install -y /tmp/percona-release.rpm \
         && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
-        && percona-release enable psmdb-40 testing
+        && rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
+        && percona-release disable all \
+        && percona-release enable psmdb-40 release
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mongodb
 
 ENV PERCONA_MAJOR 40
-ENV PERCONA_VERSION 4.0.4-1.el7
+ENV PERCONA_VERSION 4.0.5-2.el7
 ENV K8S_TOOLS_VERSION 0.4.1
 
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
