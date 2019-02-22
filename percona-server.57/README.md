@@ -82,6 +82,10 @@ Set to `1` to allow the container to be started with enabled TOKUDB engine.
 
 Set to `1` to allow the container to be started with enabled ROCKSDB engine.
 
+## `MYSQL_INIT_ONLY`
+
+Set to `1` will skip starting the `mysqld` process and will run only the initialization part if MySQL was not initialized before.
+
 # Notes, Tips, Gotchas
 
 ## Secure Container Startup

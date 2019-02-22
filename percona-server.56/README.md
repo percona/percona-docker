@@ -70,6 +70,10 @@ Do note that there is no need to use this mechanism to create the `root` superus
 
 Set to `yes` to allow the container to be started with a blank password for the root user. **NOTE:** Setting this variable to `yes` is not recommended unless you really know what you are doing, since this will leave your instance completely unprotected, allowing anyone to gain complete superuser access.
 
+## `MYSQL_INIT_ONLY`
+
+Set to `1` will skip starting the `mysqld` process and will run only the initialization part if MySQL was not initialized before.
+
 # Notes, Tips, Gotchas
 
 ## Secure Container Startup
