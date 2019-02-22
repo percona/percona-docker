@@ -207,6 +207,12 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		echo 'MySQL init process done. Ready for start up.'
 		echo
 	fi
+
+  # exit when MYSQL_INIT_ONLY environment variable is set to avoid starting mysqld
+  if [ ! -z "$MYSQL_INIT_ONLY" ]; then
+      echo 'Initialization complete, now exiting!'
+      exit 0
+  fi
 fi
 
 exec "$@"
