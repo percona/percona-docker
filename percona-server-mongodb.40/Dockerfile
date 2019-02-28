@@ -19,7 +19,7 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mongodb
 
 ENV PERCONA_MAJOR 40
-ENV PERCONA_VERSION 4.0.5-2.el7
+ENV PERCONA_VERSION 4.0.6-3.el7
 ENV K8S_TOOLS_VERSION 0.4.1
 
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
