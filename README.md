@@ -1,4 +1,5 @@
-# Percona Docker Images Collection
+# Percona Docker Images Collection 
+[![CLA assistant](https://cla-assistant.percona.com/readme/badge/percona/percona-docker)](https://cla-assistant.percona.com/percona/percona-docker)
 
 Collection of Dockerfiles for Percona sofware.
 See individual directories for more details.
