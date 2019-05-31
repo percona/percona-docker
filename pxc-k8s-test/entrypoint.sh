@@ -1,5 +1,7 @@
 #!/bin/bash
-set -e
+set -xe
+
+USER_ID=$(id -u)
 
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
@@ -11,13 +13,30 @@ if [ -z "$CLUSTER_NAME" ]; then
   exit 1
 fi
 
+if [ -z "$POD_NAMESPACE" ]; then
+  echo >&2 'Error:  You need to specify POD_NAMESPACE'
+  exit 1
+else
+  # Is running in Kubernetes, so find all other pods
+  # belonging to the namespace
+  echo "Percona XtraDB Cluster: Finding peers"
+  # K8S_SVC_NAME=$(hostname -f | cut -d"." -f2)
+  echo "Using service name: ${GOV_SVC}"
+  /usr/bin/peer-finder -on-start="/usr/bin/configure-pxc.sh" -service=${GOV_SVC}
+fi
+
 # Get config
 DATADIR="$("mysqld" --verbose --wsrep_provider= --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 
 # if we have CLUSTER_JOIN - then we do not need to perform datadir initialize
 # the data will be copied from another node
+cat /etc/mysql/conf.d/node.cnf
+WSREP_CLUSTER_ADDRESS=$(grep wsrep_cluster_address /etc/mysql/conf.d/node.cnf | sed -e 's^.*gcomm://^^')
+echo "Cluster address set to: $WSREP_CLUSTER_ADDRESS"
 
-if [ -z "$CLUSTER_JOIN" ]; then
+if [ -z "$WSREP_CLUSTER_ADDRESS" ]; then
+
+  echo "Cluster address is empty! "
 
   if [ ! -e "$DATADIR/mysql" ]; then
     if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" -a -z "$MYSQL_ROOT_PASSWORD_FILE" ]; then
@@ -29,11 +48,11 @@ if [ -z "$CLUSTER_JOIN" ]; then
     if [ ! -z "$MYSQL_ROOT_PASSWORD_FILE" -a -z "$MYSQL_ROOT_PASSWORD" ]; then
       MYSQL_ROOT_PASSWORD=$(cat $MYSQL_ROOT_PASSWORD_FILE)
     fi
-    mkdir -p "$DATADIR"
+    rm -rf $DATADIR/* && mkdir -p $DATADIR
 
     echo "Running --initialize-insecure on $DATADIR"
     ls -lah $DATADIR
-    mysqld --initialize-insecure
+    mysqld --initialize-insecure --skip-ssl
     echo 'Finished --initialize-insecure'
 
     mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
@@ -59,20 +78,27 @@ if [ -z "$CLUSTER_JOIN" ]; then
       MYSQL_ROOT_PASSWORD="$(pwmake 128)"
       echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
     fi
+    # The 'username'@‘localhost' account can be used only when connecting from the
+    # local host.
+    # The 'username'@'%' account uses the '%' wildcard for the host part, so it
+    # can be used to connect from any host.
     "${mysql[@]}" <<-EOSQL
-			-- What's done in this file shouldn't be replicated
-			--  or products like mysql-fabric won't work
-			SET @@SESSION.SQL_LOG_BIN=0;
-			CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
-			GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
-			ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
-			CREATE USER 'xtrabackup'@'localhost' IDENTIFIED BY '$XTRABACKUP_PASSWORD';
-			GRANT RELOAD,PROCESS,LOCK TABLES,REPLICATION CLIENT ON *.* TO 'xtrabackup'@'localhost';
-			GRANT REPLICATION CLIENT ON *.* TO monitor@'%' IDENTIFIED BY 'monitor';
-			GRANT PROCESS ON *.* TO monitor@localhost IDENTIFIED BY 'monitor';
-			DROP DATABASE IF EXISTS test ;
-			FLUSH PRIVILEGES ;
-		EOSQL
+                    -- What's done in this file shouldn't be replicated
+                    --  or products like mysql-fabric won't work
+                    SET @@SESSION.SQL_LOG_BIN=0;
+                    CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
+                    GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
+                    ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+                    CREATE USER 'xtrabackup'@'localhost' IDENTIFIED BY '$XTRABACKUP_PASSWORD';
+                    GRANT RELOAD,PROCESS,LOCK TABLES,REPLICATION CLIENT ON *.* TO 'xtrabackup'@'localhost';
+                    GRANT REPLICATION CLIENT ON *.* TO monitor@'%' IDENTIFIED BY 'monitor';
+                    GRANT PROCESS ON *.* TO monitor@localhost IDENTIFIED BY 'monitor';
+                    DROP DATABASE IF EXISTS test ;
+                    FLUSH PRIVILEGES ;
+EOSQL
+#                    GRANT SELECT, PROCESS, SUPER, REPLICATION CLIENT, RELOAD ON *.* TO 'monitor'@'localhost' IDENTIFIED BY '$MONITOR_PASSWORD';
+#                    GRANT SELECT, UPDATE, DELETE, DROP ON performance_schema.* TO 'monitor'@'localhost';
+
     if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
       mysql+=(-p"${MYSQL_ROOT_PASSWORD}")
     fi
@@ -94,8 +120,8 @@ if [ -z "$CLUSTER_JOIN" ]; then
 
     if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
       "${mysql[@]}" <<-EOSQL
-				ALTER USER 'root'@'%' PASSWORD EXPIRE;
-			EOSQL
+                        ALTER USER 'root'@'%' PASSWORD EXPIRE;
+EOSQL
     fi
     if ! kill -s TERM "$pid" || ! wait "$pid"; then
       echo >&2 'MySQL init process failed.'
@@ -109,51 +135,6 @@ if [ -z "$CLUSTER_JOIN" ]; then
   fi
 fi
 
-if [ -z "$DISCOVERY_SERVICE" ]; then
-  cluster_join=$CLUSTER_JOIN
-else
-
-  echo
-  echo 'Registering in the discovery service'
-  echo
-
-  function join() {
-    local IFS="$1"
-    shift
-    joined=$(tr "$IFS" '\n' <<<"$*" | sort -u | tr '\n' "$IFS")
-    echo "${joined%?}"
-  }
-
-  # Read the list of registered IP addresses
-  set +e
-
-  ipaddr=$(hostname -i | awk ' { print $1 } ')
-  hostname=$(hostname)
-
-  curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME -XPOST -d value=$ipaddr -d ttl=60
-
-  #get list of IP from queue
-  i=$(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/queue/$CLUSTER_NAME | jq -r '.node.nodes[].value')
-
-  # this remove my ip from the list
-  i1="${i[@]//$ipaddr/}"
-
-  # Register the current IP in the discovery service
-  # key set to expire in 30 sec. There is a cronjob that should update them regularly
-  curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr/ipaddr -XPUT -d value="$ipaddr" -d ttl=30
-  curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr/hostname -XPUT -d value="$hostname" -d ttl=30
-  curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/$ipaddr -XPUT -d ttl=30 -d dir=true -d prevExist=true
-
-  i=$(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/?quorum=true | jq -r '.node.nodes[]?.key' | awk -F'/' '{print $(NF)}')
-  # this remove my ip from the list
-  i2="${i[@]//$ipaddr/}"
-  cluster_join=$(join , $i1 $i2)
-  echo "Joining cluster $cluster_join"
-
-  /usr/bin/clustercheckcron monitor monitor 1 /var/lib/mysql/clustercheck.log 1 &
-  set -e
-
-fi
-
 #--log-error=${DATADIR}error.log
-exec mysqld --user=mysql --wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$cluster_join" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --wsrep_node_address="$ipaddr" $CMDARG
+exec mysqld --user=mysql --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" $CMDARG
+sleep 1000

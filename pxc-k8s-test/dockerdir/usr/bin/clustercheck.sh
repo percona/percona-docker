@@ -16,12 +16,12 @@ if [[ $1 == '-h' || $1 == '--help' ]]; then
   exit
 fi
 
-MYSQL_USERNAME="${1-monitor}"
-MYSQL_PASSWORD="${2-monitor}"
-AVAILABLE_WHEN_DONOR=${3:-1}
-ERR_FILE="${4:-/var/lib/mysql/clustercheck.log}"
-AVAILABLE_WHEN_READONLY=${5:-1}
-DEFAULTS_EXTRA_FILE=${6:-/etc/mysql/my.cnf}
+MYSQL_USERNAME="${MYSQL_USERNAME:-monitor}"
+MYSQL_PASSWORD="${MYSQL_PASSWORD:-monitor}"
+AVAILABLE_WHEN_DONOR=${AVAILABLE_WHEN_DONOR:-1}
+ERR_FILE="${ERR_FILE:-/var/lib/mysql/clustercheck.log}"
+AVAILABLE_WHEN_READONLY=${AVAILABLE_WHEN_READONLY:-1}
+DEFAULTS_EXTRA_FILE=${DEFAULTS_EXTRA_FILE:-/etc/mysql/my.cnf}
 
 # CLUSTER_NAME to be set in enviroment
 # DISCOVERY_SERVICE to be set in enviroment

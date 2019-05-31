@@ -31,29 +31,29 @@ spec:
       containers:
       - name: mysql
 #        image: perconalab/pxc-k8s:latest
-        image: alittleprogramming/pxc-k8s
+        image: alittleprogramming/pxc-k8s-test
         imagePullPolicy: IfNotPresent
-        command:
-          - "bash"
-          - "-c"
-#          - "chmod -R 1001:0 /var/lib/mysql/*; /entrypoint.sh;"
-#          - "chmod -R mysql:mysql /var/lib/mysql/*; /entrypoint.sh;"
-#          - "chmod -R 777 /var/lib/mysql/*; /entrypoint.sh;"
-          - |
-            # chown -hR mysql:mysql /var/lib/mysql/ /var/run/mysqld/ /etc/mysql/conf.d/
-            # chown -h mysql:mysql /var/lib/mysql/ibdata1
-            # # chown -R mysql:mysql /var/lib/mysql/ /var/run/mysqld/ /etc/mysql/conf.d/
-            # 
-            # chmod -R a+rw /var/lib/mysql/
-            # chmod -R a+rw /var/run/mysqld/
-            # chmod -R a+rw /etc/mysql/conf.d/
-            # chmod a+rw /var/lib/mysql/ibdata1
-
-            chmod -R 777 /var/lib/mysql/
-            chmod 777 /var/lib/mysql/ibdata1
-            chmod -R 777 /var/run/mysqld/
-            # ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
-            /entrypoint.sh
+#        command:
+#          - "bash"
+#          - "-c"
+##          - "chmod -R 1001:0 /var/lib/mysql/*; /entrypoint.sh;"
+##          - "chmod -R mysql:mysql /var/lib/mysql/*; /entrypoint.sh;"
+##          - "chmod -R 777 /var/lib/mysql/*; /entrypoint.sh;"
+#          - |
+#            chown -hR mysql:mysql /var/lib/mysql/ /var/run/mysqld/ /etc/mysql/conf.d/
+#            chown -h mysql:mysql /var/lib/mysql/ibdata1
+#            # chown -R mysql:mysql /var/lib/mysql/ /var/run/mysqld/ /etc/mysql/conf.d/
+#
+#            chmod -R a+rw /var/lib/mysql/
+#            chmod -R a+rw /var/run/mysqld/
+#            chmod -R a+rw /etc/mysql/conf.d/
+#            chmod a+rw /var/lib/mysql/ibdata1
+#
+#            chmod -R 777 /var/lib/mysql/
+#            chmod 777 /var/lib/mysql/ibdata1
+#            chmod -R 777 /var/run/mysqld/
+#            # ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
+#            /entrypoint.sh
         ports:
         - containerPort: 3306
           name: mysql
@@ -85,11 +85,16 @@ spec:
               fieldRef:
                 apiVersion: v1
                 fieldPath: metadata.namespace
+          - name: GOV_SVC
+            value: "pxc"
+          - name: CLUSTER_NAME
+            value: "pxc-cluster"
   volumeClaimTemplates:
-  - metadata:
-      name: datadir
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 2Gi
+    - metadata:
+        name: datadir
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "standard"
+        resources:
+          requests:
+            storage: 1Gi

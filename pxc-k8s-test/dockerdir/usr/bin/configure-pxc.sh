@@ -31,7 +31,7 @@ function join() {
 
 HOSTNAME=$(hostname)
 # Parse out cluster name, from service name:
-CLUSTER_NAME="$(hostname -f | cut -d'.' -f2)"
+#CLUSTER_NAME="$(hostname -f | cut -d'.' -f2)"
 
 while read -ra LINE; do
   if [[ "${LINE}" == *"${HOSTNAME}"* ]]; then
@@ -45,7 +45,7 @@ if [ "${#PEERS[@]}" = 1 ]; then
 else
   WSREP_CLUSTER_ADDRESS=$(join , "${PEERS[@]}")
 fi
-echo $WSREP_CLUSTER_ADDRESS >/tmp/cluster_addr.txt
+#echo $WSREP_CLUSTER_ADDRESS >/tmp/cluster_addr.txt
 
 #--wsrep_cluster_name=$CLUSTER_NAME --wsrep_cluster_address="gcomm://$cluster_join" --wsrep_sst_method=xtrabackup-v2 --wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" --wsrep_node_address="$ipaddr"
 
