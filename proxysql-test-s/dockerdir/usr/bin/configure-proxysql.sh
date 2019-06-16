@@ -2,7 +2,21 @@
 
 #set +xe
 
-echo "++++++++++++ i'm in configure-proxysql.sh"
+# use the current scrip name while putting log
+script_name=${0##*/}
+#script_name="configure-proxysql.sh"
+
+function timestamp() {
+  date +"%Y/%m/%d %T"
+}
+
+function log() {
+  local log_type="$1"
+  local msg="$2"
+  echo "$(timestamp) [$script_name] [$log_type] $msg"
+}
+
+log "" "From $script_name"
 
 # Configs
 opt=" -vvv -f "
@@ -12,91 +26,83 @@ TIMEOUT="10" # 10 sec timeout to wait for server
 
 # Functions
 
-function mysql_root_exec() {
-  local server="$1"
-  local query="$2"
-  printf "%s\n" \
-    "[client]" \
-    "user=root" \
-    "password=${MYSQL_ROOT_PASSWORD}" \
-    "host=${server}" |
-    timeout $TIMEOUT $remote mysql --defaults-file=/dev/stdin --protocol=tcp -s -NB -e "${query}"
+function mysql_exec() {
+  local user="$1"
+  local pass="$2"
+  local server="$3"
+  local port="$4"
+  local query="$5"
+  local exec_opt="$6"
+  mysql $exec_opt --user=${user} --password=${pass} --host=${server} -P${port} -NBe "${query}"
 }
 
 function wait_for_mysql() {
-  #  local host=$1
-  #  echo "Waiting for host $h to be online..."
-  #  for i in {900..0}; do
-  #    out=$(mysqladmin -u root --password=${MYSQL_ROOT_PASSWORD} --host=${host} ping 2>/dev/null)
-  #    if [[ "$out" == "mysqld is alive" ]]; then
-  #      break
-  #    fi
-  #
-  #    echo -n .
-  #    sleep 1
-  #  done
-  #
-  #  if [[ "$i" == "0" ]]; then
-  #    echo ""
-  #    echo "====== [ERROR] ======" "Server ${host} start failed..."
-  #    exit 1
-  #  fi
+    local user="$1"
+    local pass="$2"
+    local server="$3"
+    local port="$4"
 
-  local h=$1
-  echo "Waiting for host $h to be online..."
-      while [ "$(mysql_root_exec $h 'select 1')" != "1" ]; do
-#  while true; do
-#    for i in {900..0}; do
-#      out=$(mysqladmin -u root --password=${MYSQL_ROOT_PASSWORD} --host=${host} ping 2>/dev/null)
-#      if [[ "$out" == "mysqld is alive" ]]; then
-#        break
-#      fi
-#
-#      echo -n .
-#      sleep 1
-#    done
-#
-#    if [[ "$i" == "0" ]]; then
-#      echo ""
-#      echo "====== [ERROR] ======" "Server ${host} start failed..."
-#      exit 1
-#    fi
+    log "INFO" "Waiting for host $server to be online..."
+    for i in {900..0}; do
+      out=$(mysql_exec ${user} ${pass} ${server} ${port} "select 1;")
+      if [[ "$out" == "1" ]]; then
+        break
+      fi
 
-    echo "MySQL is not up yet... sleeping ..."
-    sleep 1
-  done
+      log "WARNING" "out is ---'$out'--- MySQL is not up yet... sleeping ..."
+      sleep 1
+    done
+
+    if [[ "$i" == "0" ]]; then
+      log "ERROR" "Server ${server} start failed..."
+      exit 1
+    fi
 }
 
-#while read -ra LINE; do
-#  PEERS=("${PEERS[@]}" $LINE)
-#done
+IFS=',' read -ra BACKEND_SERVERS <<<"$PEERS"
 
-IFS=',' read -ra PEERS <<<"$HOSTS"
-echo "+++++++++++++++++"
-
-if [[ "${#PEERS[@]}" -eq 0 ]]; then
-  echo "========= [ERROR] ========= backend pxc servers not found"
+if [[ "${#BACKEND_SERVERS[@]}" -eq 0 ]]; then
+  log "ERROR" "Backend pxc servers not found. Exiting ..."
   exit 1
 fi
 
-echo "=========== [INFO] ============= peers are ${PEERS[*]}"
+log "INFO" "Provided peers are ${BACKEND_SERVERS[*]}"
 
 # Command $(hostname -I) returns a space separated IP list. We need only the first one.
 myips=$(hostname -I)
 ipaddr=${myips%% *}
-first_host=${PEERS[0]}
+first_host=${BACKEND_SERVERS[0]}
 
-wait_for_mysql $first_host
-mysql $opt -h $first_host -uroot -p$MYSQL_ROOT_PASSWORD -e "GRANT ALL ON *.* TO '$MYSQL_PROXY_USER'@'$ipaddr' IDENTIFIED BY '$MYSQL_PROXY_PASSWORD';"
+wait_for_mysql \
+    root \
+    $MYSQL_ROOT_PASSWORD \
+    $first_host \
+    3306
+mysql_exec \
+    root \
+    $MYSQL_ROOT_PASSWORD \
+    $first_host \
+    3306 \
+    "GRANT ALL ON *.* TO '$MYSQL_PROXY_USER'@'$ipaddr' IDENTIFIED BY '$MYSQL_PROXY_PASSWORD';" \
+    $opt
 
 # Now prepare sql for proxysql
+# Here, we configure read and write access for two host groups with id 10 and 20.
+# Host group 10 is for requests filtered by the pattern '^SELECT.*FOR UPDATE$'
+#   and contains only first host from the peers list
+# Host group 20 is for requests filtered by the pattern '^SELECT'
+#   and contains all of the hosts from the peers list
 
 servers_sql="REPLACE INTO mysql_servers (hostgroup_id, hostname, port) VALUES ($default_hostgroup_id, '$first_host', 3306);"
 
-for i in "${PEERS[@]}"; do
+for server in "${BACKEND_SERVERS[@]}"; do
   echo "Found host: $i"
-  wait_for_mysql $i
-  servers_sql="$servers_sql\nREPLACE INTO mysql_servers (hostgroup_id, hostname, port) VALUES ($reader_hostgroup_id, '$i', 3306);"
+  wait_for_mysql \
+    root \
+    $MYSQL_ROOT_PASSWORD \
+    $server \
+    3306
+  servers_sql="$servers_sql\nREPLACE INTO mysql_servers (hostgroup_id, hostname, port) VALUES ($reader_hostgroup_id, '$server', 3306);"
 done
 
 servers_sql="$servers_sql\nLOAD MYSQL SERVERS TO RUNTIME; SAVE MYSQL SERVERS TO DISK;"
@@ -111,7 +117,7 @@ scheduler_sql="
 UPDATE global_variables SET variable_value='$MYSQL_PROXY_USER' WHERE variable_name='mysql-monitor_username';
 UPDATE global_variables SET variable_value='$MYSQL_PROXY_PASSWORD' WHERE variable_name='mysql-monitor_password';
 LOAD MYSQL VARIABLES TO RUNTIME;SAVE MYSQL VARIABLES TO DISK;
-REPLACE INTO scheduler(id,active,interval_ms,filename,arg1,arg2,arg3,arg4,arg5) VALUES (1,'1','3000','/usr/bin/proxysql_galera_checker','10','20','1','1', '/var/lib/proxysql/proxysql_galera_checker.log');
+REPLACE INTO scheduler(id,active,interval_ms,filename,arg1,arg2,arg3,arg4,arg5) VALUES (1,'1','3000','/usr/share/proxysql/tools/proxysql_galera_checker.sh','10','20','1','1', '/var/lib/proxysql/proxysql_galera_checker.log');
 LOAD SCHEDULER TO RUNTIME; SAVE SCHEDULER TO DISK;
 "
 
@@ -127,8 +133,7 @@ LOAD MYSQL QUERY RULES TO RUNTIME;
 SAVE MYSQL QUERY RULES TO DISK;
 "
 
-echo ""
-echo "========= [INFO] ========= sql query to configure proxysql
+log "INFO" "sql query to configure proxysql
 
 $servers_sql
 
@@ -137,9 +142,16 @@ $users_sql
 $scheduler_sql
 
 $rw_split_sql"
-sleep 30
-#wait_for_mysql 127.0.0.1
-#$remote mysql $opt -h 127.0.0.1 -P6032 -uadmin -padmin -e "$cleanup_sql $servers_sql $users_sql $scheduler_sql $rw_split_sql"
-mysql -uadmin -padmin -h127.0.0.1 -P6032 -e "$cleanup_sql $servers_sql $users_sql $scheduler_sql $rw_split_sql"
 
-echo "All done!"
+# wait for proxysql process to be run
+wait_for_mysql admin admin 127.0.0.1 6032
+
+mysql_exec \
+    admin \
+    admin \
+    127.0.0.1 \
+    6032 \
+    "$cleanup_sql $servers_sql $users_sql $scheduler_sql $rw_split_sql" \
+    $opt
+
+log "INFO" "All done!"

@@ -19,7 +19,8 @@ RUN chmod +x /entrypoint.sh
 COPY dockerdir /
 RUN chmod a+x /usr/bin/configure-proxysql.sh
 
-EXPOSE 3306 6032
+#EXPOSE 3306 6032
+EXPOSE 6032 6033 6080
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD [""]
