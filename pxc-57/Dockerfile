@@ -1,63 +1,78 @@
-FROM debian:jessie
+FROM registry.access.redhat.com/ubi7/ubi-minimal
 MAINTAINER Percona Development <info@percona.com>
 
-RUN groupadd -g 1001 mysql
-RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
-            -c "Default Application User" mysql
+LABEL name="Percona XtraDB Cluster" \
+	release="5.7" \
+	vendor="Percona" \
+	summary="Percona XtraDB Cluster is an active/active high availability and high scalability open source solution for MySQL clustering" \
+	description="Percona XtraDB Cluster is a high availability solution that helps enterprises avoid downtime and outages and meet expected customer experience."
 
-RUN apt-get update -qq && apt-get install -qqy --no-install-recommends \
-		apt-transport-https ca-certificates \
-		pwgen wget \
-	&& rm -rf /var/lib/apt/lists/*
+# check repository package signature in secure way
+RUN export GNUPGHOME="$(mktemp -d)" \
+	&& gpg --keyserver pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 \
+	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
+	&& gpg --export --armor 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 > ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 \
+	&& gpg --export --armor 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
+	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
+	&& curl -L -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
+	&& rpmkeys --checksig /tmp/percona-release.rpm \
+	&& rpm -i /tmp/percona-release.rpm \
+	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
+	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-RUN wget https://repo.percona.com/apt/percona-release_0.1-6.jessie_all.deb \
-  && dpkg -i percona-release_0.1-6.jessie_all.deb
+# install exact version of PS for repeatability
+ENV PS_VERSION 5.7.25-28.1.el7
+ENV PXC_VERSION 5.7.25-31.35.1.el7
 
-# the "/var/lib/mysql" stuff here is because the mysql-server postinst doesn't have an explicit way to disable the mysql_install_db codepath besides having a database already "configured" (ie, stuff in /var/lib/mysql/mysql)
-# also, we set debconf keys to make APT a little quieter
+RUN curl -L -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.9-7.el7.x86_64.rpm \
+	&& curl -L -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
+	&& curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.5-1.el7.x86_64.rpm \
+	&& curl -L -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
+	&& rpmkeys --checksig /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm \
+	&& rpm -i /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm \
+	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm
 
-ENV DEBIAN_FRONTEND noninteractive
+RUN microdnf update -y \
+	&& rpm -e --nodeps tzdata \
+	&& microdnf install Percona-Server-shared-57-${PS_VERSION} \
+		jemalloc \
+		socat \
+		openssl \
+		shadow-utils \
+		hostname \
+		curl \
+		tzdata \
+	&& microdnf clean all
 
-RUN     apt-get update -qq \
-	&& apt-get install -qqy --force-yes \
-		percona-xtradb-cluster-57 curl \
-	&& rm -rf /var/lib/apt/lists/* \
-# comment out any "user" entires in the MySQL config ("docker-entrypoint.sh" or "--user" will handle user switching)
-	&& sed -ri 's/^user\s/#&/' /etc/mysql/my.cnf \
-# purge and re-create /var/lib/mysql with appropriate ownership
-	&& rm -rf /var/lib/mysql && mkdir -p /var/lib/mysql /var/run/mysqld \
-	&& chown -R mysql:mysql /var/lib/mysql /var/run/mysqld \
-# ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
-	&& chmod 777 /var/run/mysqld
+# create mysql user/group before mysql installation
+RUN groupadd -g 1001 mysql \
+	&& useradd -u 1001 -r -g 1001 -s /sbin/nologin \
+		-c "Default Application User" mysql
 
-RUN sed -ri 's/^bind-address/#&/' /etc/mysql/my.cnf 
+RUN microdnf install -y \
+		Percona-XtraDB-Cluster-server-57-${PXC_VERSION} \
+	&& microdnf clean all \
+	&& rm -rf /var/cache/yum /var/lib/mysql
 
-#	&& echo 'skip-host-cache\nskip-name-resolve' | awk '{ print } $1 == "[mysqld]" && c == 0 { c = 1; system("cat") }' /etc/mysql/my.cnf > /tmp/my.cnf \
-#	&& mv /tmp/my.cnf /etc/mysql/my.cnf
+COPY LICENSE /licenses/LICENSE.Dockerfile
+RUN cp /usr/share/doc/Percona-XtraDB-Cluster-server-57-*/COPYING /licenses/LICENSE.Percona-XtraDB-Cluster \
+	&& cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera \
+	&& cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
 
+
+RUN echo '!include /etc/mysql/node.cnf' > /etc/my.cnf \
+	&& echo '!includedir /etc/mysql/conf.d/' >> /etc/my.cnf
+
+COPY dockerdir /
+RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d \
+	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d \
+	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d
+
+USER 1001
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
-RUN sed -ri 's/^log_error/#&/' /etc/mysql/my.cnf
-
-ADD node.cnf /etc/mysql/conf.d/node.cnf
-
-COPY entrypoint.sh /entrypoint.sh
-COPY jq /usr/bin/jq
-COPY clustercheckcron /usr/bin/clustercheckcron
-
-RUN chmod a+x /usr/bin/jq
-RUN chmod a+x /usr/bin/clustercheckcron
-
-
-EXPOSE 3306 4567 4568
-
-LABEL vendor=Percona
-LABEL com.percona.package="Percona XtraDB Cluster"
-LABEL com.percona.version="5.7"
-
 ENTRYPOINT ["/entrypoint.sh"]
 
-EXPOSE 3306
-USER 1001
-CMD [""]
+EXPOSE 3306 4567 4568
+CMD ["mysqld"]
