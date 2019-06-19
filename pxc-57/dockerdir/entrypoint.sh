@@ -7,6 +7,7 @@ set -o xtrace
 if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
 fi
+CFG=/etc/mysql/node.cnf
 
 # skip setup if they want an option that stops mysqld
 wantHelp=
@@ -62,7 +63,7 @@ process_init_file() {
 }
 
 _check_config() {
-	toRun=( "$@" --verbose --help )
+	toRun=( "$@" --verbose --help --wsrep-provider='none' )
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
 		cat >&2 <<-EOM
 
@@ -80,7 +81,7 @@ _check_config() {
 # latter only show values present in config files, and not server defaults
 _get_config() {
 	local conf="$1"; shift
-	"$@" --verbose --help --log-bin-index="$(mktemp -u)" 2>/dev/null \
+	"$@" --verbose --help --wsrep-provider='none' --log-bin-index="$(mktemp -u)" 2>/dev/null \
 		| awk '$1 == "'"$conf"'" && /^[^ \t]/ { sub(/^[^ \t]+[ \t]+/, ""); print; exit }'
 	# match "datadir      /some/path with/spaces in/it here" but not "--xyz=abc\n     datadir (xyz)"
 }
@@ -97,7 +98,7 @@ file_env 'CLUSTERCHECK_PASSWORD' 'clustercheck'
 if [ -n "$PXC_SERVICE" ]; then
 	echo "Percona XtraDB Cluster: Finding peers"
 	/usr/bin/peer-list -on-start="/usr/bin/configure-pxc.sh" -service="${PXC_SERVICE}"
-	CLUSTER_JOIN="$(_get_config 'wsrep-cluster-address' "$@" | sed -e 's^.*gcomm://^^')"
+	CLUSTER_JOIN="$(grep '^wsrep_cluster_address=' "$CFG" | cut -d '=' -f 2 | sed -e 's^.*gcomm://^^')"
 	echo "Cluster address set to: $CLUSTER_JOIN"
 elif [ -n "$DISCOVERY_SERVICE" ]; then
 	echo 'Registering in the discovery service'
@@ -125,11 +126,10 @@ elif [ -n "$DISCOVERY_SERVICE" ]; then
 	i2="${i[@]//$NODE_IP}"
 	CLUSTER_JOIN=$(join , $i1 $i2 )
 
-    CFG=/etc/mysql/node.cnf
-	sed -r "s|^[#]?wsrep_node_address=.*$|wsrep_node_address=${NODE_IP}|" ${CFG} 1<> ${CFG}
-	sed -r "s|^[#]?wsrep_cluster_name=.*$|wsrep_cluster_name=${CLUSTER_NAME}|" ${CFG} 1<> ${CFG}
-	sed -r "s|^[#]?wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${CLUSTER_JOIN}|" ${CFG} 1<> ${CFG}
-    sed -r "s|^[#]?wsrep_sst_auth=.*$|wsrep_sst_auth='xtrabackup:${XTRABACKUP_PASSWORD}'|" ${CFG} 1<> ${CFG}
+	sed -r "s|^[#]?wsrep_node_address=.*$|wsrep_node_address=${NODE_IP}|" "${CFG}" 1<> "${CFG}"
+	sed -r "s|^[#]?wsrep_cluster_name=.*$|wsrep_cluster_name=${CLUSTER_NAME}|" "${CFG}" 1<> "${CFG}"
+	sed -r "s|^[#]?wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${CLUSTER_JOIN}|" "${CFG}" 1<> "${CFG}"
+	sed -r "s|^[#]?wsrep_sst_auth=.*$|wsrep_sst_auth='xtrabackup:${XTRABACKUP_PASSWORD}'|" "${CFG}" 1<> "${CFG}"
 
 	/usr/bin/clustercheckcron clustercheck "${CLUSTERCHECK_PASSWORD}" 1 /var/lib/mysql/clustercheck.log 1 &
 fi
@@ -299,7 +299,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		fi
 	fi
 	"$@" --version > "$DATADIR/pxc_info"
-	cat /etc/mysql/node.cnf
+	grep -v wsrep_sst_auth "$CFG"
 fi
 
 exec "$@"
