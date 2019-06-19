@@ -14,6 +14,7 @@ docker run -d -p 3306 --net=$NETWORK_NAME \
 	 -e XTRABACKUP_PASSWORD=Theistare \
 	 percona/percona-xtradb-cluster:5.7
 #--general-log=1 --general_log_file=/var/lib/mysql/general.log
+#--wsrep_cluster_address="gcomm://$QCOMM"
 echo "Started $(docker ps -l -q)"
 
-# --wsrep_cluster_address="gcomm://$QCOMM"
+docker logs -f $(docker ps -l -q)

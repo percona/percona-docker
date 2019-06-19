@@ -60,8 +60,12 @@ RUN cp /usr/share/doc/Percona-XtraDB-Cluster-server-57-*/COPYING /licenses/LICEN
 	&& cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
 
 
-RUN echo '!include /etc/mysql/node.cnf' > /etc/my.cnf \
-	&& echo '!includedir /etc/mysql/conf.d/' >> /etc/my.cnf
+RUN rmdir /etc/my.cnf.d \
+	&& ln -s /etc/mysql/conf.d /etc/my.cnf.d \
+	&& rm -f /etc/percona-xtradb-cluster.conf.d/*.cnf \
+	&& echo '!include /etc/mysql/node.cnf' > /etc/my.cnf \
+	&& echo '!includedir /etc/my.cnf.d/' >> /etc/my.cnf \
+	&& echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
 
 COPY dockerdir /
 RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d \

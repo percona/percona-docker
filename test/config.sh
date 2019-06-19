@@ -28,6 +28,8 @@ testAlias+=(
 	[percona]='mysql'
 	[percona/percona-server]='mysql'
 	[perconalab/percona-server]='mysql'
+	[percona/percona-xtradb-cluster]='mysql'
+	[perconalab/percona-xtradb-cluster]='mysql'
 
 	[percona/percona-server-mongodb]='mongo'
 	[perconalab/percona-server-mongodb]='mongo'
