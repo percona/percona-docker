@@ -103,7 +103,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		mkdir -p "$DATADIR"
 
 		echo 'Initializing database'
-		"$@" --initialize-insecure
+		"$@" --initialize-insecure --skip-ssl
 		echo 'Database initialized'
 
 		if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$DATADIR/server-key.pem" ]; then
@@ -217,11 +217,11 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		echo
 	fi
 
-  # exit when MYSQL_INIT_ONLY environment variable is set to avoid starting mysqld
-  if [ ! -z "$MYSQL_INIT_ONLY" ]; then
-      echo 'Initialization complete, now exiting!'
-      exit 0
-  fi
+	# exit when MYSQL_INIT_ONLY environment variable is set to avoid starting mysqld
+	if [ ! -z "$MYSQL_INIT_ONLY" ]; then
+		echo 'Initialization complete, now exiting!'
+		exit 0
+	fi
 fi
 
 exec "$@"
