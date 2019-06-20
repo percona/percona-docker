@@ -1,39 +1,54 @@
-FROM centos:7
-MAINTAINER Percona Development <info@percona.com>
+FROM registry.access.redhat.com/ubi7/ubi-minimal
+
+LABEL name="Percona Server for MongoDB" \
+	release="4.0" \
+	vendor="Percona" \
+	summary="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition" \
+	description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
+	maintainer="Percona Development <info@percona.com>"
 
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
-        && gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
-        && gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
-        && rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 \
-        && curl -L -o /tmp/percona-release.rpm https://repo.percona.com/percona/yum/percona-release-1.0-7.noarch.rpm \
-        && rpmkeys --checksig /tmp/percona-release.rpm \
-        && yum install -y /tmp/percona-release.rpm \
-        && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
-        && rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-        && percona-release disable all \
-        && percona-release enable psmdb-40 release
+	&& gpg --keyserver pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 \
+	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
+	&& gpg --export --armor 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 > ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 \
+	&& gpg --export --armor 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
+	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
+	&& curl -L -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
+	&& rpmkeys --checksig /tmp/percona-release.rpm \
+	&& rpm -i /tmp/percona-release.rpm \
+	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
+	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
+	&& percona-release enable psmdb-40 release
+
+# install exact version for repeatability
+ENV PERCONA_VERSION 4.0.10-5.el7
+ENV K8S_TOOLS_VERSION 0.4.2
+
+RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.5-1.el7.x86_64.rpm \
+	&& curl -L -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
+	&& rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm \
+	&& rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm \
+	&& rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
+
+RUN microdnf update -y \
+	&& microdnf install \
+		percona-server-mongodb-server-${PERCONA_VERSION} \
+		percona-server-mongodb-mongos-${PERCONA_VERSION} \
+		percona-server-mongodb-shell-${PERCONA_VERSION} \
+		percona-server-mongodb-tools-${PERCONA_VERSION} \
+		shadow-utils \
+		curl \
+		&& microdnf clean all \
+		&& rm -rf /var/cache/yum /data/db  && mkdir -p /data/db \
+		&& chown -R 1001:0 /data/db
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mongodb
 
-ENV PERCONA_MAJOR 40
-ENV PERCONA_VERSION 4.0.10-5.el7
-ENV K8S_TOOLS_VERSION 0.4.1
-
-RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
-        && yum install -y \
-                percona-server-mongodb-server-${PERCONA_VERSION} \
-                percona-server-mongodb-mongos-${PERCONA_VERSION} \
-                percona-server-mongodb-shell-${PERCONA_VERSION} \
-                percona-server-mongodb-tools-${PERCONA_VERSION} \
-                curl \
-                jq \
-        && yum clean all \
-        && rm -rf /var/cache/yum /data/db  && mkdir -p /data/db \
-        && chown -R 1001:0 /data/db
-
+COPY LICENSE /licenses/LICENSE.Dockerfile
+RUN cp /usr/share/doc/percona-server-mongodb-server-$(echo ${PERCONA_VERSION} | cut -d - -f 1)/GNU-AGPL-3.0 /licenses/LICENSE.Percona-Server-for-MongoDB
 
 RUN curl -fSL https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/k8s-mongodb-initiator -o /usr/local/bin/k8s-mongodb-initiator \
     && curl -fSL  https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/mongodb-healthcheck -o /usr/local/bin/mongodb-healthcheck \
@@ -41,10 +56,8 @@ RUN curl -fSL https://github.com/percona/mongodb-orchestration-tools/releases/do
 
 VOLUME ["/data/db"]
 
-
 COPY ps-entry.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
-
 
 EXPOSE 27017
 
