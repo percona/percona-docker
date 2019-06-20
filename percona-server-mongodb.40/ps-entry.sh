@@ -241,7 +241,7 @@ if [ "$originalArgOne" = 'mongod' ]; then
 			_mongod_hack_ensure_no_arg_val --replSet "${mongodHackedArgs[@]}"
 		fi
 
-		sslMode="$(_mongod_hack_have_arg '--sslPEMKeyFile' "$@" && echo 'allowSSL' || echo 'disabled')" # "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
+		sslMode="$(_mongod_hack_have_arg '--sslPEMKeyFile' "$@" && echo 'preferSSL' || echo 'disabled')" # "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
 		_mongod_hack_ensure_arg_val --sslMode "$sslMode" "${mongodHackedArgs[@]}"
 
 		if stat "/proc/$$/fd/1" > /dev/null && [ -w "/proc/$$/fd/1" ]; then
@@ -320,13 +320,30 @@ if [ "$originalArgOne" = 'mongod' ]; then
 		echo
 	fi
 
-	# Kubernetes cannot set 0400 rights on readonly secret, mongod cannot work with other permissions on keyFile
-	# in the result, it is needed to copy the secret file to a temp location and set 0400 permissions
-	if [ -f /etc/mongodb-secrets/mongodb-key ]; then
-		install -m 0400 /etc/mongodb-secrets/mongodb-key ${TMPDIR:-/tmp}/.mongod.key
-		if ! _mongod_hack_have_arg --keyFile "$@"; then
-			set -- "$@" --keyFile "${TMPDIR:-/tmp}/.mongod.key"
+	MONGO_SSL_DIR=${MONGO_SSL_DIR:-/etc/mongodb-ssl}
+	CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+	if [ -f /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt ]; then
+		CA=/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+	fi
+	if [ -f ${MONGO_SSL_DIR}/ca.crt ]; then
+		CA=${MONGO_SSL_DIR}/ca.crt
+	fi
+	if [ -f ${MONGO_SSL_DIR}/tls.key -a -f ${MONGO_SSL_DIR}/tls.crt ]; then
+		cat ${MONGO_SSL_DIR}/tls.key ${MONGO_SSL_DIR}/tls.crt > /tmp/tls.pem
+		_mongod_hack_ensure_arg_val --sslPEMKeyFile /tmp/tls.pem "$@"
+		if [ -f "${CA}" ]; then
+			_mongod_hack_ensure_arg_val --sslCAFile "${CA}" "${mongodHackedArgs[@]}"
 		fi
+		set -- "${mongodHackedArgs[@]}"
+	fi
+	MONGO_SSL_INTERNAL_DIR=${MONGO_SSL_INTERNAL_DIR:-/etc/mongodb-ssl-internal}
+	if [ -f ${MONGO_SSL_INTERNAL_DIR}/tls.key -a -f ${MONGO_SSL_INTERNAL_DIR}/tls.crt ]; then
+		cat ${MONGO_SSL_INTERNAL_DIR}/tls.key ${MONGO_SSL_INTERNAL_DIR}/tls.crt > /tmp/tls-internal.pem
+		_mongod_hack_ensure_arg_val --sslClusterFile /tmp/tls-internal.pem "$@"
+		if [ -f "${MONGO_SSL_INTERNAL_DIR}/ca.crt" ]; then
+			_mongod_hack_ensure_arg_val --sslClusterCAFile "${MONGO_SSL_INTERNAL_DIR}/ca.crt" "${mongodHackedArgs[@]}"
+		fi
+		set -- "${mongodHackedArgs[@]}"
 	fi
 
 	# MongoDB 3.6+ defaults to localhost-only binding
@@ -346,4 +363,5 @@ fi
 
 rm -f "$jsonConfigFile" "$tempConfigFile"
 
+set -o xtrace
 exec "$@"

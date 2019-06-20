@@ -1,11 +1,11 @@
 FROM registry.access.redhat.com/ubi7/ubi-minimal
-MAINTAINER Percona Development <info@percona.com>
 
 LABEL name="Percona XtraDB Cluster" \
 	release="5.7" \
 	vendor="Percona" \
 	summary="Percona XtraDB Cluster is an active/active high availability and high scalability open source solution for MySQL clustering" \
-	description="Percona XtraDB Cluster is a high availability solution that helps enterprises avoid downtime and outages and meet expected customer experience."
+	description="Percona XtraDB Cluster is a high availability solution that helps enterprises avoid downtime and outages and meet expected customer experience." \
+	maintainer="Percona Development <info@percona.com>"
 
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
