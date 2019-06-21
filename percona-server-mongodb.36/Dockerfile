@@ -21,7 +21,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 # install exact version for repeatability
-ENV PERCONA_VERSION 3.6.12-3.2.el7
+ENV PERCONA_VERSION 3.6.13-3.3.el7
 ENV K8S_TOOLS_VERSION 0.4.2
 
 RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.5-1.el7.x86_64.rpm \
