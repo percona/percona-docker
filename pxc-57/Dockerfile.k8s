@@ -1,4 +1,4 @@
-FROM centos:7
+FROM registry.access.redhat.com/ubi7/ubi-minimal
 
 LABEL name="Percona XtraDB Cluster" \
 	release="5.7" \
@@ -32,9 +32,9 @@ RUN curl -L -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64
 	&& rpm -i /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm \
 	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm
 
-RUN yum update -y \
+RUN microdnf update -y \
 	&& rpm -e --nodeps tzdata \
-	&& yum install -y \
+	&& microdnf install -y \
 		Percona-Server-shared-57-${PS_VERSION} \
 		jemalloc \
 		socat \
@@ -43,7 +43,7 @@ RUN yum update -y \
 		hostname \
 		curl \
 		tzdata \
-	&& yum clean all
+	&& microdnf clean all
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql \
@@ -52,9 +52,9 @@ RUN groupadd -g 1001 mysql \
 
 # we need licenses from docs
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
-	&& yum install -y \
+	&& microdnf install -y \
 		Percona-XtraDB-Cluster-server-57-${PXC_VERSION} \
-	&& yum clean all \
+	&& microdnf clean all \
 	&& rm -rf /var/cache/yum /var/lib/mysql
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
