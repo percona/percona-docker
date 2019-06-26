@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi7/ubi-minimal
+FROM centos:7
 
 LABEL name="Percona Server for MongoDB" \
 	release="3.6" \
@@ -30,15 +30,16 @@ RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/
 	&& rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm \
 	&& rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
 
-RUN microdnf update -y \
-	&& microdnf install \
+RUN yum update -y \
+	&& sed -i '/nodocs/d' /etc/yum.conf || : \
+	&& yum install -y \
 		Percona-Server-MongoDB-36-server-${PERCONA_VERSION} \
 		Percona-Server-MongoDB-36-mongos-${PERCONA_VERSION} \
 		Percona-Server-MongoDB-36-tools-${PERCONA_VERSION} \
 		Percona-Server-MongoDB-36-shell-${PERCONA_VERSION} \
 		shadow-utils \
 		curl \
-		&& microdnf clean all \
+		&& yum clean all \
 		&& rm -rf /var/cache/yum /data/db  && mkdir -p /data/db \
 		&& chown -R 1001:0 /data/db
 

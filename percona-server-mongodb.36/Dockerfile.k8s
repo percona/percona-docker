@@ -1,7 +1,7 @@
-FROM centos:7
+FROM registry.access.redhat.com/ubi7/ubi-minimal
 
 LABEL name="Percona Server for MongoDB" \
-	release="4.0" \
+	release="3.6" \
 	vendor="Percona" \
 	summary="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition" \
 	description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
@@ -18,11 +18,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
-	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-	&& percona-release enable psmdb-40 release
+	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 # install exact version for repeatability
-ENV PERCONA_VERSION 4.0.10-5.el7
+ENV PERCONA_VERSION 3.6.13-3.3.el7
 ENV K8S_TOOLS_VERSION 0.4.2
 
 RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.5-1.el7.x86_64.rpm \
@@ -31,16 +30,16 @@ RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/
 	&& rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm \
 	&& rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
 
-RUN yum update -y \
+RUN microdnf update -y \
 	&& sed -i '/nodocs/d' /etc/yum.conf || : \
-	&& yum install -y \
-		percona-server-mongodb-server-${PERCONA_VERSION} \
-		percona-server-mongodb-mongos-${PERCONA_VERSION} \
-		percona-server-mongodb-shell-${PERCONA_VERSION} \
-		percona-server-mongodb-tools-${PERCONA_VERSION} \
+	&& microdnf install -y \
+		Percona-Server-MongoDB-36-server-${PERCONA_VERSION} \
+		Percona-Server-MongoDB-36-mongos-${PERCONA_VERSION} \
+		Percona-Server-MongoDB-36-tools-${PERCONA_VERSION} \
+		Percona-Server-MongoDB-36-shell-${PERCONA_VERSION} \
 		shadow-utils \
 		curl \
-		&& yum clean all \
+		&& microdnf clean all \
 		&& rm -rf /var/cache/yum /data/db  && mkdir -p /data/db \
 		&& chown -R 1001:0 /data/db
 
@@ -49,7 +48,7 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mongodb
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN cp /usr/share/doc/percona-server-mongodb-server-$(echo ${PERCONA_VERSION} | cut -d - -f 1)/GNU-AGPL-3.0 /licenses/LICENSE.Percona-Server-for-MongoDB
+RUN cp /usr/share/doc/Percona-Server-MongoDB-36-server-$(echo ${PERCONA_VERSION} | cut -d - -f 1)/GNU-AGPL-3.0 /licenses/LICENSE.Percona-Server-for-MongoDB
 
 RUN curl -fSL https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/k8s-mongodb-initiator -o /usr/local/bin/k8s-mongodb-initiator \
     && curl -fSL  https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/mongodb-healthcheck -o /usr/local/bin/mongodb-healthcheck \
