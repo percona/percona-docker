@@ -346,6 +346,10 @@ if [ "$originalArgOne" = 'mongod' ]; then
 		set -- "${mongodHackedArgs[@]}"
 	fi
 
+	sslMode="$(_mongod_hack_have_arg '--sslPEMKeyFile' "$@" && echo 'preferSSL' || echo 'disabled')" # "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
+	_mongod_hack_ensure_arg_val --sslMode "$sslMode" "$@"
+	set -- "${mongodHackedArgs[@]}"
+
 	# MongoDB 3.6+ defaults to localhost-only binding
 	haveBindIp=
 	if _mongod_hack_have_arg --bind_ip "$@" || _mongod_hack_have_arg --bind_ip_all "$@"; then
