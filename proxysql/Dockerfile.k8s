@@ -1,4 +1,4 @@
-FROM centos:7
+FROM registry.access.redhat.com/ubi7/ubi-minimal
 
 LABEL name="ProxySQL" \
 	release="2.0" \
@@ -24,13 +24,13 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 ENV PS_VERSION 5.7.26-29.1.el7
 ENV PROXYSQL_VERSION 2.0.4-1.2.el7
 
-RUN yum update -y \
-	&& yum install -y \
+RUN microdnf update -y \
+	&& microdnf install -y \
 		Percona-Server-client-57-${PS_VERSION} \
 		Percona-Server-shared-57-${PS_VERSION} \
 		shadow-utils \
 		which \
-	&& yum clean all
+	&& microdnf clean all
 
 RUN groupadd -g 1001 proxysql \
     && useradd -u 1001 -r -g 1001 -s /sbin/nologin \
@@ -38,9 +38,9 @@ RUN groupadd -g 1001 proxysql \
 
 # we need licenses from docs
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
-	&& yum install -y \
+	&& microdnf install -y \
 		proxysql2-${PROXYSQL_VERSION} \
-	&& yum clean all \
+	&& microdnf clean all \
 	&& rm -rf /var/cache/yum /etc/proxysql /var/lib/proxysql \
 	&& install -o 1001 -g 0 -m 775 -d /etc/proxysql /var/lib/proxysql
 
@@ -57,4 +57,4 @@ VOLUME /var/lib/proxysql
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 3306 6032
-CMD ["/usr/bin/proxysql", "-f", "-c", "/etc/proxysql/proxysql.cnf"]
+CMD [ "/usr/bin/proxysql", "-f", "-c", "/etc/proxysql/proxysql.cnf" ]
