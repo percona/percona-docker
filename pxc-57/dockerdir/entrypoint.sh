@@ -212,11 +212,13 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 			CREATE USER 'xtrabackup'@'localhost' IDENTIFIED BY '${XTRABACKUP_PASSWORD}';
 			GRANT RELOAD,PROCESS,LOCK TABLES,REPLICATION CLIENT ON *.* TO 'xtrabackup'@'localhost';
+
 			GRANT SELECT, PROCESS, SUPER, REPLICATION CLIENT, RELOAD ON *.* TO 'monitor'@'${MONITOR_HOST}' IDENTIFIED BY '${MONITOR_PASSWORD}';
-			GRANT SELECT, UPDATE, DELETE, DROP ON performance_schema.* TO 'monitor'@'localhost';
+			GRANT SELECT, UPDATE, DELETE, DROP ON performance_schema.* TO 'monitor'@'${MONITOR_HOST}';
+
 			GRANT PROCESS ON *.* TO 'clustercheck'@'localhost' IDENTIFIED BY '${CLUSTERCHECK_PASSWORD}';
 
-			DROP DATABASE IF EXISTS test ;
+			DROP DATABASE IF EXISTS test;
 			FLUSH PRIVILEGES ;
 		EOSQL
 
