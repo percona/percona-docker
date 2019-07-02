@@ -4,7 +4,6 @@ ignore-db-dir=lost+found
 datadir=/var/lib/mysql
 socket=/tmp/mysql.sock
 skip-host-cache
-skip-name-resolve
 
 #server_id=0
 binlog_format=ROW
