@@ -22,6 +22,7 @@ admin_variables =
 
 mysql_variables=
 {
+	monitor_password="monitor"
 	monitor_galera_healthcheck_interval=1000
 	threads=2
 	max_connections=2048
