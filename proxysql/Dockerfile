@@ -48,7 +48,8 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/proxysql2-$(echo ${PROXYSQL_VERSION} | cut -d - -f 1)/LICENSE /licenses/LICENSE.proxysql
 
 COPY dockerdir /
-RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf
+RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf \
+    && chmod 664 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf
 
 USER 1001
 

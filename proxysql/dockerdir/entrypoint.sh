@@ -53,7 +53,7 @@ if [ -f "${SSL_INTERNAL_DIR}/tls.key" ] && [ -f "${SSL_INTERNAL_DIR}/tls.crt" ];
     CERT=${SSL_INTERNAL_DIR}/tls.crt
 fi
 
-if [ -f "$CA" ] && [ -f "$KEY" ] && [ -f "$CERT" ] && [ -z "$PXC_SERVICE" ]; then
+if [ -f "$CA" ] && [ -f "$KEY" ] && [ -f "$CERT" ] && [ -n "$PXC_SERVICE" ]; then
     wait_for_mysql "$PXC_SERVICE"
     cipher=$(mysql_root_exec "$PXC_SERVICE" 'SHOW SESSION STATUS LIKE "Ssl_cipher"' | awk '{print$2}')
 
