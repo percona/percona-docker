@@ -8,14 +8,15 @@ function mysql_root_exec() {
   MYSQL_PWD=${MYSQL_ROOT_PASSWORD:-password} timeout 600 mysql -h "${server}" -uroot -s -NB -e "${query}"
 }
 
-function wait_for_mysql() {
+function get_cipher() {
     local h="$1"
-    echo "Waiting for host $h to be online..."
-    while [ "$(mysql_root_exec "$h" 'select 1')" != "1" ]
+    local cipher=""
+    while [ -z "$cipher" ]
     do
-        echo "MySQL is not up yet... sleeping ..."
+        cipher=$(mysql_root_exec "$h" 'SHOW SESSION STATUS LIKE "Ssl_cipher"' | awk '{print$2}')
         sleep 1
     done
+    echo $cipher
 }
 
 PROXY_CFG=/etc/proxysql/proxysql.cnf
@@ -54,8 +55,7 @@ if [ -f "${SSL_INTERNAL_DIR}/tls.key" ] && [ -f "${SSL_INTERNAL_DIR}/tls.crt" ];
 fi
 
 if [ -f "$CA" ] && [ -f "$KEY" ] && [ -f "$CERT" ] && [ -n "$PXC_SERVICE" ]; then
-    wait_for_mysql "$PXC_SERVICE"
-    cipher=$(mysql_root_exec "$PXC_SERVICE" 'SHOW SESSION STATUS LIKE "Ssl_cipher"' | awk '{print$2}')
+    cipher=$(get_cipher "$PXC_SERVICE")
 
     sed "s^have_ssl=false^have_ssl=true^"                   ${PROXY_CFG} 1<> ${PROXY_CFG}
     sed "s^ssl_p2s_ca=\"\"^ssl_p2s_ca=\"$CA\"^"             ${PROXY_CFG} 1<> ${PROXY_CFG}
