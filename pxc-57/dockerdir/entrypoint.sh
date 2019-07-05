@@ -273,14 +273,17 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 fi
 
 if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
-	"$@" --version > /tmp/pxc_info
+	"$@" --version | tee /tmp/version_info
 	DATADIR="$(_get_config 'datadir' "$@")"
-	if [ -f "$DATADIR/pxc_info" ] && ! diff /tmp/pxc_info "$DATADIR/pxc_info"; then
+	if [ -f "$DATADIR/version_info" ] && ! diff /tmp/version_info "$DATADIR/version_info"; then
 		SOCKET="$(_get_config 'socket' "$@")"
 		"$@" --skip-networking --socket="${SOCKET}" --wsrep-provider='none' &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" --password="" )
+		if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
+			mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
+		fi
 
 		for i in {120..0}; do
 			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
@@ -294,13 +297,13 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			exit 1
 		fi
 
-		mysql_upgrade --socket="${SOCKET}"
+		mysql_upgrade "${mysql[@]:1}"
 		if ! kill -s TERM "$pid" || ! wait "$pid"; then
 			echo >&2 'MySQL init process failed.'
 			exit 1
 		fi
 	fi
-	"$@" --version > "$DATADIR/pxc_info"
+	"$@" --version > "$DATADIR/version_info"
 	grep -v wsrep_sst_auth "$CFG"
 fi
 
