@@ -132,6 +132,21 @@ elif [ -n "$DISCOVERY_SERVICE" ]; then
 	sed -r "s|^[#]?wsrep_sst_auth=.*$|wsrep_sst_auth='xtrabackup:${XTRABACKUP_PASSWORD}'|" "${CFG}" 1<> "${CFG}"
 
 	/usr/bin/clustercheckcron clustercheck "${CLUSTERCHECK_PASSWORD}" 1 /var/lib/mysql/clustercheck.log 1 &
+
+else
+	: checking incoming cluster parameters
+	NODE_IP=$(hostname -i | awk ' { print $1 } ')
+	sed -r "s|^[#]?wsrep_node_address=.*$|wsrep_node_address=${NODE_IP}|" "${CFG}" 1<> "${CFG}"
+	sed -r "s|^[#]?wsrep_sst_auth=.*$|wsrep_sst_auth='xtrabackup:${XTRABACKUP_PASSWORD}'|" "${CFG}" 1<> "${CFG}"
+	
+	if [[ -n "${CLUSTER_JOIN}" ]]; then
+		sed -r "s|^[#]?wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${CLUSTER_JOIN}|" "${CFG}" 1<> "${CFG}"
+	fi
+
+	if [[ -n "${CLUSTER_NAME}" ]]; then
+		sed -r "s|^[#]?wsrep_cluster_name=.*$|wsrep_cluster_name=${CLUSTER_NAME}|" "${CFG}" 1<> "${CFG}"
+	fi
+
 fi
 
 # if we have CLUSTER_JOIN - then we do not need to perform datadir initialize
