@@ -2,7 +2,7 @@
 
 # What is Percona Server?
 
-Percona Server is an enhanced drop-in replacement for MySQL. With Percona Server, Your queries will run faster and more consistently. You will consolidate servers on powerful hardware. You will delay sharding, or avoid it entirely.
+Percona Server is an enhanced drop-in replacement for MySQL. With Percona Server, your queries will run faster and more consistently. You will consolidate servers on powerful hardware and will delay sharding, or avoid it entirely.
 
 For more information and related downloads for Percona Server and other Percona products, please visit http://www.percona.com.
 
@@ -10,7 +10,7 @@ For more information and related downloads for Percona Server and other Percona 
 
 These are the only official Percona Server Docker images, created and maintained by the Percona team. The image has the Percona Fractal Tree based storage engine `TokuDB` enabled. The available versions are:
 
-    Percona Server 8.0.12-1.1 (tag: 8.0)
+    Percona Server 8.0.15-6.1 (tag: 8.0)
 
 Images are updated when new releases are published.
 
