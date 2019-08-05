@@ -44,12 +44,23 @@ RUN microdnf update -y \
 		&& rm -rf /var/cache/yum /data/db  && mkdir -p /data/db \
 		&& chown -R 1001:0 /data/db
 
+RUN curl -L -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/1.11/gosu-amd64 \
+	&& chmod +x /usr/bin/gosu
+
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mongodb
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-server-mongodb-server-$(echo ${PERCONA_VERSION} | cut -d - -f 1)/GNU-AGPL-3.0 /licenses/LICENSE.Percona-Server-for-MongoDB
+
+ENV GOSU_VERSION=1.11
+ENV GOSU_MD5SUM=0e98180d09e27e8385f4273d1c5bcffa
+RUN curl -L -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64 \
+	&& chmod +x /usr/bin/gosu \
+    && echo "${GOSU_MD5SUM} /usr/bin/gosu" | md5sum -c - \
+    && curl -o /licenses/LICENSE.gosu \
+		https://raw.githubusercontent.com/tianon/gosu/${GOSU_VERSION}/LICENSE
 
 RUN curl -fSL https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/k8s-mongodb-initiator -o /usr/local/bin/k8s-mongodb-initiator \
     && curl -fSL  https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/mongodb-healthcheck -o /usr/local/bin/mongodb-healthcheck \

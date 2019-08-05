@@ -11,7 +11,7 @@ originalArgOne="$1"
 # all mongo* commands should be dropped to the correct user
 if [[ "$originalArgOne" == mongo* ]] && [ "$(id -u)" = '0' ]; then
 	if [ "$originalArgOne" = 'mongod' ]; then
-		find /data/configdb /data/db \! -user mongodb -exec chown mongodb '{}' +
+		find /data/db \! -user mongodb -exec chown mongodb '{}' +
 	fi
 
 	# make sure we can write to stdout and stderr as "mongodb"
@@ -19,7 +19,7 @@ if [[ "$originalArgOne" == mongo* ]] && [ "$(id -u)" = '0' ]; then
 	chown --dereference mongodb "/proc/$$/fd/1" "/proc/$$/fd/2" || :
 	# ignore errors thanks to https://github.com/docker-library/mongo/issues/149
 
-	exec gosu mongodb "$BASH_SOURCE" "$@"
+	exec gosu mongodb:1001 "$BASH_SOURCE" "$@"
 fi
 
 # you should use numactl to start your mongod instances, including the config servers, mongos instances, and any clients.
