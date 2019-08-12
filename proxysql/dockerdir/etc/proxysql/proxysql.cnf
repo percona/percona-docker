@@ -14,10 +14,10 @@ admin_variables =
 	cluster_mysql_servers_save_to_disk=true
 	cluster_mysql_users_save_to_disk=true
 	cluster_proxysql_servers_save_to_disk=true
-	cluster_mysql_query_rules_diffs_before_sync=3
-	cluster_mysql_servers_diffs_before_sync=3
-	cluster_mysql_users_diffs_before_sync=3
-	cluster_proxysql_servers_diffs_before_sync=3
+	cluster_mysql_query_rules_diffs_before_sync=1
+	cluster_mysql_servers_diffs_before_sync=1
+	cluster_mysql_users_diffs_before_sync=1
+	cluster_proxysql_servers_diffs_before_sync=1
 }
 
 mysql_variables=
