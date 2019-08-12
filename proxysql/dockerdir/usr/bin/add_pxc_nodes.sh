@@ -54,8 +54,31 @@ function main() {
         SSL_ARG="--use-ssl=yes"
     fi
 
-    proxysql-admin --config-file=/etc/proxysql-admin.cnf --cluster-hostname="$first_host" --enable --update-cluster --remove-all-servers $SSL_ARG
-    proxysql-admin --config-file=/etc/proxysql-admin.cnf --cluster-hostname="$first_host" --syncusers $SSL_ARG
+    proxysql-admin \
+        --config-file=/etc/proxysql-admin.cnf \
+        --cluster-hostname="$first_host" \
+        --enable \
+        --update-cluster \
+        --remove-all-servers \
+        --disable-updates \
+        --force \
+        --debug \
+        $SSL_ARG
+
+    proxysql-admin \
+        --config-file=/etc/proxysql-admin.cnf \
+        --cluster-hostname="$first_host" \
+        --sync-multi-cluster-users \
+        --add-query-rule \
+        --disable-updates \
+        --force \
+        --debug
+
+    proxysql-admin \
+        --config-file=/etc/proxysql-admin.cnf \
+        --cluster-hostname="$first_host" \
+        --update-mysql-version
+
     echo "All done!"
 }
 

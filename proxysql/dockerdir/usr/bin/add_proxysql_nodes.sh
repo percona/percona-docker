@@ -13,7 +13,7 @@ function proxysql_admin_exec() {
 function wait_for_proxysql() {
     local server="$1"
     echo "Waiting for host $server to be online..."
-    while [ "$(proxysql_admin_exec "$server" 'select 1')" != "1" ]
+    while [ "$(proxysql_admin_exec "$server" 'SELECT MAX(active) FROM runtime_mysql_galera_hostgroups')" != "1" ]
     do
         echo "ProxySQL is not up yet... sleeping ..."
         sleep 1
@@ -39,6 +39,8 @@ function main() {
         echo "Read line $LINE"
         add_proxysql "127.0.0.1" "$LINE"
     done
+    add_proxysql "127.0.0.1" "$(hostname -f)" || :
+
     proxysql_admin_exec "127.0.0.1" "
         SELECT * FROM proxysql_servers;
         LOAD PROXYSQL SERVERS TO RUNTIME;

@@ -22,7 +22,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 # install exact version of PS for repeatability
 ENV PS_VERSION 5.7.26-29.1.el7
-ENV PROXYSQL_VERSION 2.0.4-1.2.el7
+ENV PROXYSQL_VERSION 2.0.5-1.1.el7
 
 RUN yum update -y \
 	&& yum install -y \
@@ -30,6 +30,7 @@ RUN yum update -y \
 		Percona-Server-shared-57-${PS_VERSION} \
 		shadow-utils \
 		which \
+		hostname \
 	&& yum clean all
 
 RUN groupadd -g 1001 proxysql \

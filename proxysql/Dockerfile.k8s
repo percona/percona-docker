@@ -22,7 +22,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 # install exact version of PS for repeatability
 ENV PS_VERSION 5.7.26-29.1.el7
-ENV PROXYSQL_VERSION 2.0.4-1.2.el7
+ENV PROXYSQL_VERSION 2.0.5-1.1.el7
 
 RUN microdnf update -y \
 	&& microdnf install -y \
@@ -30,6 +30,7 @@ RUN microdnf update -y \
 		Percona-Server-shared-57-${PS_VERSION} \
 		shadow-utils \
 		which \
+		hostname \
 	&& microdnf clean all
 
 RUN groupadd -g 1001 proxysql \
@@ -48,7 +49,8 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/proxysql2-$(echo ${PROXYSQL_VERSION} | cut -d - -f 1)/LICENSE /licenses/LICENSE.proxysql
 
 COPY dockerdir /
-RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf
+RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf \
+    && chmod 664 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf
 
 USER 1001
 
@@ -57,4 +59,4 @@ VOLUME /var/lib/proxysql
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 3306 6032
-CMD [ "/usr/bin/proxysql", "-f", "-c", "/etc/proxysql/proxysql.cnf" ]
+CMD ["/usr/bin/proxysql", "-f", "-c", "/etc/proxysql/proxysql.cnf"]
