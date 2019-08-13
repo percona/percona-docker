@@ -26,6 +26,7 @@ RUN yum install -y \
 		Percona-Server-tokudb-57-${PERCONA_VERSION} \
 		Percona-Server-rocksdb-57-${PERCONA_VERSION} \
 		jemalloc \
+		openssl \
 		which \
 		policycoreutils \
 	&& yum clean all \
