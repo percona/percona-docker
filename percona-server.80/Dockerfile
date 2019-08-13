@@ -16,8 +16,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
 	&& percona-release disable all \
-	&& percona-release enable ps-80 release \
-	&& percona-release enable tools release
+	&& percona-release setup ps80
 
 # install exact version of PS for repeatability
 ENV PERCONA_VERSION 8.0.15-6.1.el7
