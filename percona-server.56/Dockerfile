@@ -16,7 +16,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
 	&& percona-release disable all \
-	&& percona-release enable percona release
+	&& percona-release enable original release
 
 # install exact version of PS for repeatability
 ENV PERCONA_VERSION 5.6.44-rel86.0.el7
