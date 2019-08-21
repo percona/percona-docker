@@ -8,7 +8,7 @@
 #Timeout exists for instances where mysqld may be hung
 TIMEOUT=10
 
-ipaddr=$(hostname -i | awk ' { print $1 } ')
+ipaddr=$(hostname -I | awk ' { print $1 } ')
 hostname=$(hostname)
 
 while true

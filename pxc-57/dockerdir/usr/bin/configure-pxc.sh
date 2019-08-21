@@ -26,7 +26,7 @@ function join {
     local IFS="$1"; shift; echo "$*";
 }
 
-NODE_IP=$(hostname -i)
+NODE_IP=$(hostname -I)
 CLUSTER_NAME="$(hostname -f | cut -d'.' -f2)"
 SERVER_ID=${HOSTNAME/$CLUSTER_NAME-}
 
