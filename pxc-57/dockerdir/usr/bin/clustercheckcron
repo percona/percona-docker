@@ -43,7 +43,7 @@ else
     MYSQL_CMDLINE="mysql -nNE --connect-timeout=$TIMEOUT ${EXTRA_ARGS}"
 fi
 
-ipaddr=$(hostname -i | awk ' { print $1 } ')
+ipaddr=$(hostname -I | awk ' { print $1 } ')
 hostname=$(hostname)
 
 while true

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ipaddr=$(hostname -i | awk ' { print $1 } ')
+ipaddr=$(hostname -I | awk ' { print $1 } ')
 
 for i in $(curl http://$DISCOVERY_SERVICE/v2/keys/pxc-cluster/$CLUSTER_NAME/ | jq -r '.node.nodes[]?.key' | awk -F'/' '{print $(NF)}')
 do
