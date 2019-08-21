@@ -3,7 +3,7 @@ set -e
 
 USER_ID=$(id -u)
 
-ipaddr=$(hostname -i | awk ' { print $1 } ')
+ipaddr=$(hostname -I | awk ' { print $1 } ')
 hostname=$(hostname)
 
 echo "loose-group_replication_local_address=$hostname:24901" >> /etc/mysql/conf.d/node.cnf

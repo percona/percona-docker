@@ -7,7 +7,7 @@ if [ "${1:0:1}" = '-' ]; then
 fi
 
 #get server_id from ip address
-ipaddr=$(hostname -i | awk ' { print $1 } ')
+ipaddr=$(hostname -I | awk ' { print $1 } ')
 server_id=$(echo $ipaddr | tr . '\n' | awk '{s = s*256 + $1} END{print s}')
 
 if [ -z "$MASTER_HOST" ]; then
