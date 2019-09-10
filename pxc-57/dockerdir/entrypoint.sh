@@ -213,6 +213,7 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			EOSQL
 		fi
 
+		IP_PREFIX=$(echo ${NODE_IP} | cut -d. -f1 | awk '{print $1".%"}')
 		file_env 'MONITOR_HOST' 'localhost'
 		file_env 'MONITOR_PASSWORD' 'monitor'
 		"${mysql[@]}" <<-EOSQL
@@ -229,6 +230,7 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			GRANT RELOAD,PROCESS,LOCK TABLES,REPLICATION CLIENT ON *.* TO 'xtrabackup'@'localhost';
 
 			GRANT SELECT, PROCESS, SUPER, REPLICATION CLIENT, RELOAD ON *.* TO 'monitor'@'${MONITOR_HOST}' IDENTIFIED BY '${MONITOR_PASSWORD}';
+			GRANT SELECT, PROCESS, SUPER, REPLICATION CLIENT, RELOAD ON *.* TO 'monitor'@'${IP_PREFIX}' IDENTIFIED BY '${MONITOR_PASSWORD}';
 			GRANT SELECT, UPDATE, DELETE, DROP ON performance_schema.* TO 'monitor'@'${MONITOR_HOST}';
 
 			GRANT PROCESS ON *.* TO 'clustercheck'@'localhost' IDENTIFIED BY '${CLUSTERCHECK_PASSWORD}';
