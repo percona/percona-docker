@@ -22,11 +22,14 @@
 # The config location is intentionally not /etc/mysql/my.cnf because the
 # standard base image clobbers that location.
 
+set -o errexit
+set -o xtrace
+
 function join {
     local IFS="$1"; shift; echo "$*";
 }
 
-NODE_IP=$(hostname -I)
+NODE_IP=$(hostname -I | awk ' { print $1 } ')
 CLUSTER_NAME="$(hostname -f | cut -d'.' -f2)"
 SERVER_ID=${HOSTNAME/$CLUSTER_NAME-}
 
