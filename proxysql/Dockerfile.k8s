@@ -31,13 +31,15 @@ RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/
 	&& rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
 
 RUN microdnf update -y \
-	&& microdnf install -y \
-		Percona-Server-client-57-${PS_VERSION} \
-		Percona-Server-shared-57-${PS_VERSION} \
-		shadow-utils \
-		which \
-		hostname \
-	&& microdnf clean all
+        && microdnf install -y \
+                Percona-Server-client-57-${PS_VERSION} \
+                Percona-Server-shared-57-${PS_VERSION} \
+                shadow-utils \
+                which \
+                hostname \
+                yum-utils \
+                shadow-utils \
+        && microdnf clean all
 
 RUN groupadd -g 1001 proxysql \
     && useradd -u 1001 -r -g 1001 -s /sbin/nologin \
@@ -45,11 +47,24 @@ RUN groupadd -g 1001 proxysql \
 
 # we need licenses from docs
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
-	&& microdnf install -y \
-		proxysql2-${PROXYSQL_VERSION} \
-	&& microdnf clean all \
-	&& rm -rf /var/cache/yum /etc/proxysql /var/lib/proxysql \
-	&& install -o 1001 -g 0 -m 775 -d /etc/proxysql /var/lib/proxysql
+        && repoquery -a --archlist=x86_64 --location \
+               util-linux \
+                   | xargs curl -L -o /tmp/util-linux.rpm \
+        && repoquery -a --location \
+               proxysql2-${PROXYSQL_VERSION} \
+                   | xargs curl -L -o /tmp/proxysql2-${PROXYSQL_VERSION}.rpm \
+        && rpm -iv /tmp/proxysql2-${PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm --nodeps \
+        && rm -rf /tmp/proxysql2-${PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm \
+        && microdnf remove -y \
+               yum-utils \
+               python-kitchen \
+               python-chardet \
+               libxml2-python \
+               yum \
+        && microdnf clean all \
+        && rm -rf /var/cache/yum /etc/proxysql /var/lib/proxysql \
+        && rpm -ql Percona-Server-client-57 | egrep -v "mysql$|mysqldump$" | xargs rm -rf \
+        && install -o 1001 -g 0 -m 775 -d /etc/proxysql /var/lib/proxysql
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/proxysql2-$(echo ${PROXYSQL_VERSION} | cut -d - -f 1)/LICENSE /licenses/LICENSE.proxysql
