@@ -33,15 +33,21 @@ RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/
 RUN yum update -y \
 	&& sed -i '/nodocs/d' /etc/yum.conf || : \
 	&& yum install -y \
-		Percona-Server-MongoDB-36-server-${PERCONA_VERSION} \
-		Percona-Server-MongoDB-36-mongos-${PERCONA_VERSION} \
-		Percona-Server-MongoDB-36-tools-${PERCONA_VERSION} \
-		Percona-Server-MongoDB-36-shell-${PERCONA_VERSION} \
-		shadow-utils \
-		curl \
-		&& yum clean all \
-		&& rm -rf /var/cache/yum /data/db  && mkdir -p /data/db \
-		&& chown -R 1001:0 /data/db
+                shadow-utils \
+                curl \
+                Percona-Server-MongoDB-36-shell-${PERCONA_VERSION} \
+                Percona-Server-MongoDB-36-mongos-${PERCONA_VERSION} \
+        && repoquery -a --location \
+               policycoreutils \
+                   | xargs curl -L -o /tmp/policycoreutils.rpm \
+        && repoquery -a --location \
+               Percona-Server-MongoDB-36-server-${PERCONA_VERSION} \
+                   | xargs curl -L -o /tmp/Percona-Server-MongoDB-36-server-${PERCONA_VERSION}.rpm \
+        && rpm -iv /tmp/policycoreutils.rpm /tmp/Percona-Server-MongoDB-36-server-${PERCONA_VERSION}.rpm --nodeps \
+        && rm -rf /tmp/policycoreutils.rpm /tmp/Percona-Server-MongoDB-36-server-${PERCONA_VERSION}.rpm \
+        && yum clean all \
+        && rm -rf /var/cache/yum /data/db  && mkdir -p /data/db \
+        && chown -R 1001:0 /data/db
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \

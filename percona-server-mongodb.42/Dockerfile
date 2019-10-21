@@ -34,15 +34,21 @@ RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/
 RUN yum update -y \
 	&& sed -i '/nodocs/d' /etc/yum.conf || : \
 	&& yum install -y \
-		percona-server-mongodb-server-${PERCONA_VERSION} \
 		percona-server-mongodb-mongos-${PERCONA_VERSION} \
 		percona-server-mongodb-shell-${PERCONA_VERSION} \
-		percona-server-mongodb-tools-${PERCONA_VERSION} \
 		shadow-utils \
 		curl \
-		&& yum clean all \
-		&& rm -rf /var/cache/yum /data/db  && mkdir -p /data/db \
-		&& chown -R 1001:0 /data/db
+        && repoquery -a --location \
+               policycoreutils \
+                   | xargs curl -L -o /tmp/policycoreutils.rpm \
+        && repoquery -a --location \
+               percona-server-mongodb-server-${PERCONA_VERSION} \
+                   | xargs curl -L -o /tmp/percona-server-mongodb-server-${PERCONA_VERSION}.rpm \
+        && rpm -iv /tmp/policycoreutils.rpm /tmp/percona-server-mongodb-server-${PERCONA_VERSION}.rpm --nodeps \
+        && rm -rf /tmp/policycoreutils.rpm /tmp/percona-server-mongodb-server-${PERCONA_VERSION}.rpm \
+        && yum clean all \
+        && rm -rf /var/cache/yum /data/db  && mkdir -p /data/db \
+        && chown -R 1001:0 /data/db
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
