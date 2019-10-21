@@ -33,17 +33,20 @@ RUN curl -L -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64
 	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm
 
 RUN yum update -y \
-	&& rpm -e --nodeps tzdata \
-	&& yum install -y \
-		Percona-Server-shared-57-${PS_VERSION} \
-		jemalloc \
-		socat \
-		openssl \
-		shadow-utils \
-		hostname \
-		curl \
-		tzdata \
-	&& yum clean all
+        && rpm -e --nodeps tzdata \
+        && yum install -y \
+                Percona-Server-shared-57-${PS_VERSION} \
+                jemalloc \
+                socat \
+                openssl \
+                shadow-utils \
+                hostname \
+                curl \
+                tzdata \
+                libaio \
+                which \
+                pam \
+        && yum clean all
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql \
@@ -52,10 +55,26 @@ RUN groupadd -g 1001 mysql \
 
 # we need licenses from docs
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
-	&& yum install -y \
-		Percona-XtraDB-Cluster-server-57-${PXC_VERSION} \
-	&& yum clean all \
-	&& rm -rf /var/cache/yum /var/lib/mysql
+        && yum install -y \
+                yum-utils \
+        && repoquery -a --location \
+                Percona-XtraDB-Cluster-server-57-${PXC_VERSION} \
+                    | xargs curl -L -o /tmp/Percona-XtraDB-Cluster-server-57.rpm \
+        && repoquery -a --location \
+                Percona-XtraDB-Cluster-shared-57-${PXC_VERSION} \
+                    | xargs curl -L -o /tmp/Percona-XtraDB-Cluster-shared-57.rpm \
+        && repoquery -a --location \
+                Percona-XtraDB-Cluster-client-57-${PXC_VERSION} \
+                    | xargs curl -L -o /tmp/Percona-XtraDB-Cluster-client-57.rpm \
+        && repoquery -a --location \
+                percona-xtrabackup-24 \
+                    | xargs curl -L -o /tmp/percona-xtrabackup-24.rpm \
+        && rpm -iv /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm --nodeps \
+        && rm -rf /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm \
+        && yum clean all \
+        && rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
+        && rm -rf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam* \
+        && rpm -ql Percona-XtraDB-Cluster-client-57 | egrep -v "mysql$|mysqldump$" | xargs rm -rf
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/Percona-XtraDB-Cluster-server-57-*/COPYING /licenses/LICENSE.Percona-XtraDB-Cluster \

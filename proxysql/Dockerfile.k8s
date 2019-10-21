@@ -38,7 +38,6 @@ RUN microdnf update -y \
                 which \
                 hostname \
                 yum-utils \
-                shadow-utils \
                 perl-DBD-MySQL \
                 perl-DBI \
         && microdnf clean all
