@@ -28,3 +28,6 @@ wsrep_sst_auth="root:"
 
 [client]
 socket=/tmp/mysql.sock
+
+[sst]
+progress=/var/lib/mysql/sst_in_progress
