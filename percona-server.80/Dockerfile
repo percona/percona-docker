@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos:latest
 MAINTAINER Percona Development <info@percona.com>
 
 RUN groupadd -g 1001 mysql
@@ -9,27 +9,27 @@ RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
 RUN export GNUPGHOME="$(mktemp -d)" \
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
 	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
-	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 \
+	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial \
 	&& curl -L -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
-	&& yum install -y /tmp/percona-release.rpm \
+	&& dnf install -y /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-	&& percona-release disable all \
-	&& percona-release setup ps80
+	&& percona-release enable-only ps-80 release \
+    && dnf module disable mysql -y
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.16-7.1.el7
+ENV PERCONA_VERSION 8.0.17-8.1.el8
 
-RUN yum install -y \
-		percona-server-server-${PERCONA_VERSION} \
+RUN dnf install -y \
+ 		percona-server-server-${PERCONA_VERSION} \
 		percona-server-tokudb-${PERCONA_VERSION} \
 		percona-server-rocksdb-${PERCONA_VERSION} \
 		jemalloc \
 		which \
 		policycoreutils \
-	&& yum clean all \
-	&& rm -rf /var/cache/yum /var/lib/mysql
+	&& dnf clean all \
+	&& rm -rf /var/cache/dnf /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership
 RUN /usr/bin/install -m 0775 -o mysql -g root -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \
