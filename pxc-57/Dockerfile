@@ -21,8 +21,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 # install exact version of PS for repeatability
-ENV PS_VERSION 5.7.26-29.1.el7
-ENV PXC_VERSION 5.7.26-31.37.1.el7
+ENV PS_VERSION 5.7.28-31.1.el7
+ENV PXC_VERSION 5.7.27-31.39.1.el7
 
 RUN curl -L -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
 	&& curl -L -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
