@@ -24,8 +24,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 ENV XTRABACKUP_VERSION 2.4.14-1.el7
 ENV PS_VERSION 5.7.26-29.1.el7
 ENV PXC_VERSION 5.7.26-31.37.1.el7
-ENV KUBECTL_VERSION=v1.15.2
-ENV KUBECTL_MD5SUM=daf020f5dc07314f4e388e4a6c9cc201
+ENV KUBECTL_VERSION=v1.15.6
+ENV KUBECTL_MD5SUM=1f851d069020a53de120eac6e9c15e24
 
 RUN curl -L -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
 	&& curl -L -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
