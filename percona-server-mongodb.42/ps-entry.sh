@@ -327,24 +327,38 @@ if [ "$originalArgOne" = 'mongod' ]; then
 	fi
 	if [ -f ${MONGO_SSL_DIR}/tls.key -a -f ${MONGO_SSL_DIR}/tls.crt ]; then
 		cat ${MONGO_SSL_DIR}/tls.key ${MONGO_SSL_DIR}/tls.crt > /tmp/tls.pem
-		_mongod_hack_ensure_arg_val --sslPEMKeyFile /tmp/tls.pem "$@"
+		_mongod_hack_ensure_arg_val --tlsCertificateKeyFile /tmp/tls.pem "$@"
 		if [ -f "${CA}" ]; then
-			_mongod_hack_ensure_arg_val --sslCAFile "${CA}" "${mongodHackedArgs[@]}"
-		fi
-		set -- "${mongodHackedArgs[@]}"
-	fi
-	MONGO_SSL_INTERNAL_DIR=${MONGO_SSL_INTERNAL_DIR:-/etc/mongodb-ssl-internal}
-	if [ -f ${MONGO_SSL_INTERNAL_DIR}/tls.key -a -f ${MONGO_SSL_INTERNAL_DIR}/tls.crt ]; then
-		cat ${MONGO_SSL_INTERNAL_DIR}/tls.key ${MONGO_SSL_INTERNAL_DIR}/tls.crt > /tmp/tls-internal.pem
-		_mongod_hack_ensure_arg_val --sslClusterFile /tmp/tls-internal.pem "$@"
-		if [ -f "${MONGO_SSL_INTERNAL_DIR}/ca.crt" ]; then
-			_mongod_hack_ensure_arg_val --sslClusterCAFile "${MONGO_SSL_INTERNAL_DIR}/ca.crt" "${mongodHackedArgs[@]}"
+			_mongod_hack_ensure_arg_val --tlsCAFile "${CA}" "${mongodHackedArgs[@]}"
 		fi
 		set -- "${mongodHackedArgs[@]}"
 	fi
 
-	sslMode="$(_mongod_hack_have_arg '--sslPEMKeyFile' "$@" && echo 'preferSSL' || echo 'disabled')" # "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
-	_mongod_hack_ensure_arg_val --sslMode "$sslMode" "$@"
+	MONGO_SSL_INTERNAL_DIR=${MONGO_SSL_INTERNAL_DIR:-/etc/mongodb-ssl-internal}
+	if [ -f ${MONGO_SSL_INTERNAL_DIR}/tls.key -a -f ${MONGO_SSL_INTERNAL_DIR}/tls.crt ]; then
+		cat ${MONGO_SSL_INTERNAL_DIR}/tls.key ${MONGO_SSL_INTERNAL_DIR}/tls.crt > /tmp/tls-internal.pem
+		_mongod_hack_ensure_arg_val --tlsClusterFile /tmp/tls-internal.pem "$@"
+		if [ -f "${MONGO_SSL_INTERNAL_DIR}/ca.crt" ]; then
+			_mongod_hack_ensure_arg_val --tlsClusterCAFile "${MONGO_SSL_INTERNAL_DIR}/ca.crt" "${mongodHackedArgs[@]}"
+		fi
+		set -- "${mongodHackedArgs[@]}"
+	fi
+
+        # "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
+        tlsMode='disabled'
+        if _mongod_hack_have_arg '--tlsCertificateKeyFile' "$@"; then
+            tlsMode='preferTLS'
+        elif _mongod_hack_have_arg '--sslPEMKeyFile' "$@"; then
+            tlsMode='preferSSL'
+        fi
+
+        # 4.2 switched all configuration/flag names from "SSL" to "TLS"
+        if [ "$tlsMode" = 'preferTLS' ] || mongod --help 2>&1 | grep -q -- ' --tlsMode '; then
+            _mongod_hack_ensure_arg_val --tlsMode "$tlsMode" "$@"
+        else
+            _mongod_hack_ensure_arg_val --sslMode "$tlsMode" "$@"
+        fi
+
 	set -- "${mongodHackedArgs[@]}"
 
 	# MongoDB 3.6+ defaults to localhost-only binding
