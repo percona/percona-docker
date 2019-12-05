@@ -55,7 +55,7 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mongodb
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN cp /usr/share/doc/percona-server-mongodb-server-$(echo ${PERCONA_VERSION} | cut -d - -f 1)/GNU-AGPL-3.0 /licenses/LICENSE.Percona-Server-for-MongoDB
+RUN cp /usr/share/doc/percona-server-mongodb-server-$(echo ${PERCONA_VERSION} | cut -d - -f 1)/LICENSE-Community.txt /licenses/LICENSE.Percona-Server-for-MongoDB
 
 ENV GOSU_VERSION=1.11
 ENV GOSU_MD5SUM=0e98180d09e27e8385f4273d1c5bcffa
