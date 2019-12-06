@@ -38,6 +38,8 @@ RUN yum update -y \
 		percona-server-mongodb-shell-${PERCONA_VERSION} \
 		shadow-utils \
 		curl \
+		procps-ng \
+		yum-utils \
         && repoquery -a --location \
                policycoreutils \
                    | xargs curl -L -o /tmp/policycoreutils.rpm \
