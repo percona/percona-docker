@@ -33,8 +33,10 @@ RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/
 RUN yum update -y \
 	&& sed -i '/nodocs/d' /etc/yum.conf || : \
 	&& yum install -y \
+                yum-utils \
                 shadow-utils \
                 curl \
+                procps-ng \
                 Percona-Server-MongoDB-36-shell-${PERCONA_VERSION} \
                 Percona-Server-MongoDB-36-mongos-${PERCONA_VERSION} \
         && repoquery -a --location \
