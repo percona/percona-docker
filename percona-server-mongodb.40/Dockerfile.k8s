@@ -38,7 +38,6 @@ RUN microdnf update -y \
 		percona-server-mongodb-shell-${PERCONA_VERSION} \
 		shadow-utils \
 		curl \
-		procps-ng \
 		yum-utils \
         && repoquery -a --location \
                policycoreutils \
@@ -46,8 +45,17 @@ RUN microdnf update -y \
         && repoquery -a --location \
                percona-server-mongodb-server-${PERCONA_VERSION} \
                    | xargs curl -L -o /tmp/percona-server-mongodb-server-${PERCONA_VERSION}.rpm \
-        && rpm -iv /tmp/policycoreutils.rpm /tmp/percona-server-mongodb-server-${PERCONA_VERSION}.rpm --nodeps \
-        && rm -rf /tmp/policycoreutils.rpm /tmp/percona-server-mongodb-server-${PERCONA_VERSION}.rpm \
+        && repoquery -a --archlist=x86_64 --location \
+                 elfutils-libs \
+                    | xargs curl -L -o /tmp/elfutils-libs.rpm \
+        && repoquery -a --archlist=x86_64 --location \
+                 systemd-libs \
+                    | xargs curl -L -o /tmp/systemd-libs.rpm \
+        && repoquery -a --archlist=x86_64 --location \
+                 procps-ng \
+                    | xargs curl -L -o /tmp/procps.rpm \
+        && rpm -iv /tmp/policycoreutils.rpm /tmp/procps.rpm /tmp/systemd-libs.rpm /tmp/elfutils-libs.rpm /tmp/percona-server-mongodb-server-${PERCONA_VERSION}.rpm --nodeps \
+        && rm -rf /tmp/policycoreutils.rpm /tmp/procps.rpm /tmp/systemd-libs.rpm /tmp/elfutils-libs.rpm /tmp/percona-server-mongodb-server-${PERCONA_VERSION}.rpm \
         && microdnf remove -y \
                yum-utils \
                python-kitchen \

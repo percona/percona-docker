@@ -36,7 +36,6 @@ RUN microdnf update -y \
                 yum-utils \
                 shadow-utils \
                 curl \
-                procps-ng \
                 Percona-Server-MongoDB-36-shell-${PERCONA_VERSION} \
                 Percona-Server-MongoDB-36-mongos-${PERCONA_VERSION} \
         && repoquery -a --location \
@@ -45,8 +44,17 @@ RUN microdnf update -y \
         && repoquery -a --location \
                Percona-Server-MongoDB-36-server-${PERCONA_VERSION} \
                    | xargs curl -L -o /tmp/Percona-Server-MongoDB-36-server-${PERCONA_VERSION}.rpm \
-        && rpm -iv /tmp/policycoreutils.rpm /tmp/Percona-Server-MongoDB-36-server-${PERCONA_VERSION}.rpm --nodeps \
-        && rm -rf /tmp/policycoreutils.rpm /tmp/Percona-Server-MongoDB-36-server-${PERCONA_VERSION}.rpm \
+        && repoquery -a --archlist=x86_64 --location \
+                 elfutils-libs \
+                    | xargs curl -L -o /tmp/elfutils-libs.rpm \
+        && repoquery -a --archlist=x86_64 --location \
+                 systemd-libs \
+                    | xargs curl -L -o /tmp/systemd-libs.rpm \
+        && repoquery -a --archlist=x86_64 --location \
+                 procps-ng \
+                    | xargs curl -L -o /tmp/procps.rpm \
+        && rpm -iv /tmp/policycoreutils.rpm /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm /tmp/procps.rpm /tmp/Percona-Server-MongoDB-36-server-${PERCONA_VERSION}.rpm --nodeps \
+        && rm -rf /tmp/policycoreutils.rpm /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm /tmp/procps.rpm /tmp/Percona-Server-MongoDB-36-server-${PERCONA_VERSION}.rpm \
         && microdnf remove -y \
                yum-utils \
                python-kitchen \

@@ -22,7 +22,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& percona-release enable psmdb-42 release
 
 # install exact version for repeatability
-ENV PERCONA_VERSION 4.2.0-1.el7
+ENV PERCONA_VERSION 4.2.1-1.el7
 ENV K8S_TOOLS_VERSION 0.4.2
 
 RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.5-1.el7.x86_64.rpm \
@@ -57,7 +57,7 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mongodb
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN cp /usr/share/doc/percona-server-mongodb-server-$(echo ${PERCONA_VERSION} | cut -d - -f 1)/GNU-AGPL-3.0 /licenses/LICENSE.Percona-Server-for-MongoDB
+RUN cp /usr/share/doc/percona-server-mongodb-server-$(echo ${PERCONA_VERSION} | cut -d - -f 1)/LICENSE-Community.txt /licenses/LICENSE.Percona-Server-for-MongoDB
 
 ENV GOSU_VERSION=1.11
 ENV GOSU_MD5SUM=0e98180d09e27e8385f4273d1c5bcffa
