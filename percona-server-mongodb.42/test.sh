@@ -105,20 +105,38 @@ if  _mongod_hack_have_arg "--sslMode" "${mongodHackedArgs[@]}"; then
     _mongod_hack_ensure_no_arg_val "--sslMode" "$@"
     _mongod_hack_ensure_arg_val --tlsMode "$tlsVal" "${mongodHackedArgs[@]}"
 fi
+if _mongod_hack_have_arg "--sslAllowInvalidCertificates" "${mongodHackedArgs[@]}"; then
+	_mongod_hack_ensure_no_arg "--sslAllowInvalidCertificates" "${mongodHackedArgs[@]}"
+	_mongod_hack_ensure_arg "--tlsAllowInvalidCertificates" "${mongodHackedArgs[@]}"
+fi
+if _mongod_hack_have_arg "--sslAllowInvalidHostnames" "${mongodHackedArgs[@]}"; then
+	_mongod_hack_ensure_no_arg "--sslAllowInvalidHostnames" "${mongodHackedArgs[@]}"
+	_mongod_hack_ensure_arg "--tlsAllowInvalidHostnames" "${mongodHackedArgs[@]}"
+fi
+if _mongod_hack_have_arg "--sslAllowConnectionsWithoutCertificates" "${mongodHackedArgs[@]}"; then
+	_mongod_hack_ensure_no_arg "--sslAllowConnectionsWithoutCertificates" "${mongodHackedArgs[@]}"
+	_mongod_hack_ensure_arg "--tlsAllowConnectionsWithoutCertificates" "${mongodHackedArgs[@]}"
+fi
+if _mongod_hack_have_arg "--sslFIPSMode" "${mongodHackedArgs[@]}"; then
+	_mongod_hack_ensure_no_arg "--sslFIPSMode" "${mongodHackedArgs[@]}"
+	_mongod_hack_ensure_arg "--tlsFIPSMode" "${mongodHackedArgs[@]}"
+fi
 
 _mongod_hack_rename_arg_save_val "--sslPEMKeyFile" "--tlsCertificateKeyFile" "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val "--sslPEMKeyPassword" "--tlsCertificateKeyFilePassword" "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val "--sslClusterFile" "--tlsClusterFile" "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val "--sslCertificateSelector" "--tlsCertificateSelector" "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val "--sslClusterCertificateSelector" "--tlsClusterCertificateSelector" "${mongodHackedArgs[@]}"
+_mongod_hack_rename_arg_save_val "--sslClusterPassword" "--tlsClusterPassword" "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val "--sslCAFile" "--tlsCAFile" "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val "--sslClusterCAFile" "--tlsClusterCAFile" "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val "--sslCRLFile" "--tlsCRLFile" "${mongodHackedArgs[@]}"
-_mongod_hack_rename_arg_save_val "--sslAllowInvalidCertificates" "--tlsAllowInvalidCertificates" "${mongodHackedArgs[@]}"
-_mongod_hack_rename_arg_save_val "--sslAllowInvalidHostnames" "--tlsAllowInvalidHostnames" "${mongodHackedArgs[@]}"
-_mongod_hack_rename_arg_save_val "--sslAllowConnectionsWithoutCertificates" "--tlsAllowConnectionsWithoutCertificates" "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val "--sslDisabledProtocols" "--tlsDisabledProtocols" "${mongodHackedArgs[@]}"
-_mongod_hack_rename_arg_save_val "--sslFIPSMode" "--tlsFIPSMode" "${mongodHackedArgs[@]}"
+
+# _mongod_hack_rename_arg_save_val "--sslAllowInvalidCertificates" "--tlsAllowInvalidCertificates" "${mongodHackedArgs[@]}"
+# _mongod_hack_rename_arg_save_val "--sslAllowInvalidHostnames" "--tlsAllowInvalidHostnames" "${mongodHackedArgs[@]}"
+# _mongod_hack_rename_arg_save_val "--sslAllowConnectionsWithoutCertificates" "--tlsAllowConnectionsWithoutCertificates" "${mongodHackedArgs[@]}"
+# _mongod_hack_rename_arg_save_val "--sslFIPSMode" "--tlsFIPSMode" "${mongodHackedArgs[@]}"
 
 printf "result is: \n"
 printf '%s ' "${mongodHackedArgs[@]}"
