@@ -118,7 +118,7 @@ _mongod_hack_rename_arg_save_val "--sslAllowInvalidCertificates" "--tlsAllowInva
 _mongod_hack_rename_arg_save_val "--sslAllowInvalidHostnames" "--tlsAllowInvalidHostnames" "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val "--sslAllowConnectionsWithoutCertificates" "--tlsAllowConnectionsWithoutCertificates" "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val "--sslDisabledProtocols" "--tlsDisabledProtocols" "${mongodHackedArgs[@]}"
-_mongod_hack_rename_arg_save_val "--tlsFIPSMode" "--tlsFIPSMode" "${mongodHackedArgs[@]}"
+_mongod_hack_rename_arg_save_val "--sslFIPSMode" "--tlsFIPSMode" "${mongodHackedArgs[@]}"
 
 printf "result is: \n"
 printf '%s ' "${mongodHackedArgs[@]}"
