@@ -21,8 +21,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 # install exact version for repeatability
-ENV PS_VERSION 5.7.26-29.1.el7
-ENV PROXYSQL_VERSION 2.0.6-1.1.el7
+ENV PS_VERSION 5.7.28-31.1.el7
+ENV PROXYSQL_VERSION 2.0.7-1.2.el7
 
 RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.5-1.el7.x86_64.rpm \
 	&& curl -L -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
