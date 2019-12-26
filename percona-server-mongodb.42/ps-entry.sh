@@ -1,5 +1,6 @@
 #!/bin/bash
 set -Eeuo pipefail
+set -o xtrace
 
 if [ "${1:0:1}" = '-' ]; then
 	set -- mongod "$@"
