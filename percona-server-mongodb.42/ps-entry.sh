@@ -1,6 +1,5 @@
 #!/bin/bash
 set -Eeuo pipefail
-set -o xtrace
 
 if [ "${1:0:1}" = '-' ]; then
 	set -- mongod "$@"
@@ -12,7 +11,7 @@ originalArgOne="$1"
 # all mongo* commands should be dropped to the correct user
 if [[ "$originalArgOne" == mongo* ]] && [ "$(id -u)" = '0' ]; then
 	if [ "$originalArgOne" = 'mongod' ]; then
-		find /data/db \! -user mongodb -exec chown mongodb '{}' +
+		find /data/configdb /data/db \! -user mongodb -exec chown mongodb '{}' +
 	fi
 
 	# make sure we can write to stdout and stderr as "mongodb"
@@ -140,26 +139,25 @@ _mongod_hack_ensure_arg_val() {
 # _mongod_hack_rename_arg_save_val '--arg-to-rename' '--arg-to-rename-to' "$@"
 # set -- "${mongodHackedArgs[@]}"
 _mongod_hack_rename_arg_save_val() {
-    local oldArg="$1"; shift
+	local oldArg="$1"; shift
 	local newArg="$1"; shift
-    if ! _mongod_hack_have_arg "$oldArg" "$@"; then
+	if ! _mongod_hack_have_arg "$oldArg" "$@"; then
 		return 0
 	fi
-    local val="";
+	local val=""
 	mongodHackedArgs=()
 	while [ "$#" -gt 0 ]; do
 		local arg="$1"; shift
 		if [ "$arg" = "$oldArg" ]; then
-            val="$1"
-            shift
+			val="$1"; shift
 			continue
-        elif [[ "$arg" =~ "$oldArg"=(.*) ]]; then
-            val=${BASH_REMATCH[1]};
-            continue
+		elif [[ "$arg" =~ "$oldArg"=(.*) ]]; then
+			val=${BASH_REMATCH[1]}
+			continue
 		fi
-		mongodHackedArgs+=( "$arg" )
+		mongodHackedArgs+=("$arg")
 	done
-    mongodHackedArgs+=( "$newArg" "$val" )
+	mongodHackedArgs+=("$newArg" "$val")
 }
 
 # _js_escape 'some "string" value'
@@ -368,58 +366,56 @@ if [ "$originalArgOne" = 'mongod' ]; then
 		fi
 	fi
 
-	if mongod --help 2>&1 | grep -q -- ' --tlsMode '; then
-		_mongod_hack_rename_arg_save_val --sslMode --tlsMode "${mongodHackedArgs[@]}"
+	_mongod_hack_rename_arg_save_val --sslMode --tlsMode "${mongodHackedArgs[@]}"
 
-		if _mongod_hack_have_arg '--tlsMode' "${mongodHackedArgs[@]}"; then
-			tlsMode="none"
-			if _mongod_hack_have_arg 'allowSSL' "${mongodHackedArgs[@]}"; then
-				tlsMode='allowTLS'
-			elif _mongod_hack_have_arg 'preferSSL' "${mongodHackedArgs[@]}"; then
-				tlsMode='preferTLS'
-			elif _mongod_hack_have_arg 'requireSSL' "${mongodHackedArgs[@]}"; then
-				tlsMode='requireTLS'
-			fi
-
-			if [ "$tlsMode" != "none" ]; then
-				_mongod_hack_ensure_no_arg_val --tlsMode "${mongodHackedArgs[@]}"
-				_mongod_hack_ensure_arg_val --tlsMode "$tlsMode" "${mongodHackedArgs[@]}"
-			fi
-		fi
-		_mongod_hack_rename_arg_save_val --sslPEMKeyFile --tlsCertificateKeyFile "${mongodHackedArgs[@]}"
-		if ! _mongod_hack_have_arg '--tlsMode' "${mongodHackedArgs[@]}"; then
-			if _mongod_hack_have_arg '--tlsCertificateKeyFile' "${mongodHackedArgs[@]}"; then
-				_mongod_hack_ensure_arg_val --tlsMode "preferTLS" "${mongodHackedArgs[@]}"
-			fi
+	if _mongod_hack_have_arg '--tlsMode' "${mongodHackedArgs[@]}"; then
+		tlsMode="none"
+		if _mongod_hack_have_arg 'allowSSL' "${mongodHackedArgs[@]}"; then
+			tlsMode='allowTLS'
+		elif _mongod_hack_have_arg 'preferSSL' "${mongodHackedArgs[@]}"; then
+			tlsMode='preferTLS'
+		elif _mongod_hack_have_arg 'requireSSL' "${mongodHackedArgs[@]}"; then
+			tlsMode='requireTLS'
 		fi
 
-		if _mongod_hack_have_arg '--sslAllowInvalidCertificates' "${mongodHackedArgs[@]}"; then
-			_mongod_hack_ensure_no_arg --sslAllowInvalidCertificates "${mongodHackedArgs[@]}"
-			_mongod_hack_ensure_arg --tlsAllowInvalidCertificates "${mongodHackedArgs[@]}"
+		if [ "$tlsMode" != "none" ]; then
+			_mongod_hack_ensure_no_arg_val --tlsMode "${mongodHackedArgs[@]}"
+			_mongod_hack_ensure_arg_val --tlsMode "$tlsMode" "${mongodHackedArgs[@]}"
 		fi
-		if _mongod_hack_have_arg '--sslAllowInvalidHostnames' "${mongodHackedArgs[@]}"; then
-			_mongod_hack_ensure_no_arg --sslAllowInvalidHostnames "${mongodHackedArgs[@]}"
-			_mongod_hack_ensure_arg --tlsAllowInvalidHostnames "${mongodHackedArgs[@]}"
-		fi
-		if _mongod_hack_have_arg '--sslAllowConnectionsWithoutCertificates' "${mongodHackedArgs[@]}"; then
-			_mongod_hack_ensure_no_arg --sslAllowConnectionsWithoutCertificates "${mongodHackedArgs[@]}"
-			_mongod_hack_ensure_arg --tlsAllowConnectionsWithoutCertificates "${mongodHackedArgs[@]}"
-		fi
-		if _mongod_hack_have_arg '--sslFIPSMode' "${mongodHackedArgs[@]}"; then
-			_mongod_hack_ensure_no_arg --sslFIPSMode "${mongodHackedArgs[@]}"
-			_mongod_hack_ensure_arg --tlsFIPSMode "${mongodHackedArgs[@]}"
-		fi
-
-		_mongod_hack_rename_arg_save_val --sslPEMKeyPassword --tlsCertificateKeyFilePassword "${mongodHackedArgs[@]}"
-		_mongod_hack_rename_arg_save_val --sslClusterFile --tlsClusterFile "${mongodHackedArgs[@]}"
-		_mongod_hack_rename_arg_save_val --sslCertificateSelector --tlsCertificateSelector "${mongodHackedArgs[@]}"
-		_mongod_hack_rename_arg_save_val --sslClusterCertificateSelector --tlsClusterCertificateSelector "${mongodHackedArgs[@]}"
-		_mongod_hack_rename_arg_save_val --sslClusterPassword --tlsClusterPassword "${mongodHackedArgs[@]}"
-		_mongod_hack_rename_arg_save_val --sslCAFile --tlsCAFile "${mongodHackedArgs[@]}"
-		_mongod_hack_rename_arg_save_val --sslClusterCAFile --tlsClusterCAFile "${mongodHackedArgs[@]}"
-		_mongod_hack_rename_arg_save_val --sslCRLFile --tlsCRLFile "${mongodHackedArgs[@]}"
-		_mongod_hack_rename_arg_save_val --sslDisabledProtocols --tlsDisabledProtocols "${mongodHackedArgs[@]}"
 	fi
+	_mongod_hack_rename_arg_save_val --sslPEMKeyFile --tlsCertificateKeyFile "${mongodHackedArgs[@]}"
+	if ! _mongod_hack_have_arg '--tlsMode' "${mongodHackedArgs[@]}"; then
+		if _mongod_hack_have_arg '--tlsCertificateKeyFile' "${mongodHackedArgs[@]}"; then
+			_mongod_hack_ensure_arg_val --tlsMode "preferTLS" "${mongodHackedArgs[@]}"
+		fi
+	fi
+
+	if _mongod_hack_have_arg '--sslAllowInvalidCertificates' "${mongodHackedArgs[@]}"; then
+		_mongod_hack_ensure_no_arg --sslAllowInvalidCertificates "${mongodHackedArgs[@]}"
+		_mongod_hack_ensure_arg --tlsAllowInvalidCertificates "${mongodHackedArgs[@]}"
+	fi
+	if _mongod_hack_have_arg '--sslAllowInvalidHostnames' "${mongodHackedArgs[@]}"; then
+		_mongod_hack_ensure_no_arg --sslAllowInvalidHostnames "${mongodHackedArgs[@]}"
+		_mongod_hack_ensure_arg --tlsAllowInvalidHostnames "${mongodHackedArgs[@]}"
+	fi
+	if _mongod_hack_have_arg '--sslAllowConnectionsWithoutCertificates' "${mongodHackedArgs[@]}"; then
+		_mongod_hack_ensure_no_arg --sslAllowConnectionsWithoutCertificates "${mongodHackedArgs[@]}"
+		_mongod_hack_ensure_arg --tlsAllowConnectionsWithoutCertificates "${mongodHackedArgs[@]}"
+	fi
+	if _mongod_hack_have_arg '--sslFIPSMode' "${mongodHackedArgs[@]}"; then
+		_mongod_hack_ensure_no_arg --sslFIPSMode "${mongodHackedArgs[@]}"
+		_mongod_hack_ensure_arg --tlsFIPSMode "${mongodHackedArgs[@]}"
+	fi
+
+	_mongod_hack_rename_arg_save_val --sslPEMKeyPassword --tlsCertificateKeyFilePassword "${mongodHackedArgs[@]}"
+	_mongod_hack_rename_arg_save_val --sslClusterFile --tlsClusterFile "${mongodHackedArgs[@]}"
+	_mongod_hack_rename_arg_save_val --sslCertificateSelector --tlsCertificateSelector "${mongodHackedArgs[@]}"
+	_mongod_hack_rename_arg_save_val --sslClusterCertificateSelector --tlsClusterCertificateSelector "${mongodHackedArgs[@]}"
+	_mongod_hack_rename_arg_save_val --sslClusterPassword --tlsClusterPassword "${mongodHackedArgs[@]}"
+	_mongod_hack_rename_arg_save_val --sslCAFile --tlsCAFile "${mongodHackedArgs[@]}"
+	_mongod_hack_rename_arg_save_val --sslClusterCAFile --tlsClusterCAFile "${mongodHackedArgs[@]}"
+	_mongod_hack_rename_arg_save_val --sslCRLFile --tlsCRLFile "${mongodHackedArgs[@]}"
+	_mongod_hack_rename_arg_save_val --sslDisabledProtocols --tlsDisabledProtocols "${mongodHackedArgs[@]}"
 
 	set -- "${mongodHackedArgs[@]}"
 
