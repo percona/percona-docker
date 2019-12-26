@@ -370,29 +370,29 @@ if [ "$originalArgOne" = 'mongod' ]; then
 		set -- "${mongodHackedArgs[@]}"
 	fi
 
-    if ! _mongod_hack_have_arg '--sslMode' "$@" && ! _mongod_hack_have_arg '--tlsMode' "$@" ; then
-        # "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
-        tlsMode='disabled'
-        if _mongod_hack_have_arg '--tlsCertificateKeyFile' "$@"; then
-            tlsMode='preferTLS'
-        elif _mongod_hack_have_arg '--sslPEMKeyFile' "$@"; then
-            tlsMode='preferSSL'
-        fi
+	if ! _mongod_hack_have_arg '--sslMode' "$@" && ! _mongod_hack_have_arg '--tlsMode' "$@" ; then
+		# "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
+		tlsMode='disabled'
+		if _mongod_hack_have_arg '--tlsCertificateKeyFile' "$@"; then
+			tlsMode='preferTLS'
+		elif _mongod_hack_have_arg '--sslPEMKeyFile' "$@"; then
+			tlsMode='preferSSL'
+		fi
 
-        # 4.2 switched all configuration/flag names from "SSL" to "TLS"
-        if [ "$tlsMode" = 'preferTLS' ] || mongod --help 2>&1 | grep -q -- ' --tlsMode '; then
-            _mongod_hack_ensure_arg_val --tlsMode "$tlsMode" "$@"
-        else
-            _mongod_hack_ensure_arg_val --sslMode "$tlsMode" "$@"
-        fi
+		# 4.2 switched all configuration/flag names from "SSL" to "TLS"
+		if [ "$tlsMode" = 'preferTLS' ] || mongod --help 2>&1 | grep -q -- ' --tlsMode '; then
+			_mongod_hack_ensure_arg_val --tlsMode "$tlsMode" "$@"
+		else
+			_mongod_hack_ensure_arg_val --sslMode "$tlsMode" "$@"
+		fi
 
-        set -- "${mongodHackedArgs[@]}"
-    fi
+		set -- "${mongodHackedArgs[@]}"
+	fi
 		
 	_mongod_hack_rename_arg_save_val --sslMode --tlsMode "$@"
 
-    if  _mongod_hack_have_arg '--tlsMode' "${mongodHackedArgs[@]}"; then
-        tlsMode="none"
+	if _mongod_hack_have_arg '--tlsMode' "${mongodHackedArgs[@]}"; then
+		tlsMode="none"
 		if _mongod_hack_have_arg 'allowSSL' "${mongodHackedArgs[@]}s"; then
 			tlsMode='allowTLS'
 		elif _mongod_hack_have_arg 'preferSSL' "${mongodHackedArgs[@]}"; then
@@ -401,10 +401,10 @@ if [ "$originalArgOne" = 'mongod' ]; then
 			tlsMode='requireTLS'
 		fi
 
-        if [ "$tlsMode" != "none" ]; then
-            _mongod_hack_ensure_no_arg_val --tlsMode "${mongodHackedArgs[@]}"
-		    _mongod_hack_ensure_arg_val --tlsMode "$tlsMode" "${mongodHackedArgs[@]}"
-        fi
+		if [ "$tlsMode" != "none" ]; then
+			_mongod_hack_ensure_no_arg_val --tlsMode "${mongodHackedArgs[@]}"
+			_mongod_hack_ensure_arg_val --tlsMode "$tlsMode" "${mongodHackedArgs[@]}"
+		fi
 	fi
 	if _mongod_hack_have_arg '--sslAllowInvalidCertificates' "${mongodHackedArgs[@]}"; then
 		_mongod_hack_ensure_no_arg --sslAllowInvalidCertificates "${mongodHackedArgs[@]}"
