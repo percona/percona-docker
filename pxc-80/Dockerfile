@@ -42,6 +42,7 @@ RUN yum update -y \
 				strace \
 				gdb \
 				policycoreutils \
+				net-tools \
                 socat \
                 openssl \
                 shadow-utils \
@@ -85,10 +86,13 @@ RUN rmdir /etc/my.cnf.d \
 	&& echo '!includedir /etc/my.cnf.d/' >> /etc/my.cnf \
 	&& echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
 
+RUN mv /usr/bin/wsrep_sst_xtrabackup-v2 /usr/bin/wsrep_sst_xtrabackup-v2.bin
 COPY dockerdir /
 RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d
+
+RUN chmod +x /usr/bin/wsrep_sst_xtrabackup-v2
 
 USER 1001
 
