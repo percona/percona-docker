@@ -38,6 +38,10 @@ RUN yum update -y \
         && percona-release setup ps80 \
         && yum install -y \
                 jemalloc \
+				netcat \
+				strace \
+				gdb \
+				policycoreutils \
                 socat \
                 openssl \
                 shadow-utils \

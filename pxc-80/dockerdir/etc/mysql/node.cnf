@@ -1,6 +1,5 @@
 [mysqld]
 
-ignore-db-dir=lost+found
 datadir=/var/lib/mysql
 socket=/tmp/mysql.sock
 skip-host-cache
@@ -18,13 +17,12 @@ bind_address = 0.0.0.0
 
 wsrep_slave_threads=2
 wsrep_cluster_address=gcomm://
-wsrep_provider=/usr/lib64/galera3/libgalera_smm.so
+wsrep_provider=/usr/lib64/galera4/libgalera_smm.so
 
 wsrep_cluster_name=noname
 #wsrep_node_address=noname
 
 wsrep_sst_method=xtrabackup-v2
-wsrep_sst_auth="root:"
 
 [client]
 socket=/tmp/mysql.sock
