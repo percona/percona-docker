@@ -75,12 +75,16 @@ RUN  cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.g
 
 
 RUN rmdir /etc/my.cnf.d \
-	&& ln -s /etc/mysql/conf.d /etc/my.cnf.d
+	&& ln -s /etc/mysql/conf.d /etc/my.cnf.d \
+	&& rm -f /etc/percona-xtradb-cluster.conf.d/*.cnf \
+	&& echo '!include /etc/mysql/node.cnf' > /etc/my.cnf \
+	&& echo '!includedir /etc/my.cnf.d/' >> /etc/my.cnf \
+	&& echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
 
 COPY dockerdir /
-RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d \
-	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d \
-	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d
+RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
+	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
+	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d
 
 USER 1001
 
