@@ -11,7 +11,7 @@ originalArgOne="$1"
 # all mongo* commands should be dropped to the correct user
 if [[ "$originalArgOne" == mongo* ]] && [ "$(id -u)" = '0' ]; then
 	if [ "$originalArgOne" = 'mongod' ]; then
-		find /data/db \! -user mongodb -exec chown mongodb '{}' +
+		find /data/configdb /data/db \! -user mongodb -exec chown mongodb '{}' +
 	fi
 
 	# make sure we can write to stdout and stderr as "mongodb"
@@ -317,34 +317,33 @@ if [ "$originalArgOne" = 'mongod' ]; then
 		echo
 	fi
 
+	mongodHackedArgs=("$@")
 	MONGO_SSL_DIR=${MONGO_SSL_DIR:-/etc/mongodb-ssl}
 	CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 	if [ -f /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt ]; then
 		CA=/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
 	fi
-	if [ -f ${MONGO_SSL_DIR}/ca.crt ]; then
-		CA=${MONGO_SSL_DIR}/ca.crt
+	if [ -f "${MONGO_SSL_DIR}/ca.crt" ]; then
+		CA="${MONGO_SSL_DIR}/ca.crt"
 	fi
-	if [ -f ${MONGO_SSL_DIR}/tls.key -a -f ${MONGO_SSL_DIR}/tls.crt ]; then
-		cat ${MONGO_SSL_DIR}/tls.key ${MONGO_SSL_DIR}/tls.crt > /tmp/tls.pem
-		_mongod_hack_ensure_arg_val --sslPEMKeyFile /tmp/tls.pem "$@"
+	if [ -f "${MONGO_SSL_DIR}/tls.key" ] && [ -f "${MONGO_SSL_DIR}/tls.crt" ]; then
+		cat "${MONGO_SSL_DIR}/tls.key" "${MONGO_SSL_DIR}/tls.crt" >/tmp/tls.pem
+		_mongod_hack_ensure_arg_val --sslPEMKeyFile /tmp/tls.pem "${mongodHackedArgs[@]}"
 		if [ -f "${CA}" ]; then
 			_mongod_hack_ensure_arg_val --sslCAFile "${CA}" "${mongodHackedArgs[@]}"
 		fi
-		set -- "${mongodHackedArgs[@]}"
 	fi
 	MONGO_SSL_INTERNAL_DIR=${MONGO_SSL_INTERNAL_DIR:-/etc/mongodb-ssl-internal}
-	if [ -f ${MONGO_SSL_INTERNAL_DIR}/tls.key -a -f ${MONGO_SSL_INTERNAL_DIR}/tls.crt ]; then
-		cat ${MONGO_SSL_INTERNAL_DIR}/tls.key ${MONGO_SSL_INTERNAL_DIR}/tls.crt > /tmp/tls-internal.pem
-		_mongod_hack_ensure_arg_val --sslClusterFile /tmp/tls-internal.pem "$@"
+	if [ -f "${MONGO_SSL_INTERNAL_DIR}/tls.key" ] && [ -f "${MONGO_SSL_INTERNAL_DIR}/tls.crt" ]; then
+		cat "${MONGO_SSL_INTERNAL_DIR}/tls.key" "${MONGO_SSL_INTERNAL_DIR}/tls.crt" >/tmp/tls-internal.pem
+		_mongod_hack_ensure_arg_val --sslClusterFile /tmp/tls-internal.pem "${mongodHackedArgs[@]}"
 		if [ -f "${MONGO_SSL_INTERNAL_DIR}/ca.crt" ]; then
 			_mongod_hack_ensure_arg_val --sslClusterCAFile "${MONGO_SSL_INTERNAL_DIR}/ca.crt" "${mongodHackedArgs[@]}"
 		fi
-		set -- "${mongodHackedArgs[@]}"
 	fi
 
-	sslMode="$(_mongod_hack_have_arg '--sslPEMKeyFile' "$@" && echo 'preferSSL' || echo 'disabled')" # "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
-	_mongod_hack_ensure_arg_val --sslMode "$sslMode" "$@"
+	sslMode="$(_mongod_hack_have_arg '--sslPEMKeyFile' "${mongodHackedArgs[@]}" && echo 'preferSSL' || echo 'disabled')" # "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
+	_mongod_hack_ensure_arg_val --sslMode "$sslMode" "${mongodHackedArgs[@]}"
 	set -- "${mongodHackedArgs[@]}"
 
 	# MongoDB 3.6+ defaults to localhost-only binding
