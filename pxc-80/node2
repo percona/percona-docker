@@ -1,0 +1,242 @@
+2020-01-14T12:14:53.887924Z 0 [Note] [MY-010949] [Server] Basedir set to /usr/.
+2020-01-14T12:14:53.887952Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.16-7-80) starting as process 1
+2020-01-14T12:14:53.890235Z 0 [Note] [MY-000000] [WSREP] Server initial position: 00000000-0000-0000-0000-000000000000:-1
+2020-01-14T12:14:53.890330Z 0 [Note] [MY-000000] [WSREP] New joining cluster node configured to use specified SSL artificats
+2020-01-14T12:14:53.891110Z 0 [Note] [MY-000000] [Galera] Loading provider /usr/lib64/galera4/libgalera_smm.so initial position: 00000000-0000-0000-0000-000000000000:-1
+2020-01-14T12:14:53.891128Z 0 [Note] [MY-000000] [Galera] wsrep_load(): loading provider library '/usr/lib64/galera4/libgalera_smm.so'
+2020-01-14T12:14:53.894168Z 0 [Note] [MY-000000] [Galera] wsrep_load(): Galera 3.33(r3e718a7) by Codership Oy <info@codership.com> loaded successfully.
+2020-01-14T12:14:53.894210Z 0 [Note] [MY-000000] [Galera] CRC-32C: using hardware acceleration.
+2020-01-14T12:14:53.895116Z 0 [Note] [MY-000000] [Galera] Found saved state: 00000000-0000-0000-0000-000000000000:-1, safe_to_bootstrap: 1
+2020-01-14T12:14:53.895257Z 0 [Note] [MY-000000] [Galera] GCache DEBUG: opened preamble:
+Version: 2
+UUID: f8d815f9-36c0-11ea-bcd5-4e1dbb027831
+Seqno: -1 - -1
+Offset: -1
+Synced: 0
+2020-01-14T12:14:53.895295Z 0 [Note] [MY-000000] [Galera] Recovering GCache ring buffer: version: 2, UUID: f8d815f9-36c0-11ea-bcd5-4e1dbb027831, offset: -1
+2020-01-14T12:14:53.895384Z 0 [Note] [MY-000000] [Galera] GCache::RingBuffer initial scan...  0.0% (        0/134217752 bytes) complete.
+2020-01-14T12:14:53.973302Z 0 [Note] [MY-000000] [Galera] GCache::RingBuffer initial scan...100.0% (134217752/134217752 bytes) complete.
+2020-01-14T12:14:53.973339Z 0 [Note] [MY-000000] [Galera] Recovering GCache ring buffer: didn't recover any events.
+2020-01-14T12:14:54.002631Z 0 [Note] [MY-000000] [Galera] Passing config to GCS: base_dir = /var/lib/mysql/; base_host = 10.8.6.3; base_port = 4567; cert.log_conflicts = no; cert.optimistic_pa = yes; debug = no; evs.auto_evict = 0; evs.delay_margin = PT1S; evs.delayed_keep_period = PT30S; evs.inactive_check_period = PT0.5S; evs.inactive_timeout = PT15S; evs.join_retrans_period = PT1S; evs.max_install_timeouts = 3; evs.send_window = 10; evs.stats_report_period = PT1M; evs.suspect_timeout = PT5S; evs.user_send_window = 4; evs.view_forget_timeout = PT24H; gcache.dir = /var/lib/mysql/; gcache.freeze_purge_at_seqno = -1; gcache.keep_pages_count = 0; gcache.keep_pages_size = 0; gcache.mem_size = 0; gcache.name = galera.cache; gcache.page_size = 128M; gcache.recover = yes; gcache.size = 128M; gcomm.thread_prio = ; gcs.fc_debug = 0; gcs.fc_factor = 1.0; gcs.fc_limit = 100; gcs.fc_master_slave = no; gcs.max_packet_size = 64500; gcs.max_throttle = 0.25; gcs.recv_q_hard_limit = 9223372036854775807; gcs.recv_q_soft_limit = 0.25; gcs.sync_donor = no; gmcast.segment = 0; gmcast.version = 0; pc.announce_timeout = PT3S; pc.checksum = false; pc.ignore_quorum = false; pc.ignore_sb = false; pc.npvo = false; pc.recovery = true; pc.version = 0; pc.wait_prim = true; pc.wait_prim_timeout = PT30S; pc.weight = 1; protonet.backend = asio; protonet.version = 0; repl.causal_read_timeout = PT30S; repl.commit_order = 3; repl.key_format = FLAT8; repl.max_ws_size = 2147483647; repl.proto_max = 10; socket.checksum = 2; socket.recv_buf_size = 212992; socket.ssl_ca = /etc/mysql/ssl-internal/ca.crt; socket.ssl_cert = /etc/mysql/ssl-internal/tls.crt; socket.ssl_cipher = ; socket.ssl_compression = YES; socket.ssl_key = /etc/mysql/ssl-internal/tls.key; 
+2020-01-14T12:14:54.031419Z 0 [Note] [MY-000000] [Galera] GCache history reset: old(f8d815f9-36c0-11ea-bcd5-4e1dbb027831:0 -> 00000000-0000-0000-0000-000000000000:-1
+2020-01-14T12:14:54.032671Z 0 [Note] [MY-000000] [WSREP] SR storage init for: table
+2020-01-14T12:14:54.032699Z 0 [Note] [MY-000000] [WSREP] wsrep_start_replication
+2020-01-14T12:14:54.032707Z 0 [Note] [MY-000000] [WSREP] Starting replication
+2020-01-14T12:14:54.032734Z 0 [Note] [MY-000000] [Galera] Connecting with bootstrap option: 0
+2020-01-14T12:14:54.032750Z 0 [Note] [MY-000000] [Galera] Setting GCS initial position to 00000000-0000-0000-0000-000000000000:-1
+2020-01-14T12:14:54.032830Z 0 [Note] [MY-000000] [Galera] protonet asio version 0
+2020-01-14T12:14:54.032963Z 0 [Note] [MY-000000] [Galera] Using CRC-32C for message checksums.
+2020-01-14T12:14:54.032990Z 0 [Note] [MY-000000] [Galera] initializing ssl context
+2020-01-14T12:14:54.033270Z 0 [Note] [MY-000000] [Galera] backend: asio
+2020-01-14T12:14:54.033343Z 0 [Note] [MY-000000] [Galera] gcomm thread scheduling priority set to other:0 
+2020-01-14T12:14:54.033445Z 0 [Warning] [MY-000000] [Galera] Fail to access the file (/var/lib/mysql//gvwstate.dat) error (No such file or directory). It is possible if node is booting for first time or re-booting after a graceful shutdown
+2020-01-14T12:14:54.033455Z 0 [Note] [MY-000000] [Galera] Restoring primary-component from disk failed. Either node is booting for first time or re-booting after a graceful shutdown
+2020-01-14T12:14:54.033658Z 0 [Note] [MY-000000] [Galera] GMCast version 0
+2020-01-14T12:14:54.033797Z 0 [Note] [MY-000000] [Galera] (78be0ead, 'ssl://0.0.0.0:4567') listening at ssl://0.0.0.0:4567
+2020-01-14T12:14:54.033808Z 0 [Note] [MY-000000] [Galera] (78be0ead, 'ssl://0.0.0.0:4567') multicast: , ttl: 1
+2020-01-14T12:14:54.034078Z 0 [Note] [MY-000000] [Galera] EVS version 1
+2020-01-14T12:14:54.034183Z 0 [Note] [MY-000000] [Galera] gcomm: connecting to group 'cluster1-pxc', peer '10.8.3.33:'
+2020-01-14T12:14:54.041441Z 0 [Note] [MY-000000] [Galera] SSL handshake successful, remote endpoint ssl://10.8.3.33:4567 local endpoint ssl://10.8.6.3:57942 cipher: ECDHE-RSA-AES256-GCM-SHA384 compression: none
+2020-01-14T12:14:54.042233Z 0 [Note] [MY-000000] [Galera] (78be0ead, 'ssl://0.0.0.0:4567') connection established to 21f98445 ssl://10.8.3.33:4567
+2020-01-14T12:14:54.042339Z 0 [Note] [MY-000000] [Galera] (78be0ead, 'ssl://0.0.0.0:4567') turning message relay requesting on, nonlive peers: 
+2020-01-14T12:14:54.535628Z 0 [Note] [MY-000000] [Galera] EVS version upgrade 0 -> 1
+2020-01-14T12:14:54.535658Z 0 [Note] [MY-000000] [Galera] declaring 21f98445 at ssl://10.8.3.33:4567 stable
+2020-01-14T12:14:54.535678Z 0 [Note] [MY-000000] [Galera] PC protocol upgrade 0 -> 1
+2020-01-14T12:14:54.536093Z 0 [Note] [MY-000000] [Galera] Node 21f98445 state primary
+2020-01-14T12:14:54.564320Z 0 [Note] [MY-000000] [Galera] Current view of cluster as seen by this node
+view (view_id(PRIM,21f98445,18)
+memb {
+	21f98445,0
+	78be0ead,0
+	}
+joined {
+	}
+left {
+	}
+partitioned {
+	}
+)
+2020-01-14T12:14:54.564349Z 0 [Note] [MY-000000] [Galera] Save the discovered primary-component to disk
+2020-01-14T12:14:55.034784Z 0 [Note] [MY-000000] [Galera] gcomm: connected
+2020-01-14T12:14:55.034840Z 0 [Note] [MY-000000] [Galera] Changing maximum packet size to 64500, resulting msg size: 32636
+2020-01-14T12:14:55.035064Z 0 [Note] [MY-000000] [Galera] Shifting CLOSED -> OPEN (TO: 0)
+2020-01-14T12:14:55.035086Z 0 [Note] [MY-000000] [Galera] Opened channel 'cluster1-pxc'
+2020-01-14T12:14:55.035268Z 0 [Note] [MY-000000] [Galera] New COMPONENT: primary = yes, bootstrap = no, my_idx = 1, memb_num = 2
+2020-01-14T12:14:55.035316Z 0 [Note] [MY-000000] [Galera] STATE EXCHANGE: Waiting for state UUID.
+2020-01-14T12:14:55.035438Z 0 [Note] [MY-000000] [Galera] STATE EXCHANGE: sent state msg: 7920f124-36c7-11ea-849a-aa90401359e7
+2020-01-14T12:14:55.035455Z 0 [Note] [MY-000000] [Galera] STATE EXCHANGE: got state msg: 7920f124-36c7-11ea-849a-aa90401359e7 from 0 (cluster1-pxc-0)
+2020-01-14T12:14:55.036200Z 1 [Note] [MY-000000] [WSREP] wsrep running threads now: 1
+2020-01-14T12:14:55.036218Z 1 [Note] [MY-000000] [WSREP] Starting post rollbacker thread 1
+2020-01-14T12:14:55.036221Z 0 [Note] [MY-000000] [Galera] STATE EXCHANGE: got state msg: 7920f124-36c7-11ea-849a-aa90401359e7 from 1 (cluster1-pxc-1)
+2020-01-14T12:14:55.036241Z 2 [Note] [MY-000000] [WSREP] wsrep running threads now: 2
+2020-01-14T12:14:55.036257Z 0 [Note] [MY-000000] [Galera] Quorum results:
+	version    = 5,
+	component  = PRIMARY,
+	conf_id    = 17,
+	members    = 1/2 (primary/total),
+	act_id     = 40,
+	last_appl. = 0,
+	protocols  = 1/10/4 (gcs/repl/appl),
+	vote policy= 0,
+	group UUID = f8d815f9-36c0-11ea-bcd5-4e1dbb027831
+2020-01-14T12:14:55.036285Z 3 [Note] [MY-000000] [WSREP] wsrep running threads now: 3
+2020-01-14T12:14:55.036301Z 0 [Note] [MY-000000] [Galera] Writing down CC checksum: 1c8ab237 1b1b90f0 0a373ab6 e48ae84b at offset 192
+2020-01-14T12:14:55.036307Z 3 [Note] [MY-000000] [WSREP] Starting rollbacker thread 3
+2020-01-14T12:14:55.036339Z 2 [Note] [MY-000000] [WSREP] Starting applier thread 2
+2020-01-14T12:14:55.036365Z 0 [Note] [MY-000000] [Galera] Flow-control interval: [141, 141]
+2020-01-14T12:14:55.036377Z 0 [Note] [MY-000000] [Galera] Trying to continue unpaused monitor
+2020-01-14T12:14:55.036395Z 0 [Note] [MY-000000] [Galera] Shifting OPEN -> PRIMARY (TO: 41)
+2020-01-14T12:14:55.036497Z 2 [Note] [MY-000000] [Galera] ####### processing CC 41, local, ordered
+2020-01-14T12:14:55.036518Z 2 [Note] [MY-000000] [Galera] ####### drain monitors upto -1
+2020-01-14T12:14:55.036530Z 2 [Note] [MY-000000] [Galera] REPL Protocols: 10 (5, 3)
+2020-01-14T12:14:55.036544Z 2 [Note] [MY-000000] [Galera] ####### My UUID: 78be0ead-36c7-11ea-b179-2fac4f6ed6b6
+2020-01-14T12:14:55.036577Z 2 [Note] [MY-000000] [Galera] Server cluster1-pxc-1 connected to cluster at position f8d815f9-36c0-11ea-bcd5-4e1dbb027831:41 with ID 78be0ead-36c7-11ea-b179-2fac4f6ed6b6
+2020-01-14T12:14:55.036588Z 2 [Note] [MY-000000] [Galera] server cluster1-pxc-1 state change: disconnected -> connected
+2020-01-14T12:14:55.036605Z 2 [Note] [MY-000000] [WSREP] Server status change disconnected -> connected
+2020-01-14T12:14:55.036670Z 2 [Note] [MY-000000] [WSREP] wsrep_notify_cmd is not defined, skipping notification.
+2020-01-14T12:14:55.036703Z 2 [Note] [MY-000000] [Galera] State transfer required: 
+	Group state: f8d815f9-36c0-11ea-bcd5-4e1dbb027831:41
+	Local state: 00000000-0000-0000-0000-000000000000:-1
+2020-01-14T12:14:55.036719Z 2 [Note] [MY-000000] [Galera] server cluster1-pxc-1 state change: connected -> joiner
+2020-01-14T12:14:55.036731Z 2 [Note] [MY-000000] [WSREP] Server status change connected -> joiner
+2020-01-14T12:14:55.036744Z 2 [Note] [MY-000000] [WSREP] wsrep_notify_cmd is not defined, skipping notification.
+2020-01-14T12:14:55.036906Z 0 [Note] [MY-000000] [WSREP] Initiating SST/IST transfer on JOINER side (wsrep_sst_xtrabackup-v2 --role 'joiner' --address '10.8.6.3' --datadir '/var/lib/mysql/' --basedir '/usr/' --plugindir '/usr/lib64/mysql/plugin/' --defaults-file '/etc/my.cnf' --defaults-group-suffix '' --parent '1' --mysqld-version '8.0.16-7-80'   '' )
+2020-01-14T12:14:57.535119Z 0 [Note] [MY-000000] [Galera] (78be0ead, 'ssl://0.0.0.0:4567') turning message relay requesting off
+2020-01-14T12:14:57.593206Z 0 [Note] [MY-000000] [WSREP-SST] (debug) pxc_encrypt_cluster_traffic is enabled, using PXC auto-ssl configuration
+2020-01-14T12:14:57.594233Z 0 [Note] [MY-000000] [WSREP-SST] (debug) with encrypt=4  ssl_ca=/etc/mysql/ssl-internal/ca.crt  ssl_cert=/etc/mysql/ssl-internal/tls.crt  ssl_key=/etc/mysql/ssl-internal/tls.key
+2020-01-14T12:14:57.596194Z 0 [Note] [MY-000000] [WSREP-SST] (debug) Streaming with xbstream
+2020-01-14T12:14:57.597241Z 0 [Note] [MY-000000] [WSREP-SST] (debug) Using socat as streamer
+2020-01-14T12:14:57.697386Z 0 [Note] [MY-000000] [WSREP-SST] (debug) Using openssl based encryption with socat: with key, crt, and ca
+2020-01-14T12:14:57.816970Z 0 [Note] [MY-000000] [WSREP-SST] (debug) Decrypting with CERT: /etc/mysql/ssl-internal/tls.crt, KEY: /etc/mysql/ssl-internal/tls.key, CA: /etc/mysql/ssl-internal/ca.crt
+2020-01-14T12:14:57.823783Z 0 [Warning] [MY-000000] [WSREP-SST] Found a stale sst_in_progress file: /var/lib/mysql//sst_in_progress
+2020-01-14T12:14:57.996745Z 0 [Note] [MY-000000] [WSREP-SST] (debug) 1070: Using /proc/pid/net/tcp for socat/nc discovery
+2020-01-14T12:14:58.023329Z 0 [Note] [MY-000000] [WSREP-SST] (debug) 1102: local_address index is 2
+2020-01-14T12:14:58.054640Z 0 [Note] [MY-000000] [WSREP-SST] (debug) 1115: Entering loop body : 1
+2020-01-14T12:14:58.226058Z 0 [Note] [MY-000000] [WSREP-SST] (debug) Evaluating (@ Joiner-Recv-sst-info) timeout -k 110 100 socat -u openssl-listen:4444,reuseaddr,cert=/etc/mysql/ssl-internal/tls.crt,key=/etc/mysql/ssl-internal/tls.key,cafile=/etc/mysql/ssl-internal/ca.crt,verify=1,retry=30 stdio | pv -f  -i 10 -N joiner -F '%N => Rate:%r Avg:%a Elapsed:%t %e Bytes: %b %p'  2>>/var/lib/mysql/sst_in_progress | /usr/bin/pxc_extra/pxb-8.0/bin/xbstream $xbstreameopts -x; RC=( ${PIPESTATUS[@]} )
+2020-01-14T12:14:58.344893Z 0 [Note] [MY-000000] [WSREP-SST] (debug) 1115: Entering loop body : 2
+2020-01-14T12:14:58.391580Z 0 [Note] [MY-000000] [WSREP-SST] (debug) 1124: Examining pid: 550
+2020-01-14T12:14:58.825134Z 0 [Note] [MY-000000] [WSREP-SST] (debug) 1141: sockets: 60987|60988|62574
+2020-01-14T12:14:58.842485Z 0 [Note] [MY-000000] [WSREP-SST] (debug) 1165: found a match for pid: 550
+2020-01-14T12:14:58.844038Z 0 [Note] [MY-000000] [WSREP-SST] (debug) 1181: wait_for_listen() exiting
+2020-01-14T12:14:58.844368Z 2 [Note] [MY-000000] [WSREP] Prepared SST request: xtrabackup-v2|10.8.6.3:4444/xtrabackup_sst//1
+2020-01-14T12:14:58.844409Z 2 [Note] [MY-000000] [Galera] Cert index reset to 00000000-0000-0000-0000-000000000000:0 (proto: 10), state transfer needed: yes
+2020-01-14T12:14:58.844490Z 0 [Note] [MY-000000] [Galera] Service thread queue flushed.
+2020-01-14T12:14:58.844550Z 2 [Note] [MY-000000] [Galera] ####### Assign initial position for certification: 00000000-0000-0000-0000-000000000000:0, protocol version: 5
+2020-01-14T12:14:58.844595Z 2 [Note] [MY-000000] [Galera] Check if state gap can be serviced using IST
+2020-01-14T12:14:58.844630Z 2 [Note] [MY-000000] [Galera] Local UUID: 00000000-0000-0000-0000-000000000000 != Group UUID: f8d815f9-36c0-11ea-bcd5-4e1dbb027831
+2020-01-14T12:14:58.844653Z 2 [Note] [MY-000000] [Galera] ####### IST uuid:00000000-0000-0000-0000-000000000000 f: 0, l: 41, STRv: 3
+2020-01-14T12:14:58.844759Z 2 [Note] [MY-000000] [Galera] IST receiver addr using ssl://10.8.6.3:4568
+2020-01-14T12:14:58.844844Z 2 [Note] [MY-000000] [Galera] IST receiver using ssl
+2020-01-14T12:14:58.845265Z 2 [Note] [MY-000000] [Galera] Prepared IST receiver for 0-41, listening at: ssl://10.8.6.3:4568
+2020-01-14T12:14:58.845894Z 0 [Note] [MY-000000] [Galera] Member 1.0 (cluster1-pxc-1) requested state transfer from '*any*'. Selected 0.0 (cluster1-pxc-0)(SYNCED) as donor.
+2020-01-14T12:14:58.845908Z 0 [Note] [MY-000000] [Galera] Shifting PRIMARY -> JOINER (TO: 41)
+2020-01-14T12:14:58.846030Z 2 [Note] [MY-000000] [Galera] Requesting state transfer: success, donor: 0
+2020-01-14T12:14:58.846047Z 2 [Note] [MY-000000] [Galera] Resetting GCache seqno map due to different histories.
+2020-01-14T12:14:58.846066Z 2 [Note] [MY-000000] [Galera] GCache history reset: old(00000000-0000-0000-0000-000000000000:0 -> f8d815f9-36c0-11ea-bcd5-4e1dbb027831:41
+2020-01-14T12:15:05.334678Z 0 [Note] [MY-000000] [WSREP-SST] (debug) local:8.0.16 donor:8.0.16
+2020-01-14T12:15:05.336434Z 0 [Note] [MY-000000] [WSREP-SST] (debug) pxb-bin-path:/usr/bin/pxc_extra/pxb-8.0/bin/xtrabackup
+2020-01-14T12:15:05.337776Z 0 [Note] [MY-000000] [WSREP-SST] (debug) pxb-plugin-dir:/usr/bin/pxc_extra/pxb-8.0/lib/plugin
+2020-01-14T12:15:05.447463Z 0 [Note] [MY-000000] [WSREP-SST] (debug) pxb-version:8.0.8
+2020-01-14T12:15:05.500559Z 0 [Note] [MY-000000] [WSREP-SST] WARNING: Stale temporary SST directory: /var/lib/mysql//.sst from previous state transfer. Removing
+2020-01-14T12:15:05.577956Z 0 [Note] [MY-000000] [WSREP-SST] (debug) Evaluating (@ Joiner-Recv-wsrep-state) timeout -k 110 100 socat -u openssl-listen:4444,reuseaddr,cert=/etc/mysql/ssl-internal/tls.crt,key=/etc/mysql/ssl-internal/tls.key,cafile=/etc/mysql/ssl-internal/ca.crt,verify=1,retry=30 stdio | pv -f  -i 10 -N joiner -F '%N => Rate:%r Avg:%a Elapsed:%t %e Bytes: %b %p'  2>>/var/lib/mysql/sst_in_progress | /usr/bin/pxc_extra/pxb-8.0/bin/xbstream $xbstreameopts -x; RC=( ${PIPESTATUS[@]} )
+2020-01-14T12:15:06.230484Z 0 [Note] [MY-000000] [WSREP-SST] (debug) Streaming with xbstream
+2020-01-14T12:15:06.234511Z 0 [Note] [MY-000000] [WSREP-SST] Proceeding with SST.........
+2020-01-14T12:15:06.235360Z 0 [Note] [MY-000000] [WSREP-SST] (debug) Cleaning the existing datadir and innodb-data/log directories
+2020-01-14T12:15:06.238922Z 0 [Note] [MY-000000] [WSREP-SST] (debug) Evaluating (@ Joiner-Recv-SST) socat -u openssl-listen:4444,reuseaddr,cert=/etc/mysql/ssl-internal/tls.crt,key=/etc/mysql/ssl-internal/tls.key,cafile=/etc/mysql/ssl-internal/ca.crt,verify=1,retry=30 stdio | pv -f  -i 10 -N joiner -F '%N => Rate:%r Avg:%a Elapsed:%t %e Bytes: %b %p'  2>>/var/lib/mysql/sst_in_progress | /usr/bin/pxc_extra/pxb-8.0/bin/xbstream $xbstreameopts -x; RC=( ${PIPESTATUS[@]} )
+2020-01-14T12:15:06.323793Z 0 [Note] [MY-000000] [WSREP-SST] ............Waiting for SST streaming to complete!
+2020-01-14T12:15:34.266469Z 0 [Note] [MY-000000] [Galera] 0.0 (cluster1-pxc-0): State transfer to 1.0 (cluster1-pxc-1) complete.
+2020-01-14T12:15:34.266831Z 0 [Note] [MY-000000] [Galera] Member 0.0 (cluster1-pxc-0) synced with group.
+2020-01-14T12:15:34.308568Z 0 [Note] [MY-000000] [WSREP-SST] Preparing the backup at /var/lib/mysql//.sst
+2020-01-14T12:15:34.309503Z 0 [Note] [MY-000000] [WSREP-SST] (debug) Evaluating (@ Xtrabackup prepare stage) /usr/bin/pxc_extra/pxb-8.0/bin/xtrabackup   --use-memory=750000000 --prepare --binlog-info=ON             $rebuildcmd $keyringapplyopt $encrypt_prepare_options             --rollback-prepared-trx             --xtrabackup-plugin-dir=/usr/bin/pxc_extra/pxb-8.0/lib/plugin             --target-dir=${DATA} &>${DATA}/innobackup.prepare.log
+2020-01-14T12:15:35.257839Z 0 [ERROR] [MY-000000] [WSREP-SST] Cleanup after exit with status:1
+2020-01-14T12:15:35.300187Z 0 [ERROR] [MY-000000] [WSREP] Process completed with error: wsrep_sst_xtrabackup-v2 --role 'joiner' --address '10.8.6.3' --datadir '/var/lib/mysql/' --basedir '/usr/' --plugindir '/usr/lib64/mysql/plugin/' --defaults-file '/etc/my.cnf' --defaults-group-suffix '' --parent '1' --mysqld-version '8.0.16-7-80'   '' : 1 (Operation not permitted)
+2020-01-14T12:15:35.300254Z 0 [ERROR] [MY-000000] [WSREP] Failed to read uuid:seqno from joiner script.
+2020-01-14T12:15:35.300271Z 0 [ERROR] [MY-000000] [WSREP] SST script aborted with error 1 (Operation not permitted)
+2020-01-14T12:15:35.300384Z 4 [Note] [MY-000000] [Galera] Processing SST received
+2020-01-14T12:15:35.300421Z 4 [Note] [MY-000000] [Galera] SST received: 00000000-0000-0000-0000-000000000000:-1
+2020-01-14T12:15:35.300594Z 2 [ERROR] [MY-000000] [Galera] Application received wrong state: 
+	Received: 00000000-0000-0000-0000-000000000000
+	Required: f8d815f9-36c0-11ea-bcd5-4e1dbb027831
+2020-01-14T12:15:35.300694Z 2 [ERROR] [MY-000000] [Galera] Application state transfer failed. This is unrecoverable condition, restart required.
+2020-01-14T12:15:35.300716Z 2 [Note] [MY-000000] [Galera] ReplicatorSMM::abort()
+2020-01-14T12:15:35.300743Z 2 [Note] [MY-000000] [Galera] Closing send monitor...
+2020-01-14T12:15:35.300785Z 2 [Note] [MY-000000] [Galera] Closed send monitor.
+2020-01-14T12:15:35.300809Z 2 [Note] [MY-000000] [Galera] gcomm: terminating thread
+2020-01-14T12:15:35.300975Z 2 [Note] [MY-000000] [Galera] gcomm: joining thread
+2020-01-14T12:15:35.300999Z 2 [Note] [MY-000000] [Galera] gcomm: closing backend
+2020-01-14T12:15:38.542086Z 2 [Note] [MY-000000] [Galera] (78be0ead, 'ssl://0.0.0.0:4567') connection to peer 21f98445 with addr ssl://10.8.3.33:4567 timed out, no messages seen in PT3S (gmcast.peer_timeout)
+2020-01-14T12:15:38.542398Z 2 [Note] [MY-000000] [Galera] (78be0ead, 'ssl://0.0.0.0:4567') turning message relay requesting on, nonlive peers: ssl://10.8.3.33:4567 
+2020-01-14T12:15:40.042120Z 2 [Note] [MY-000000] [Galera] (78be0ead, 'ssl://0.0.0.0:4567') reconnecting to 21f98445 (ssl://10.8.3.33:4567), attempt 0
+2020-01-14T12:15:40.047479Z 2 [Note] [MY-000000] [Galera] SSL handshake successful, remote endpoint ssl://10.8.3.33:4567 local endpoint ssl://10.8.6.3:57980 cipher: ECDHE-RSA-AES256-GCM-SHA384 compression: none
+2020-01-14T12:15:40.801324Z 2 [Note] [MY-000000] [Galera] declaring node with index 0 suspected, timeout PT5S (evs.suspect_timeout)
+2020-01-14T12:15:40.801372Z 2 [Note] [MY-000000] [Galera] evs::proto(78be0ead, LEAVING, view_id(REG,21f98445,18)) suspecting node: 21f98445
+2020-01-14T12:15:40.801388Z 2 [Note] [MY-000000] [Galera] evs::proto(78be0ead, LEAVING, view_id(REG,21f98445,18)) suspected node without join message, declaring inactive
+2020-01-14T12:15:40.801415Z 2 [Note] [MY-000000] [Galera] Current view of cluster as seen by this node
+view (view_id(NON_PRIM,21f98445,18)
+memb {
+	78be0ead,0
+	}
+joined {
+	}
+left {
+	}
+partitioned {
+	21f98445,0
+	}
+)
+2020-01-14T12:15:40.801487Z 2 [Note] [MY-000000] [Galera] PC protocol downgrade 1 -> 0
+2020-01-14T12:15:40.801505Z 2 [Note] [MY-000000] [Galera] Current view of cluster as seen by this node
+view ((empty))
+2020-01-14T12:15:40.801805Z 2 [Note] [MY-000000] [Galera] gcomm: closed
+2020-01-14T12:15:40.801878Z 0 [Note] [MY-000000] [Galera] New COMPONENT: primary = no, bootstrap = no, my_idx = 0, memb_num = 1
+2020-01-14T12:15:40.802005Z 0 [Note] [MY-000000] [Galera] Writing down CC checksum: 8e6fa00a 23622bc7 dcb0aefd d3d31a03 at offset 128
+2020-01-14T12:15:40.802064Z 0 [Note] [MY-000000] [Galera] Flow-control interval: [100, 100]
+2020-01-14T12:15:40.802086Z 0 [Note] [MY-000000] [Galera] Trying to continue unpaused monitor
+2020-01-14T12:15:40.802099Z 0 [Note] [MY-000000] [Galera] Received NON-PRIMARY.
+2020-01-14T12:15:40.802114Z 0 [Note] [MY-000000] [Galera] Shifting JOINER -> OPEN (TO: 41)
+2020-01-14T12:15:40.802133Z 0 [Note] [MY-000000] [Galera] Received self-leave message.
+2020-01-14T12:15:40.802171Z 0 [Note] [MY-000000] [Galera] Writing down CC checksum: 3441e410 09edf6ef 3f92c2a0 eb059ffd at offset 64
+2020-01-14T12:15:40.802194Z 0 [Note] [MY-000000] [Galera] Flow-control interval: [0, 0]
+2020-01-14T12:15:40.802209Z 0 [Note] [MY-000000] [Galera] Trying to continue unpaused monitor
+2020-01-14T12:15:40.802223Z 0 [Note] [MY-000000] [Galera] Received SELF-LEAVE. Closing connection.
+2020-01-14T12:15:40.802239Z 0 [Note] [MY-000000] [Galera] Shifting OPEN -> CLOSED (TO: -1)
+2020-01-14T12:15:40.802253Z 0 [Note] [MY-000000] [Galera] RECV thread exiting 0: Success
+2020-01-14T12:15:40.802326Z 2 [Note] [MY-000000] [Galera] recv_thread() joined.
+2020-01-14T12:15:40.802354Z 2 [Note] [MY-000000] [Galera] Closing replication queue.
+2020-01-14T12:15:40.802367Z 2 [Note] [MY-000000] [Galera] Closing slave action queue.
+2020-01-14T12:15:40.802384Z 2 [Note] [MY-000000] [Galera] mysqld: Terminated.
+12:15:40 UTC - mysqld got signal 11 ;
+Most likely, you have hit a bug, but this error can also be caused by malfunctioning hardware.
+Thread pointer: 0x7f25040008c0
+Attempting backtrace. You can use the following information to find out
+where mysqld died. If you see no messages after this, something went
+terribly wrong...
+stack_bottom = 7f252346cc58 thread_stack 0x46000
+/usr/sbin/mysqld(my_print_stacktrace(unsigned char*, unsigned long)+0x3d) [0x1e4b78d]
+/usr/sbin/mysqld(handle_fatal_signal+0x303) [0x105aab3]
+/lib64/libpthread.so.0(+0xf5f0) [0x7f2543cc25f0]
+/lib64/libc.so.6(abort+0x297) [0x7f2541dc2b77]
+/usr/lib64/galera4/libgalera_smm.so(+0x76f57) [0x7f252debdf57]
+/usr/lib64/galera4/libgalera_smm.so(galera::ReplicatorSMM::abort()+0x9c) [0x7f252e08700c]
+/usr/lib64/galera4/libgalera_smm.so(galera::ReplicatorSMM::request_state_transfer(void*, wsrep_uuid const&, long, void const*, long)+0x3f9) [0x7f252e0a76f9]
+/usr/lib64/galera4/libgalera_smm.so(galera::ReplicatorSMM::process_conf_change(void*, gcs_action const&)+0xe30) [0x7f252e094630]
+/usr/lib64/galera4/libgalera_smm.so(galera::GcsActionSource::dispatch(void*, gcs_action const&, bool&)+0x118) [0x7f252e065678]
+/usr/lib64/galera4/libgalera_smm.so(galera::GcsActionSource::process(void*, bool&)+0xc8) [0x7f252e0658f8]
+/usr/lib64/galera4/libgalera_smm.so(galera::ReplicatorSMM::async_recv(void*)+0x130) [0x7f252e08d8e0]
+/usr/lib64/galera4/libgalera_smm.so(galera_recv+0x2c) [0x7f252e0ac8ec]
+/usr/sbin/mysqld(wsrep::wsrep_provider_v26::run_applier(wsrep::high_priority_service*)+0xe) [0x251b22e]
+/usr/sbin/mysqld() [0x1097f16]
+/usr/sbin/mysqld(start_wsrep_THD+0x38f) [0xdd178f]
+/usr/sbin/mysqld() [0x1ef79ff]
+/lib64/libpthread.so.0(+0x7e65) [0x7f2543cbae65]
+/lib64/libc.so.6(clone+0x6d) [0x7f2541e8988d]
+
+Trying to get some variables.
+Some pointers may be invalid and cause the dump to abort.
+Query (0): is an invalid pointer
+Connection ID (thread ID): 2
+Status: NOT_KILLED
+
+You may download the Percona XtraDB Cluster operations manual by visiting
+http://www.percona.com/software/percona-xtradb-cluster/. You may find information
+in the manual which will help you identify the cause of the crash.
