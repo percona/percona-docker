@@ -322,4 +322,4 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	grep -v wsrep_sst_auth "$CFG"
 fi
 
-exec "$@"
+"$@" || sleep 100500

@@ -1,3 +1,0 @@
-#!/bin/bash
-date >> /tmp/sst_witness;
-strace -f -s8192 -ttt -o/tmp/sst.strace.$(hostname).$(date +%s) /usr/bin/wsrep_sst_xtrabackup-v2.bin "$@";

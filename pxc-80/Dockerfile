@@ -38,11 +38,6 @@ RUN yum update -y \
         && percona-release setup ps80 \
         && yum install -y \
                 jemalloc \
-				netcat \
-				strace \
-				gdb \
-				policycoreutils \
-				net-tools \
                 socat \
                 openssl \
                 shadow-utils \
@@ -63,16 +58,16 @@ RUN groupadd -g 1001 mysql \
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
         && yum install -y \
                 yum-utils \
-        && curl -L -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-server-8.0.16-27dev.4.2.1.el7.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-shared.rpm  https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-8.0.16-27dev.4.2.1.el7.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-8.0.16-27dev.4.2.1.el7.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-compat-8.0.16-27dev.4.2.1.el7.x86_64.rpm \
+        && curl -L -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-server-8.0.18-26.4.3.1.el7.x86_64.rpm \
+        && curl -L -o /tmp/percona-xtradb-cluster-shared.rpm  https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-8.0.18-26.4.3.1.el7.x86_64.rpm \
+        && curl -L -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-8.0.18-26.4.3.1.el7.x86_64.rpm \
+        && curl -L -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-compat-8.0.18-26.4.3.1.el7.x86_64.rpm \
         && rpm -iv /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-shared-compat.rpm --nodeps \
         && rm -rf /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-shared.rpm \
         && yum clean all \
         && rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
         && rm -rf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam* \
-        && rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf
+        && rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqladmin$" | xargs rm -rf
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN  cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera \
@@ -86,13 +81,10 @@ RUN rmdir /etc/my.cnf.d \
 	&& echo '!includedir /etc/my.cnf.d/' >> /etc/my.cnf \
 	&& echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
 
-RUN mv /usr/bin/wsrep_sst_xtrabackup-v2 /usr/bin/wsrep_sst_xtrabackup-v2.bin
 COPY dockerdir /
 RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d
-
-RUN chmod +x /usr/bin/wsrep_sst_xtrabackup-v2
 
 USER 1001
 
