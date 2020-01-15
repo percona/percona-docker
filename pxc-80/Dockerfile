@@ -22,7 +22,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 # install exact version of PS for repeatability
 ENV PS_VERSION 8.0.17-8.1.el7
-ENV PXC_VERSION 8.0.16-27dev.4.2.1.el7
+ENV PXC_VERSION 8.0.18-26.4.3.1.el7
 
 RUN curl -L -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
 	&& curl -L -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
@@ -58,10 +58,10 @@ RUN groupadd -g 1001 mysql \
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
         && yum install -y \
                 yum-utils \
-        && curl -L -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-server-8.0.18-26.4.3.1.el7.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-shared.rpm  https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-8.0.18-26.4.3.1.el7.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-8.0.18-26.4.3.1.el7.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-compat-8.0.18-26.4.3.1.el7.x86_64.rpm \
+        && curl -L -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-server-${PXC_VERSION}.x86_64.rpm \
+        && curl -L -o /tmp/percona-xtradb-cluster-shared.rpm  https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-${PXC_VERSION}.x86_64.rpm \
+        && curl -L -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
+        && curl -L -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-compat-${PXC_VERSION}.x86_64.rpm \
         && rpm -iv /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-shared-compat.rpm --nodeps \
         && rm -rf /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-shared.rpm \
         && yum clean all \
