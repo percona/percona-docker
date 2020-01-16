@@ -29,6 +29,7 @@ wsrep_log_conflicts
 
 wsrep_cluster_name=noname
 #wsrep_node_address=noname
+#wsrep_node_incoming_address=nodeip
 
 wsrep_sst_method=xtrabackup-v2
 wsrep_debug=1
