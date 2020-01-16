@@ -8,6 +8,7 @@ if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
 fi
 CFG=/etc/mysql/node.cnf
+NODE_PORT=3306
 
 # skip setup if they want an option that stops mysqld
 wantHelp=
@@ -127,6 +128,7 @@ elif [ -n "$DISCOVERY_SERVICE" ]; then
 	CLUSTER_JOIN=$(join , $i1 $i2 )
 
 	sed -r "s|^[#]?wsrep_node_address=.*$|wsrep_node_address=${NODE_IP}|" "${CFG}" 1<> "${CFG}"
+	sed -r "s|^[#]?wsrep_node_incoming_address=.*$|wsrep_node_incoming_address=${NODE_IP}:${NODE_PORT}|" "${CFG}" 1<> "${CFG}"
 	sed -r "s|^[#]?wsrep_cluster_name=.*$|wsrep_cluster_name=${CLUSTER_NAME}|" "${CFG}" 1<> "${CFG}"
 	sed -r "s|^[#]?wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${CLUSTER_JOIN}|" "${CFG}" 1<> "${CFG}"
 
@@ -136,6 +138,7 @@ else
 	: checking incoming cluster parameters
 	NODE_IP=$(hostname -I | awk ' { print $1 } ')
 	sed -r "s|^[#]?wsrep_node_address=.*$|wsrep_node_address=${NODE_IP}|" "${CFG}" 1<> "${CFG}"
+	sed -r "s|^[#]?wsrep_node_incoming_address=.*$|wsrep_node_incoming_address=${NODE_IP}:${NODE_PORT}|" "${CFG}" 1<> "${CFG}"
 	
 	if [[ -n "${CLUSTER_JOIN}" ]]; then
 		sed -r "s|^[#]?wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${CLUSTER_JOIN}|" "${CFG}" 1<> "${CFG}"
