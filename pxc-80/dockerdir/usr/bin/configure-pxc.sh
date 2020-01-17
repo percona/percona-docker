@@ -50,11 +50,7 @@ fi
 CFG=/etc/mysql/node.cnf
 sed -r "s|^[#]?server_id=.*$|server_id=1${SERVER_ID}|" ${CFG} 1<> ${CFG}
 sed -r "s|^[#]?wsrep_node_address=.*$|wsrep_node_address=${NODE_IP}|" ${CFG} 1<> ${CFG}
-<<<<<<< HEAD
 sed -r "s|^[#]?wsrep_node_incoming_address=.*$|wsrep_node_incoming_address=${NODE_NAME}:${NODE_PORT}|" ${CFG} 1<> ${CFG}
-=======
-sed -r "s|^[#]?wsrep_node_incoming_address=.*$|wsrep_node_incoming_address=${NODE_IP}:${NODE_PORT}|" ${CFG} 1<> ${CFG}
->>>>>>> master
 sed -r "s|^[#]?wsrep_cluster_name=.*$|wsrep_cluster_name=${CLUSTER_NAME}|" ${CFG} 1<> ${CFG}
 sed -r "s|^[#]?wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${WSREP_CLUSTER_ADDRESS}|" ${CFG} 1<> ${CFG}
 
