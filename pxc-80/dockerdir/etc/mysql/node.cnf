@@ -2,13 +2,8 @@
 
 datadir=/var/lib/mysql
 socket=/tmp/mysql.sock
-log-error=/var/log/mysqld.log
 pid-file=/var/run/mysqld/mysqld.pid
-expire_logs_days=7
-log_error_verbosity=3
 skip-host-cache
-
-symbolic-links=0
 
 #server_id=0
 binlog_format=ROW
