@@ -88,12 +88,6 @@ didFail=
 for dockerImage in "$@"; do
 	echo "testing $dockerImage"
 	
-	if ! docker inspect "$dockerImage" &> /dev/null; then
-		echo $'\timage does not exist!'
-		didFail=1
-		continue
-	fi
-	
 	repo="${dockerImage%:*}"
 	tagVar="${dockerImage#*:}"
 	#version="${tagVar%-*}"
@@ -117,13 +111,36 @@ for dockerImage in "$@"; do
 			# "slim-jessie" is still "slim"
 			variant='slim'
 			;;
+		psmdb-*)
+			# Percona Server for MongoDB is still "mongo"
+			variant='psmdb'
+			;;
+		*nanoserver*)
+			# all nanoserver variants are windows and should have explict tests
+			variant='nanoserver'
+			;;
+		*windowsservercore*)
+			# all servercore variants are windows and should have explict tests
+			variant='windowsservercore'
+			;;
 	esac
 	
 	testRepo="$repo"
 	if [ -z "$keepNamespace" ]; then
 		testRepo="${testRepo##*/}"
 	fi
-	[ -z "${testAlias[$repo]}" ] || testRepo="${testAlias[$repo]}"
+	
+	for possibleAlias in \
+		"${testAlias[$repo:$variant]}" \
+		"${testAlias[$repo]}" \
+		"${testAlias[$testRepo:$variant]}" \
+		"${testAlias[$testRepo]}" \
+	; do
+		if [ -n "$possibleAlias" ]; then
+			testRepo="$possibleAlias"
+			break
+		fi
+	done
 	
 	explicitVariant=
 	if [ \
@@ -181,6 +198,19 @@ for dockerImage in "$@"; do
 		
 		tests+=( "$t" )
 	done
+	
+	# check for zero tests before checking for existing image
+	# this will make windows variants no longer fail
+	if [ "${#tests[@]}" -eq '0' ]; then
+		echo $'\timage has no tests...skipping'
+		continue
+	fi
+	
+	if ! docker inspect "$dockerImage" &> /dev/null; then
+		echo $'\timage does not exist!'
+		didFail=1
+		continue
+	fi
 	
 	currentTest=0
 	totalTest="${#tests[@]}"
