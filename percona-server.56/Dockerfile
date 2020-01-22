@@ -19,7 +19,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& percona-release enable original release
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 5.6.45-rel86.1.el7
+ENV PERCONA_VERSION 5.6.47-rel87.0.1.el7
 
 RUN yum install -y \
 		Percona-Server-server-56-${PERCONA_VERSION} \

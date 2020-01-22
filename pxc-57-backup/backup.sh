@@ -70,7 +70,7 @@ function request_streaming() {
     if grep 'WARN: Rejecting JOIN message from ... (garb): new State Transfer required.' /tmp/garbd.log; then
         exit 1
     fi
-    if grep 'INFO: Shifting CLOSED -> DESTROYED' /tmp/garbd.log; then
+    if grep 'INFO: Shifting CLOSED -> DESTROYED (TO: -1)' /tmp/garbd.log; then
         exit 1
     fi
 }
