@@ -5,7 +5,6 @@ socket=/tmp/mysql.sock
 pid-file=/var/run/mysqld/mysqld.pid
 log_error_verbosity=3
 skip-host-cache
-symbolic-links=0
 
 #server_id=0
 binlog_format=ROW
