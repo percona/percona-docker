@@ -70,9 +70,6 @@ function request_streaming() {
     if grep 'WARN: Rejecting JOIN message from ... (garb): new State Transfer required.' /tmp/garbd.log; then
         exit 1
     fi
-    if grep 'INFO: Shifting CLOSED -> DESTROYED (TO: -1)' /tmp/garbd.log; then
-        exit 1
-    fi
 }
 
 function backup_volume() {
@@ -83,16 +80,29 @@ function backup_volume() {
     echo "Backup to $BACKUP_DIR started"
     request_streaming
 
-    # mostly always the first "socat" run receive SST info only
-    socat -u "$SOCAT_OPTS" stdio \
-        > xtrabackup.stream
+    echo "Socat to started"
 
-    # but sometimes we receive real data during the first "socat" run
-    # in such case we need to detect if we need to do the second "socat" run
-    if (( $(stat -c%s xtrabackup.stream) < 50000000 )); then
-        socat -u "$SOCAT_OPTS" stdio \
-            > xtrabackup.stream
+    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream1
+    if [[ $? -ne 0 ]]; then
+        echo "socat(1) failed"
+        exit 1
     fi
+    echo "socat(1) returned $?"
+
+    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream2
+    if [[ $? -ne 0 ]]; then
+        echo "socat(2) failed"
+        exit 1
+    fi
+    echo "socat(2) returned $?"
+
+    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream
+    if [[ $? -ne 0 ]]; then
+        echo "socat(3) failed"
+        exit 1
+    fi
+    echo "socat(3) returned $?"
+
     echo "Backup finished"
 
     stat xtrabackup.stream
@@ -100,6 +110,7 @@ function backup_volume() {
         echo empty backup
         exit 1
     fi
+
     md5sum xtrabackup.stream | tee md5sum.txt
 }
 
