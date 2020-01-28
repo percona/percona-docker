@@ -46,7 +46,7 @@ ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.4.2"
 
 RUN set -ex; \
-    curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.5-1.el7.x86_64.rpm; \
+    curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm; \
     curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm; \
     rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
     \
