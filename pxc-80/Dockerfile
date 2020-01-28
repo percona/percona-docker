@@ -86,6 +86,16 @@ RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint
 	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d
 
+ARG DEBUG
+RUN if [ -n "$DEBUG" ]; then \
+		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
+		&& sed -i 's/exec "$@"/"$@" || sleep infinity/' /entrypoint.sh \
+		&& yum install -y \
+			telnet \
+			gdb \
+		&& yum clean all ; \
+	fi
+
 USER 1001
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
