@@ -122,23 +122,18 @@ function backup_s3() {
     xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" || :
     request_streaming
 
-    # mostly always the first "socat" run receive SST info only
+    socat -u "$SOCAT_OPTS" stdio \
+        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.1"
+    socat -u "$SOCAT_OPTS" stdio \
+        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.2"
     socat -u "$SOCAT_OPTS" stdio \
         | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 
-    # but sometimes we receive real data during the first "socat" run
-    # in such case we need to detect if we need to do the second "socat" run
-    ib_size=$(mc -C /tmp/mc stat --json "dest/$S3_BUCKET/$S3_BUCKET_PATH/xtrabackup_checkpoints.00000000000000000000" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
-    if [[ $ib_size =~ "Object does not exist" ]] || (( $ib_size < 20 )); then
-        xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
-        socat -u "$SOCAT_OPTS" stdio \
-            | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
-    fi
     echo "Backup finished"
 
     mc -C /tmp/mc stat "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
     md5_size=$(mc -C /tmp/mc stat --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
-    if [[ $md5_size =~ "Object does not exist" ]] || (( $md5_size < 25000 )); then
+    if [[ $md5_size =~ "Object does not exist" ]] || (( $md5_size < 24000 )); then
         echo empty backup
         exit 1
     fi
