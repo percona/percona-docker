@@ -3,7 +3,13 @@ FROM registry.access.redhat.com/ubi7/ubi-minimal
 LABEL name="Percona XtraBackup" \
 	release="2.4" \
 	vendor="Percona" \
-	summary="Percona XtraBackup is an open-source hot backup utility for MySQL - based servers that doesn’t lock your database during the backup" \
+LABEL org.opencontainers.image.title="Percona XtraBackup"
+LABEL org.opencontainers.image.vendor="Percona"
+LABEL org.opencontainers.image.description="Percona XtraBackup works with MySQL, MariaDB, and \
+Percona Server. It supports completely non-blocking backups of InnoDB, XtraDB, and HailDB storage engines. \
+In addition, it can back up the following storage engines by briefly pausing writes at the end of the backup:  \ MyISAM, Merge, and Archive, including partitioned tables, triggers, and database options."
+LABEL org.opencontainers.image.license="Apache 2.0"
+LABEL org.opencontainers.image.authors="info@percona.com"
 	description="Percona XtraBackup works with MySQL, MariaDB, and Percona Server. It supports completely non-blocking backups of InnoDB, XtraDB, and HailDB storage engines. In addition, it can back up the following storage engines by briefly pausing writes at the end of the backup: MyISAM, Merge, and Archive, including partitioned tables, triggers, and database options." \
 	maintainer="Percona Development <info@percona.com>"
 
