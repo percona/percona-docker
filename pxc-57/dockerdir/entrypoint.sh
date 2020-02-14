@@ -178,9 +178,12 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" --password="" )
+		mysql_select=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" --password="" -s )
+		wsrep_local_state_select="SELECT variable_value FROM performance_schema.global_status WHERE variable_name='wsrep_local_state_comment'"
 
 		for i in {120..0}; do
-			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
+			wsrep_local_state=$(echo "$wsrep_local_state_select" | "${mysql_select[@]}" &> /dev/null) || true
+			if [ "$wsrep_local_state" = 'Synced' ]; then
 				break
 			fi
 			echo 'MySQL init process in progress...'
