@@ -3,7 +3,10 @@
 set -o errexit
 set -o xtrace
 
+{ set +x; } 2> /dev/null
+echo "+ mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
 mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
+set -x
 mc -C /tmp/mc ls "dest/${S3_BUCKET_URL}"
 
 rm -rf /datadir/*
