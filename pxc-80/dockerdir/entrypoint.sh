@@ -327,8 +327,8 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 fi
 
 wsrep_start_position_opt=""
-if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
-	DATADIR="$(_get_config 'datadir' "$@")"
+DATADIR="$(_get_config 'datadir' "$@")"
+if [ "$1" = 'mysqld' -a -z "$wantHelp" -a -d "$DATADIR/mysql" ]; then
 	grastate_loc="${DATADIR}/grastate.dat"
 
 	if [ -f "$grastate_loc" ]; then
@@ -347,10 +347,10 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 	if [ -z "$wsrep_start_position_opt" ]; then
 		wsrep_verbose_logfile=$(mktemp $DATADIR/wsrep_recovery_verbose.XXXXXX)
-		"$@" --wsrep_recover --log-error-verbosity=3 --log_error='$wsrep_verbose_logfile'
+		"$@" --wsrep_recover --log-error-verbosity=3 --log_error="$wsrep_verbose_logfile"
 
 		if grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile"; then
-			local start_pos="$(
+			start_pos="$(
 				grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile" \
 					| sed 's/.*Recovered position://' \
 					| sed 's/^[ \t]*//'
