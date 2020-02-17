@@ -181,7 +181,7 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		wsrep_local_state_select="SELECT variable_value FROM performance_schema.global_status WHERE variable_name='wsrep_local_state_comment'"
 
 		for i in {120..0}; do
-			wsrep_local_state=$(echo "$wsrep_local_state_select" | "${mysql[@]}" -s &> /dev/null) || true
+			wsrep_local_state=$(echo "$wsrep_local_state_select" | "${mysql[@]}" -s 2> /dev/null) || true
 			if [ "$wsrep_local_state" = 'Synced' ]; then
 				break
 			fi
