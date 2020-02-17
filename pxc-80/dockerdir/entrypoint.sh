@@ -8,7 +8,6 @@ if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
 fi
 CFG=/etc/mysql/node.cnf
-NODE_PORT=3306
 
 # skip setup if they want an option that stops mysqld
 wantHelp=
@@ -20,77 +19,6 @@ for arg; do
 			;;
 	esac
 done
-
-log_info_msg() {
-    echo " INFO: $*"
-}
-
-log_failure_msg() {
-    echo " ERROR! $*"
-}
-
-wsrep_start_position_opt=""
-wsrep_recover_position() {
-  local mysqld_cmd="/usr/sbin/mysqld"
-  local uuid=""
-  local seqno=0
-  local datadir=/var/lib/mysql
-  local grastate_loc="${datadir}/grastate.dat"
-
-  if [[ ! -d $datadir/mysql ]]; then
-	log_info_msg "Datadir is not initialized, skipping recovery"
-	return 0
-  fi
-
-  if [ -f $grastate_loc ]; then
-    uuid=$(grep 'uuid:' $grastate_loc | cut -d: -f2 | tr -d ' ')
-    seqno=$(grep 'seqno:' $grastate_loc | cut -d: -f2 | tr -d ' ')
-
-  # If sequence number is not equal to -1, wsrep-recover co-ordinates aren't used.
-  # So, directly pass whatever is obtained from grastate.dat
-    if [ -n "$seqno" ] && [ "$seqno" -ne -1 ]; then
-      log_info_msg "Skipping wsrep-recover for $uuid:$seqno pair"
-      log_info_msg "Assigning $uuid:$seqno to wsrep_start_position"
-
-      wsrep_start_position_opt="--wsrep_start_position=$uuid:$seqno"
-
-      echo "${wsrep_start_position_opt}"
-	  return 0
-    fi
-  fi
-
-  local euid=$(id -u)
-  local wsrep_pidfile="$datadir/$(hostname)-recover.pid"
-  local wsrep_verbose_logfile=$(mktemp $datadir/wsrep_recovery_verbose.XXXXXX)
-  local wr_options="--log_error='$wsrep_verbose_logfile' --pid-file='$wsrep_pidfile'"
-
-  [ "$euid" = "0" ] && chown 'mysql' "$wsrep_verbose_logfile"
-  chmod 600 "$wsrep_verbose_logfile"
-
-  log_info_msg "WSREP: Running position recovery with $wr_options"
-
-  eval "$mysqld_cmd --user=mysql --log-error-verbosity=3 --wsrep_recover $wr_options"
-
-  local rp="$(grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile")"
-  if [ -z "$rp" ]; then
-    local skipped="$(grep WSREP "$wsrep_verbose_logfile" | grep 'skipping position recovery')"
-    if [ -z "$skipped" ]; then
-      log_failure_msg "WSREP: Failed to recover position: "
-      cat "$wsrep_verbose_logfile"
-      exit 1
-    else
-      log_info_msg "WSREP: Position recovery skipped"
-    fi
-  else
-    local start_pos="$(echo "$rp" | sed 's/.*Recovered position://' | sed 's/^[ \t]*//')"
-    log_info_msg "WSREP: Recovered position: $start_pos"
-    wsrep_start_position_opt="--wsrep_start_position=$start_pos"
-  fi
-
-  rm "$wsrep_verbose_logfile"
-
-  echo "${wsrep_start_position_opt}"
-}
 
 # usage: file_env VAR [DEFAULT]
 #    ie: file_env 'XYZ_DB_PASSWORD' 'example'
@@ -167,6 +95,7 @@ function join {
 file_env 'XTRABACKUP_PASSWORD' 'xtrabackup'
 file_env 'CLUSTERCHECK_PASSWORD' 'clustercheck'
 NODE_NAME=$(hostname -f)
+NODE_PORT=3306
 # Is running in Kubernetes/OpenShift, so find all other pods belonging to the cluster
 if [ -n "$PXC_SERVICE" ]; then
 	echo "Percona XtraDB Cluster: Finding peers"
@@ -397,9 +326,48 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	grep -v wsrep_sst_auth "$CFG"
 fi
 
-wsrep_recover_position
-if [[ -z $wsrep_start_position_opt ]]; then
-	exec "$@"
-else
-	exec "$@" "$wsrep_start_position_opt"
+wsrep_start_position_opt=""
+if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
+	DATADIR="$(_get_config 'datadir' "$@")"
+	grastate_loc="${DATADIR}/grastate.dat"
+
+	if [ -f "$grastate_loc" ]; then
+		uuid=$(grep 'uuid:' $grastate_loc | cut -d: -f2 | tr -d ' ')
+		seqno=$(grep 'seqno:' $grastate_loc | cut -d: -f2 | tr -d ' ')
+
+		# If sequence number is not equal to -1, wsrep-recover co-ordinates aren't used.
+		# So, directly pass whatever is obtained from grastate.dat
+		if [ -n "$seqno" ] && [ "$seqno" -ne -1 ]; then
+			echo "Skipping wsrep-recover for $uuid:$seqno pair"
+			echo "Assigning $uuid:$seqno to wsrep_start_position"
+
+			wsrep_start_position_opt="--wsrep_start_position=$uuid:$seqno"
+		fi
+	fi
+
+	if [ -z "$wsrep_start_position_opt" ]; then
+		wsrep_verbose_logfile=$(mktemp $DATADIR/wsrep_recovery_verbose.XXXXXX)
+		"$@" --wsrep_recover --log-error-verbosity=3 --log_error='$wsrep_verbose_logfile'
+
+		if grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile"; then
+			local start_pos="$(
+				grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile" \
+					| sed 's/.*Recovered position://' \
+					| sed 's/^[ \t]*//'
+			)"
+			wsrep_start_position_opt="--wsrep_start_position=$start_pos"
+		else
+			# The server prints "..skipping position recovery.." if started without wsrep.
+			if grep 'skipping position recovery' "$wsrep_verbose_logfile"; then
+				echo "WSREP: Position recovery skipped"
+			else
+				echo >&2 "WSREP: Failed to recover position: "
+				cat "$wsrep_verbose_logfile"
+				exit 1
+			fi
+		fi
+		rm "$wsrep_verbose_logfile"
+	fi
 fi
+
+exec "$@" $wsrep_start_position_opt
