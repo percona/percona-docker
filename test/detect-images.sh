@@ -7,7 +7,7 @@ pathToTests=$(dirname $0)
 
 echo "Changed files between $@:"
 for file in $(git --no-pager diff --name-only "$@"); do
-	dir=$(dirname $file)
+	dir=$(dirname $file | cut -d '/' -f 1)
 	echo -- $file
 	if [ -d "$file" -a -f "$file/Dockerfile" ]; then
 		dockerfilePaths["$file"]=1
