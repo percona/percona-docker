@@ -69,7 +69,8 @@ wsrep_recover_position() {
 
   log_info_msg "WSREP: Running position recovery with $wr_options"
 
-  eval "$mysqld_cmd --user=mysql --log-error-verbosity=3 --wsrep_recover $wr_options" || sleep 100500
+  eval "$mysqld_cmd --user=mysql --log-error-verbosity=3 --wsrep_recover $wr_options"
+
   local rp="$(grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile")"
   if [ -z "$rp" ]; then
     local skipped="$(grep WSREP "$wsrep_verbose_logfile" | grep 'skipping position recovery')"
