@@ -92,5 +92,5 @@ VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-EXPOSE 3306 4567 4568
+EXPOSE 3306 4567 4568 33060
 CMD ["mysqld"]
