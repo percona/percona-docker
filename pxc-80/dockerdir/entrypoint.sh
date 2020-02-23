@@ -8,7 +8,6 @@ if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
 fi
 CFG=/etc/mysql/node.cnf
-NODE_PORT=3306
 
 # skip setup if they want an option that stops mysqld
 wantHelp=
@@ -166,6 +165,7 @@ function join {
 file_env 'XTRABACKUP_PASSWORD' 'xtrabackup'
 file_env 'CLUSTERCHECK_PASSWORD' 'clustercheck'
 NODE_NAME=$(hostname -f)
+NODE_PORT=3306
 # Is running in Kubernetes/OpenShift, so find all other pods belonging to the cluster
 if [ -n "$PXC_SERVICE" ]; then
 	echo "Percona XtraDB Cluster: Finding peers"
@@ -396,9 +396,48 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	grep -v wsrep_sst_auth "$CFG"
 fi
 
-wsrep_recover_position
-if [[ -z $wsrep_start_position_opt ]]; then
-	exec "$@"
-else
-	exec "$@" "$wsrep_start_position_opt"
+wsrep_start_position_opt=""
+if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
+	DATADIR="$(_get_config 'datadir' "$@")"
+	grastate_loc="${DATADIR}/grastate.dat"
+
+	if [ -f "$grastate_loc" -a -d "$DATADIR/mysql" ]; then
+		uuid=$(grep 'uuid:' $grastate_loc | cut -d: -f2 | tr -d ' ')
+		seqno=$(grep 'seqno:' $grastate_loc | cut -d: -f2 | tr -d ' ')
+
+		# If sequence number is not equal to -1, wsrep-recover co-ordinates aren't used.
+		# So, directly pass whatever is obtained from grastate.dat
+		if [ -n "$seqno" ] && [ "$seqno" -ne -1 ]; then
+			echo "Skipping wsrep-recover for $uuid:$seqno pair"
+			echo "Assigning $uuid:$seqno to wsrep_start_position"
+
+			wsrep_start_position_opt="--wsrep_start_position=$uuid:$seqno"
+		fi
+	fi
+
+	if [ -z "$wsrep_start_position_opt" -a -d "$DATADIR/mysql" ]; then
+		wsrep_verbose_logfile=$(mktemp $DATADIR/wsrep_recovery_verbose.XXXXXX)
+		"$@" --wsrep_recover --log-error-verbosity=3 --log_error="$wsrep_verbose_logfile"
+
+		if grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile"; then
+			start_pos="$(
+				grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile" \
+					| sed 's/.*Recovered position://' \
+					| sed 's/^[ \t]*//'
+			)"
+			wsrep_start_position_opt="--wsrep_start_position=$start_pos"
+		else
+			# The server prints "..skipping position recovery.." if started without wsrep.
+			if grep 'skipping position recovery' "$wsrep_verbose_logfile"; then
+				echo "WSREP: Position recovery skipped"
+			else
+				echo >&2 "WSREP: Failed to recover position: "
+				cat "$wsrep_verbose_logfile"
+				exit 1
+			fi
+		fi
+		rm "$wsrep_verbose_logfile"
+	fi
 fi
+
+exec "$@" $wsrep_start_position_opt
