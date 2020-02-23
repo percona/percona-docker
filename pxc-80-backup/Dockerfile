@@ -19,7 +19,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& gpg --export --armor 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 > ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 \
 	&& gpg --export --armor 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
 	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
-	&& curl -L -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
+	&& curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
@@ -32,8 +32,8 @@ ENV PXC_VERSION 8.0.18-26.4.3.1.el7
 ENV KUBECTL_VERSION=v1.15.6
 ENV KUBECTL_SHA256SUM=522115e0f11d83c08435a05e76120c89ea320782ccaff8e301bd14588ec50145
 
-RUN curl -L -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
-	&& curl -L -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
+RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
 	&& rpmkeys --checksig /tmp/numactl-libs.rpm /tmp/libev.rpm \
 	&& rpm -i /tmp/numactl-libs.rpm /tmp/libev.rpm \
 	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm
@@ -54,11 +54,11 @@ RUN groupadd -g 1001 mysql \
 
 # we need licenses from docs
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
-        && repoquery -a --location iputils | xargs curl -L -o /tmp/iputils.rpm \
-        && curl -L -o /tmp/percona-xtrabackup.rpm http://repo.percona.com/tools/yum/release/7/RPMS/x86_64/percona-xtrabackup-80-${XTRABACKUP_VERSION}.x86_64.rpm \
-        && curl -L -o /tmp/percona-server-shared.rpm http://repo.percona.com/ps-80/yum/release/7/RPMS/x86_64/percona-server-shared-${PS_VERSION}.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-garbd-${PXC_VERSION}.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
+        && repoquery -a --location iputils | xargs curl -Lf -o /tmp/iputils.rpm \
+        && curl -Lf -o /tmp/percona-xtrabackup.rpm http://repo.percona.com/tools/yum/release/7/RPMS/x86_64/percona-xtrabackup-80-${XTRABACKUP_VERSION}.x86_64.rpm \
+        && curl -Lf -o /tmp/percona-server-shared.rpm http://repo.percona.com/ps-80/yum/release/7/RPMS/x86_64/percona-server-shared-${PS_VERSION}.x86_64.rpm \
+        && curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-garbd-${PXC_VERSION}.x86_64.rpm \
+        && curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
         && rpm -iv /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm --nodeps \
         && rm -rf /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm \
         && rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf \
