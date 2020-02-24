@@ -110,7 +110,6 @@ function backup_volume() {
         echo empty backup
         exit 1
     fi
-
     md5sum xtrabackup.stream | tee md5sum.txt
 }
 
@@ -118,7 +117,10 @@ function backup_s3() {
     S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
 
     echo "Backup to s3://$S3_BUCKET/$S3_BUCKET_PATH started"
+    { set +x; } 2> /dev/null
+    echo "+ mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
     mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
+    set -x
     xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" || :
     request_streaming
 

@@ -20,76 +20,6 @@ for arg; do
 	esac
 done
 
-log_info_msg() {
-    echo " INFO: $*"
-}
-
-log_failure_msg() {
-    echo " ERROR! $*"
-}
-
-wsrep_start_position_opt=""
-wsrep_recover_position() {
-  local mysqld_cmd="/usr/sbin/mysqld"
-  local uuid=""
-  local seqno=0
-  local datadir=/var/lib/mysql
-  local grastate_loc="${datadir}/grastate.dat"
-
-  if [[ ! -d $datadir/mysql ]]; then
-	log_info_msg "Datadir is not initialized, skipping recovery"
-	return 0
-  fi
-
-  if [ -f $grastate_loc ]; then
-    uuid=$(grep 'uuid:' $grastate_loc | cut -d: -f2 | tr -d ' ')
-    seqno=$(grep 'seqno:' $grastate_loc | cut -d: -f2 | tr -d ' ')
-
-  # If sequence number is not equal to -1, wsrep-recover co-ordinates aren't used.
-  # So, directly pass whatever is obtained from grastate.dat
-    if [ -n "$seqno" ] && [ "$seqno" -ne -1 ]; then
-      log_info_msg "Skipping wsrep-recover for $uuid:$seqno pair"
-      log_info_msg "Assigning $uuid:$seqno to wsrep_start_position"
-
-      wsrep_start_position_opt="--wsrep_start_position=$uuid:$seqno"
-
-      echo "${wsrep_start_position_opt}"
-	  return 0
-    fi
-  fi
-
-  local euid=$(id -u)
-  local wsrep_pidfile="$datadir/$(hostname)-recover.pid"
-  local wsrep_verbose_logfile=$(mktemp $datadir/wsrep_recovery_verbose.XXXXXX)
-  local wr_options="--log_error='$wsrep_verbose_logfile' --pid-file='$wsrep_pidfile'"
-
-  [ "$euid" = "0" ] && chown 'mysql' "$wsrep_verbose_logfile"
-  chmod 600 "$wsrep_verbose_logfile"
-
-  log_info_msg "WSREP: Running position recovery with $wr_options"
-
-  eval "$mysqld_cmd --user=mysql --log-error-verbosity=3 --wsrep_recover $wr_options" || sleep 100500
-  local rp="$(grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile")"
-  if [ -z "$rp" ]; then
-    local skipped="$(grep WSREP "$wsrep_verbose_logfile" | grep 'skipping position recovery')"
-    if [ -z "$skipped" ]; then
-      log_failure_msg "WSREP: Failed to recover position: "
-      cat "$wsrep_verbose_logfile"
-      exit 1
-    else
-      log_info_msg "WSREP: Position recovery skipped"
-    fi
-  else
-    local start_pos="$(echo "$rp" | sed 's/.*Recovered position://' | sed 's/^[ \t]*//')"
-    log_info_msg "WSREP: Recovered position: $start_pos"
-    wsrep_start_position_opt="--wsrep_start_position=$start_pos"
-  fi
-
-  rm "$wsrep_verbose_logfile"
-
-  echo "${wsrep_start_position_opt}"
-}
-
 # usage: file_env VAR [DEFAULT]
 #    ie: file_env 'XYZ_DB_PASSWORD' 'example'
 # (will allow for "$XYZ_DB_PASSWORD_FILE" to fill in the value of
@@ -199,9 +129,9 @@ elif [ -n "$DISCOVERY_SERVICE" ]; then
 	CLUSTER_JOIN=$(join , $i1 $i2 )
 
 	sed -r "s|^[#]?wsrep_node_address=.*$|wsrep_node_address=${NODE_IP}|" "${CFG}" 1<> "${CFG}"
-	sed -r "s|^[#]?wsrep_node_incoming_address=.*$|wsrep_node_incoming_address=${NODE_NAME}:${NODE_PORT}|" "${CFG}" 1<> "${CFG}"
 	sed -r "s|^[#]?wsrep_cluster_name=.*$|wsrep_cluster_name=${CLUSTER_NAME}|" "${CFG}" 1<> "${CFG}"
 	sed -r "s|^[#]?wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${CLUSTER_JOIN}|" "${CFG}" 1<> "${CFG}"
+	sed -r "s|^[#]?wsrep_node_incoming_address=.*$|wsrep_node_incoming_address=${NODE_NAME}:${NODE_PORT}|" "${CFG}" 1<> "${CFG}"
 
 	/usr/bin/clustercheckcron clustercheck "${CLUSTERCHECK_PASSWORD}" 1 /var/lib/mysql/clustercheck.log 1 &
 
@@ -250,9 +180,11 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" --password="" )
+		wsrep_local_state_select="SELECT variable_value FROM performance_schema.global_status WHERE variable_name='wsrep_local_state_comment'"
 
 		for i in {120..0}; do
-			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
+			wsrep_local_state=$(echo "$wsrep_local_state_select" | "${mysql[@]}" -s 2> /dev/null) || true
+			if [ "$wsrep_local_state" = 'Synced' ]; then
 				break
 			fi
 			echo 'MySQL init process in progress...'
@@ -402,15 +334,15 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	grastate_loc="${DATADIR}/grastate.dat"
 
 	if [ -f "$grastate_loc" -a -d "$DATADIR/mysql" ]; then
-		uuid=$(grep 'uuid:' $grastate_loc | cut -d: -f2 | tr -d ' ')
-		seqno=$(grep 'seqno:' $grastate_loc | cut -d: -f2 | tr -d ' ')
+		uuid=$(grep 'uuid:' "$grastate_loc" | cut -d: -f2 | tr -d ' ')
+		seqno=$(grep 'seqno:' "$grastate_loc" | cut -d: -f2 | tr -d ' ')
 
 		# If sequence number is not equal to -1, wsrep-recover co-ordinates aren't used.
+		# lp:1112724
 		# So, directly pass whatever is obtained from grastate.dat
 		if [ -n "$seqno" ] && [ "$seqno" -ne -1 ]; then
 			echo "Skipping wsrep-recover for $uuid:$seqno pair"
 			echo "Assigning $uuid:$seqno to wsrep_start_position"
-
 			wsrep_start_position_opt="--wsrep_start_position=$uuid:$seqno"
 		fi
 	fi
@@ -419,10 +351,10 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		wsrep_verbose_logfile=$(mktemp $DATADIR/wsrep_recovery_verbose.XXXXXX)
 		"$@" --wsrep_recover --log-error-verbosity=3 --log_error="$wsrep_verbose_logfile"
 
-		if grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile"; then
+		if grep ' Recovered position:' "$wsrep_verbose_logfile"; then
 			start_pos="$(
-				grep '\[WSREP\] Recovered position:' "$wsrep_verbose_logfile" \
-					| sed 's/.*Recovered position://' \
+				grep ' Recovered position:' "$wsrep_verbose_logfile" \
+					| sed 's/.*\ Recovered\ position://' \
 					| sed 's/^[ \t]*//'
 			)"
 			wsrep_start_position_opt="--wsrep_start_position=$start_pos"
