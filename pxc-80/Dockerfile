@@ -93,6 +93,8 @@ RUN [ -n $DEBUG ] \
 		&& yum install -y \
 			gdb \
 			net-tools \
+			telnet \
+			nc \
 		&& yum clean all
 
 USER 1001
