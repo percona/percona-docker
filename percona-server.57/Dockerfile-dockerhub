@@ -21,11 +21,12 @@ RUN set -ex; \
     percona-release enable original release
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 5.7.28-31.1.el7
+ENV PERCONA_VERSION 5.7.29-32.1.el7
 
 RUN set -ex; \
     yum install -y \
         Percona-Server-server-57-${PERCONA_VERSION} \
+        Percona-Server-devel-57-${PERCONA_VERSION} \
         Percona-Server-tokudb-57-${PERCONA_VERSION} \
         Percona-Server-rocksdb-57-${PERCONA_VERSION} \
         jemalloc \

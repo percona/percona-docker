@@ -107,7 +107,10 @@ function backup_s3() {
     S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
 
     echo "Backup to s3://$S3_BUCKET/$S3_BUCKET_PATH started"
+    { set +x; } 2> /dev/null
+    echo "+ mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
     mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
+    set -x
     xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" || :
     request_streaming
 
@@ -127,7 +130,7 @@ function backup_s3() {
 
     mc -C /tmp/mc stat "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
     md5_size=$(mc -C /tmp/mc stat --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
-    if [[ $md5_size =~ "Object does not exist" ]] || (( $md5_size < 25000 )); then
+    if [[ $md5_size =~ "Object does not exist" ]] || (( $md5_size < 24000 )); then
         echo empty backup
         exit 1
     fi

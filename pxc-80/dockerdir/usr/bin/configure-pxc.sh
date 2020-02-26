@@ -76,6 +76,8 @@ fi
 
 if [ -f $CA -a -f $KEY -a -f $CERT ]; then
     sed "/^\[mysqld\]/a pxc-encrypt-cluster-traffic=ON\nssl-ca=$CA\nssl-key=$KEY\nssl-cert=$CERT" ${CFG} 1<> ${CFG}
+else
+    sed "/^\[mysqld\]/a pxc-encrypt-cluster-traffic=OFF" ${CFG} 1<> ${CFG}
 fi
 
 # don't need a restart, we're just writing the conf in case there's an
