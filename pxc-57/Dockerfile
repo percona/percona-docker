@@ -94,6 +94,15 @@ RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint
 	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d \
 	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d
 
+ARG DEBUG
+RUN [ -n $DEBUG ] \
+	&& sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
+	&& sed -i 's/exec "$@"/"$@" || sleep infinity/' /entrypoint.sh \
+	&& yum install -y \
+		gdb \
+		net-tools \
+	&& yum clean all
+
 USER 1001
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
