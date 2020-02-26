@@ -117,7 +117,7 @@ RUN [ -n "$DEBUG" ] \
                 gdb \
                 net-tools \
                 nc \
-        && curl -L -o /tmp/telnet.rpm http://vault.centos.org/7.7.1908/os/Source/SPackages/telnet-0.17-64.el7.src.rpm \
+        && curl -L -o /tmp/telnet.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/telnet-0.17-64.el7.x86_64.rpm \
         && rpmkeys --checksig /tmp/telnet.rpm \
         && rpm -i /tmp/telnet.rpm \
         && rm -rf /tmp/telnet.rpm \
