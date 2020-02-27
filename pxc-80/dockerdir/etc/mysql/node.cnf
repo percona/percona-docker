@@ -1,7 +1,11 @@
 [mysqld]
 
+early-plugin-load=keyring_file.so
+default_authentication_plugin=mysql_native_password
 datadir=/var/lib/mysql
 socket=/tmp/mysql.sock
+pid-file=/var/run/mysqld/mysqld.pid
+log_error_verbosity=3
 skip-host-cache
 
 #server_id=0
@@ -19,11 +23,13 @@ wsrep_slave_threads=2
 wsrep_cluster_address=gcomm://
 wsrep_provider=/usr/lib64/galera4/libgalera_smm.so
 
+wsrep_log_conflicts
 wsrep_cluster_name=noname
 #wsrep_node_address=noname
 #wsrep_node_incoming_address=nodeip
 
 wsrep_sst_method=xtrabackup-v2
+wsrep_debug=1
 
 [client]
 socket=/tmp/mysql.sock
