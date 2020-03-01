@@ -89,19 +89,12 @@ function backup_volume() {
     fi
     echo "socat(1) returned $?"
 
-    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream2
+    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream
     if [[ $? -ne 0 ]]; then
         echo "socat(2) failed"
         exit 1
     fi
     echo "socat(2) returned $?"
-
-    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream
-    if [[ $? -ne 0 ]]; then
-        echo "socat(3) failed"
-        exit 1
-    fi
-    echo "socat(3) returned $?"
 
     echo "Backup finished"
 
@@ -126,8 +119,6 @@ function backup_s3() {
 
     socat -u "$SOCAT_OPTS" stdio \
         | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.1"
-    socat -u "$SOCAT_OPTS" stdio \
-        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.2"
     socat -u "$SOCAT_OPTS" stdio \
         | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 
