@@ -82,6 +82,8 @@ RUN rmdir /etc/my.cnf.d \
 	&& echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
 
 COPY dockerdir /
+COPY dockerdir/keyring /var/lib/mysql-keyring/
+
 RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d

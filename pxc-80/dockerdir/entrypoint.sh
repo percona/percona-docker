@@ -372,4 +372,6 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	fi
 fi
 
+cp /auto.cnf /var/lib/mysql/
+
 exec "$@" $wsrep_start_position_opt
