@@ -19,7 +19,7 @@ if [[ "$originalArgOne" == mongo* ]] && [ "$(id -u)" = '0' ]; then
 	chown --dereference mongodb "/proc/$$/fd/1" "/proc/$$/fd/2" || :
 	# ignore errors thanks to https://github.com/docker-library/mongo/issues/149
 
-	exec gosu mongodb "$BASH_SOURCE" "$@"
+	exec gosu mongodb:1001 "$BASH_SOURCE" "$@"
 fi
 
 # you should use numactl to start your mongod instances, including the config servers, mongos instances, and any clients.
@@ -241,6 +241,20 @@ if [ "$originalArgOne" = 'mongod' ]; then
 			_mongod_hack_ensure_no_arg_val --replSet "${mongodHackedArgs[@]}"
 		fi
 
+		# "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
+		tlsMode='disabled'
+		if _mongod_hack_have_arg '--tlsCertificateKeyFile' "${mongodHackedArgs[@]}"; then
+			tlsMode='preferTLS'
+		elif _mongod_hack_have_arg '--sslPEMKeyFile' "${mongodHackedArgs[@]}"; then
+			tlsMode='preferSSL'
+		fi
+		# 4.2 switched all configuration/flag names from "SSL" to "TLS"
+		if [ "$tlsMode" = 'preferTLS' ] || mongod --help 2>&1 | grep -q -- ' --tlsMode '; then
+			_mongod_hack_ensure_arg_val --tlsMode "$tlsMode" "${mongodHackedArgs[@]}"
+		else
+			_mongod_hack_ensure_arg_val --sslMode "$tlsMode" "${mongodHackedArgs[@]}"
+		fi
+
 		if stat "/proc/$$/fd/1" > /dev/null && [ -w "/proc/$$/fd/1" ]; then
 			# https://github.com/mongodb/mongo/blob/38c0eb538d0fd390c6cb9ce9ae9894153f6e8ef5/src/mongo/db/initialize_server_global_state.cpp#L237-L251
 			# https://github.com/docker-library/mongo/issues/164#issuecomment-293965668
@@ -317,34 +331,31 @@ if [ "$originalArgOne" = 'mongod' ]; then
 		echo
 	fi
 
+	mongodHackedArgs=("$@")
 	MONGO_SSL_DIR=${MONGO_SSL_DIR:-/etc/mongodb-ssl}
 	CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 	if [ -f /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt ]; then
 		CA=/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
 	fi
-	if [ -f ${MONGO_SSL_DIR}/ca.crt ]; then
-		CA=${MONGO_SSL_DIR}/ca.crt
+	if [ -f "${MONGO_SSL_DIR}/ca.crt" ]; then
+		CA="${MONGO_SSL_DIR}/ca.crt"
 	fi
-	if [ -f ${MONGO_SSL_DIR}/tls.key -a -f ${MONGO_SSL_DIR}/tls.crt ]; then
-		cat ${MONGO_SSL_DIR}/tls.key ${MONGO_SSL_DIR}/tls.crt > /tmp/tls.pem
-		_mongod_hack_ensure_arg_val --sslPEMKeyFile /tmp/tls.pem "$@"
+	if [ -f "${MONGO_SSL_DIR}/tls.key" ] && [ -f "${MONGO_SSL_DIR}/tls.crt" ]; then
+		cat "${MONGO_SSL_DIR}/tls.key" "${MONGO_SSL_DIR}/tls.crt" >/tmp/tls.pem
+		_mongod_hack_ensure_arg_val --sslPEMKeyFile /tmp/tls.pem "${mongodHackedArgs[@]}"
 		if [ -f "${CA}" ]; then
 			_mongod_hack_ensure_arg_val --sslCAFile "${CA}" "${mongodHackedArgs[@]}"
 		fi
-		set -- "${mongodHackedArgs[@]}"
 	fi
 	MONGO_SSL_INTERNAL_DIR=${MONGO_SSL_INTERNAL_DIR:-/etc/mongodb-ssl-internal}
-	if [ -f ${MONGO_SSL_INTERNAL_DIR}/tls.key -a -f ${MONGO_SSL_INTERNAL_DIR}/tls.crt ]; then
-		cat ${MONGO_SSL_INTERNAL_DIR}/tls.key ${MONGO_SSL_INTERNAL_DIR}/tls.crt > /tmp/tls-internal.pem
-		_mongod_hack_ensure_arg_val --sslClusterFile /tmp/tls-internal.pem "$@"
+	if [ -f "${MONGO_SSL_INTERNAL_DIR}/tls.key" ] && [ -f "${MONGO_SSL_INTERNAL_DIR}/tls.crt" ]; then
+		cat "${MONGO_SSL_INTERNAL_DIR}/tls.key" "${MONGO_SSL_INTERNAL_DIR}/tls.crt" >/tmp/tls-internal.pem
+		_mongod_hack_ensure_arg_val --sslClusterFile /tmp/tls-internal.pem "${mongodHackedArgs[@]}"
 		if [ -f "${MONGO_SSL_INTERNAL_DIR}/ca.crt" ]; then
 			_mongod_hack_ensure_arg_val --sslClusterCAFile "${MONGO_SSL_INTERNAL_DIR}/ca.crt" "${mongodHackedArgs[@]}"
 		fi
-		set -- "${mongodHackedArgs[@]}"
 	fi
 
-	sslMode="$(_mongod_hack_have_arg '--sslPEMKeyFile' "$@" && echo 'preferSSL' || echo 'disabled')" # "BadValue: need sslPEMKeyFile when SSL is enabled" vs "BadValue: need to enable SSL via the sslMode flag when using SSL configuration parameters"
-	_mongod_hack_ensure_arg_val --sslMode "$sslMode" "$@"
 	set -- "${mongodHackedArgs[@]}"
 
 	# MongoDB 3.6+ defaults to localhost-only binding

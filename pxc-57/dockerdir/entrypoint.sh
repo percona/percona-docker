@@ -178,9 +178,11 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" --password="" )
+		wsrep_local_state_select="SELECT variable_value FROM performance_schema.global_status WHERE variable_name='wsrep_local_state_comment'"
 
 		for i in {120..0}; do
-			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
+			wsrep_local_state=$(echo "$wsrep_local_state_select" | "${mysql[@]}" -s 2> /dev/null) || true
+			if [ "$wsrep_local_state" = 'Synced' ]; then
 				break
 			fi
 			echo 'MySQL init process in progress...'
@@ -322,4 +324,52 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	grep -v wsrep_sst_auth "$CFG"
 fi
 
-exec "$@"
+wsrep_start_position_opt=""
+if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
+	user='@MYSQLD_USER@'
+	DATADIR="$(_get_config 'datadir' "$@")"
+	grastate_loc="${DATADIR}/grastate.dat"
+
+	if [ -f "$grastate_loc" -a -d "$DATADIR/mysql" ]; then
+		uuid=$(grep 'uuid:' "$grastate_loc" | cut -d: -f2 | tr -d ' ')
+		seqno=$(grep 'seqno:' "$grastate_loc" | cut -d: -f2 | tr -d ' ')
+
+		# If sequence number is not equal to -1, wsrep-recover co-ordinates aren't used.
+		# lp:1112724
+		# So, directly pass whatever is obtained from grastate.dat
+		if [ -n "$seqno" ] && [ "$seqno" -ne -1 ]; then
+			echo "Skipping wsrep-recover for $uuid:$seqno pair"
+			echo "Assigning $uuid:$seqno to wsrep_start_position"
+			wsrep_start_position_opt="--wsrep_start_position=$uuid:$seqno"
+		fi
+	fi
+
+	if [ -z "$wsrep_start_position_opt" -a -d "$DATADIR/mysql" ]; then
+		euid=$(id -u)
+		wr_logfile=$(mktemp "$DATADIR"/wsrep_recovery.XXXXXX)
+		[ "$euid" = "0" ] && chown $user "$wr_logfile"
+		chmod 600 "$wr_logfile"
+
+		"$@" --wsrep_recover --log_error="$wr_logfile"
+
+		if grep 'WSREP: Recovered position:' "$wr_logfile"; then
+			start_pos="$(
+				grep 'WSREP: Recovered position:' "$wr_logfile" \
+					| sed 's/.*WSREP\:\ Recovered\ position://' \
+					| sed 's/^[ \t]*//'
+			)"
+			wsrep_start_position_opt="--wsrep_start_position=$start_pos"
+		else
+			if grep WSREP "$wr_logfile" | grep 'skipping position recovery'; then
+				echo "WSREP: Position recovery skipped"
+			else
+				echo >&2 "WSREP: Failed to recover position: "
+				cat "$wr_logfile"
+				exit 1
+			fi
+		fi
+		rm "$wr_logfile"
+	fi
+fi
+
+exec "$@" $wsrep_start_position_opt

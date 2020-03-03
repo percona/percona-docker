@@ -1,67 +1,111 @@
 FROM centos:7
 
-LABEL name="Percona Server for MongoDB" \
-	release="4.0" \
-	vendor="Percona" \
-	summary="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition" \
-	description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
-	maintainer="Percona Development <info@percona.com>"
+LABEL org.label-schema.schema-version="1.0"
+LABEL org.label-schema.name="Percona Server for MongoDB"
+LABEL org.label-schema.vendor="Percona"
+LABEL org.label-schema.description="Percona Server for MongoDB is our free and \
+open-source drop-in replacement for MongoDB Community Edition. \
+It offers all the features and benefits of MongoDB Community Edition, \
+plus additional enterprise-grade functionality."
+LABEL org.label-schema.license="SSPLv1"
+
+LABEL org.opencontainers.image.title="Percona Server for MongoDB"
+LABEL org.opencontainers.image.vendor="Percona"
+LABEL org.opencontainers.image.description="Percona Server for MongoDB is our free and \
+open-source drop-in replacement for MongoDB Community Edition. \
+It offers all the features and benefits of MongoDB Community Edition, \
+plus additional enterprise-grade functionality."
+LABEL org.opencontainers.image.license="SSPLv1"
+LABEL org.opencontainers.image.authors="info@percona.com"
+
+ENV PSMDB_VERSION 4.0.16-9
+LABEL org.label-schema.schema-version=${PSMDB_VERSION}
+LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
 # check repository package signature in secure way
-RUN export GNUPGHOME="$(mktemp -d)" \
-	&& gpg --keyserver pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 \
-	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
-	&& gpg --export --armor 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 > ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 \
-	&& gpg --export --armor 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
-	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
-	&& curl -L -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
-	&& rpmkeys --checksig /tmp/percona-release.rpm \
-	&& rpm -i /tmp/percona-release.rpm \
-	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
-	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-	&& percona-release enable psmdb-40 release
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A; \
+    gpg --batch --keyserver pool.sks-keyservers.net --recv-keys 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5; \
+    gpg --batch --keyserver pool.sks-keyservers.net --recv-keys 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5; \
+    \
+    gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
+    gpg --batch --export --armor 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 > ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7; \
+    gpg --batch --export --armor 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7; \
+    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7; \
+    \
+    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+    rpmkeys --checksig /tmp/percona-release.rpm; \
+    rpm -i /tmp/percona-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    percona-release enable psmdb-40 release
 
 # install exact version for repeatability
-ENV PERCONA_VERSION 4.0.12-6.el7
-ENV K8S_TOOLS_VERSION 0.4.2
+ENV OS_VER el7
+ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
+ENV K8S_TOOLS_VERSION "0.5.0"
 
-RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.5-1.el7.x86_64.rpm \
-	&& curl -L -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
-	&& rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm \
-	&& rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm \
-	&& rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
+RUN set -ex; \
+    curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm; \
+    curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm; \
+    rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
+    \
+    rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
+    rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
 
-RUN yum update -y \
-	&& sed -i '/nodocs/d' /etc/yum.conf || : \
-	&& yum install -y \
-		percona-server-mongodb-server-${PERCONA_VERSION} \
-		percona-server-mongodb-mongos-${PERCONA_VERSION} \
-		percona-server-mongodb-shell-${PERCONA_VERSION} \
-		percona-server-mongodb-tools-${PERCONA_VERSION} \
-		shadow-utils \
-		curl \
-		&& yum clean all \
-		&& rm -rf /var/cache/yum /data/db  && mkdir -p /data/db \
-		&& chown -R 1001:0 /data/db
+RUN set -ex; \
+    sed -i '/nodocs/d' /etc/yum.conf || :; \
+    yum install -y \
+        percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
+        percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
+        shadow-utils \
+        curl \
+        procps-ng \
+        yum-utils; \
+    \
+    repoquery -a --location \
+        policycoreutils \
+            | xargs curl -Lf -o /tmp/policycoreutils.rpm; \
+    repoquery -a --location \
+        percona-server-mongodb-server-${FULL_PERCONA_VERSION} \
+            | xargs curl -Lf -o /tmp/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.rpm; \
+    rpm -iv /tmp/policycoreutils.rpm /tmp/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.rpm --nodeps; \
+    \
+    rm -rf /tmp/policycoreutils.rpm /tmp/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.rpm; \
+    yum clean all; \
+    rm -rf /var/cache/yum /data/db && mkdir -p /data/db; \
+    chown -R 1001:0 /data/db
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mongodb
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN cp /usr/share/doc/percona-server-mongodb-server-$(echo ${PERCONA_VERSION} | cut -d - -f 1)/GNU-AGPL-3.0 /licenses/LICENSE.Percona-Server-for-MongoDB
+RUN cp /usr/share/doc/percona-server-mongodb-server-$(echo ${FULL_PERCONA_VERSION} | cut -d - -f 1)/LICENSE-Community.txt /licenses/LICENSE.Percona-Server-for-MongoDB
 
 ENV GOSU_VERSION=1.11
-ENV GOSU_MD5SUM=0e98180d09e27e8385f4273d1c5bcffa
-RUN curl -L -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64 \
-	&& chmod +x /usr/bin/gosu \
-    && echo "${GOSU_MD5SUM} /usr/bin/gosu" | md5sum -c - \
-    && curl -o /licenses/LICENSE.gosu \
-		https://raw.githubusercontent.com/tianon/gosu/${GOSU_VERSION}/LICENSE
+RUN set -eux; \
+    curl -Lf -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64; \
+    curl -Lf -o /usr/bin/gosu.asc https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64.asc; \
+    \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+    gpg --batch --verify /usr/bin/gosu.asc /usr/bin/gosu; \
+    rm -rf "$GNUPGHOME" /usr/bin/gosu.asc; \
+    \
+    chmod +x /usr/bin/gosu; \
+    curl -f -o /licenses/LICENSE.gosu https://raw.githubusercontent.com/tianon/gosu/${GOSU_VERSION}/LICENSE
 
-RUN curl -fSL https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/k8s-mongodb-initiator -o /usr/local/bin/k8s-mongodb-initiator \
-    && curl -fSL  https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/mongodb-healthcheck -o /usr/local/bin/mongodb-healthcheck \
-    && chmod 0755 /usr/local/bin/k8s-mongodb-initiator /usr/local/bin/mongodb-healthcheck
+RUN set -ex; \
+    curl -fSL https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/k8s-mongodb-initiator -o /usr/local/bin/k8s-mongodb-initiator; \
+    curl -fSL  https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/mongodb-healthcheck -o /usr/local/bin/mongodb-healthcheck; \
+    curl -fSL  https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/SHA256SUMS -o /tmp/SHA256SUMS; \
+    echo "$(grep 'k8s-mongodb-initiator' /tmp/SHA256SUMS | awk '{print $1}')" /usr/local/bin/k8s-mongodb-initiator | sha256sum -c -; \
+    echo "$(grep 'mongodb-healthcheck' /tmp/SHA256SUMS   | awk '{print $1}')" /usr/local/bin/mongodb-healthcheck   | sha256sum -c -; \
+    rm -f /tmp/SHA256SUMS; \
+    \
+    chmod 0755 /usr/local/bin/k8s-mongodb-initiator /usr/local/bin/mongodb-healthcheck
 
 VOLUME ["/data/db"]
 

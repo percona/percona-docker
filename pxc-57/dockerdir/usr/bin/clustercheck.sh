@@ -29,6 +29,10 @@ if [ -f /etc/sysconfig/clustercheck ]; then
         . /etc/sysconfig/clustercheck
 fi
 
+if [ -f /var/lib/mysql/sst_in_progress ]; then
+    exit 0
+fi
+
 MYSQL_USERNAME="${MYSQL_USERNAME:-clustercheck}"
 MYSQL_PASSWORD="${CLUSTERCHECK_PASSWORD:-clustercheckpassword!}"
 AVAILABLE_WHEN_DONOR=${AVAILABLE_WHEN_DONOR:-1}
