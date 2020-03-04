@@ -70,7 +70,7 @@ function request_streaming() {
     if grep 'WARN: Rejecting JOIN message from ... (garb): new State Transfer required.' /tmp/garbd.log; then
         exit 1
     fi
-    if grep -E "^ERROR: .* STATE EXCHANGE: failed for: .*: -107 \(Transport endpoint is not connected\)$" /tmp/garbd.log; then
+    if grep -E "ERROR: .* STATE EXCHANGE: failed for: .*: -107 \(Transport endpoint is not connected\)$" /tmp/garbd.log; then
         exit 1
     fi
 }
