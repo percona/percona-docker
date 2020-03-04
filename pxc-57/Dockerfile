@@ -95,15 +95,16 @@ RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint
 	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d
 
 ARG DEBUG
-RUN [ -n $DEBUG ] \
-	&& sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
-	&& sed -i 's/exec "$@"/"$@" || sleep infinity/' /entrypoint.sh \
+RUN if [[ -n $DEBUG ]] ; then \
+	sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
+	&& sed -i 's/exec "$@" $wsrep_start_position_opt/"$@" $wsrep_start_position_opt || sleep infinity/' /entrypoint.sh \
 	&& yum install -y \
 		gdb \
 		net-tools \
 		telnet \
 		nc \
-	&& yum clean all
+	&& yum clean all; \
+fi
 
 USER 1001
 
