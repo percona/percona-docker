@@ -326,7 +326,6 @@ fi
 
 wsrep_start_position_opt=""
 if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
-	user='@MYSQLD_USER@'
 	DATADIR="$(_get_config 'datadir' "$@")"
 	grastate_loc="${DATADIR}/grastate.dat"
 
@@ -345,30 +344,27 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	fi
 
 	if [ -z "$wsrep_start_position_opt" -a -d "$DATADIR/mysql" ]; then
-		euid=$(id -u)
-		wr_logfile=$(mktemp "$DATADIR"/wsrep_recovery.XXXXXX)
-		[ "$euid" = "0" ] && chown $user "$wr_logfile"
-		chmod 600 "$wr_logfile"
+		wsrep_verbose_logfile=$(mktemp $DATADIR/wsrep_recovery_verbose.XXXXXX)
+		"$@" --wsrep_recover --log-error-verbosity=3 --log_error="$wsrep_verbose_logfile"
 
-		"$@" --wsrep_recover --log_error="$wr_logfile"
-
-		if grep 'WSREP: Recovered position:' "$wr_logfile"; then
+		if grep ' Recovered position:' "$wsrep_verbose_logfile"; then
 			start_pos="$(
-				grep 'WSREP: Recovered position:' "$wr_logfile" \
-					| sed 's/.*WSREP\:\ Recovered\ position://' \
+				grep ' Recovered position:' "$wsrep_verbose_logfile" \
+					| sed 's/.*\ Recovered\ position://' \
 					| sed 's/^[ \t]*//'
 			)"
 			wsrep_start_position_opt="--wsrep_start_position=$start_pos"
 		else
-			if grep WSREP "$wr_logfile" | grep 'skipping position recovery'; then
+			# The server prints "..skipping position recovery.." if started without wsrep.
+			if grep 'skipping position recovery' "$wsrep_verbose_logfile"; then
 				echo "WSREP: Position recovery skipped"
 			else
 				echo >&2 "WSREP: Failed to recover position: "
-				cat "$wr_logfile"
+				cat "$wsrep_verbose_logfile"
 				exit 1
 			fi
 		fi
-		rm "$wr_logfile"
+		rm "$wsrep_verbose_logfile"
 	fi
 fi
 

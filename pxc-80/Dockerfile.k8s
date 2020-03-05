@@ -101,6 +101,21 @@ RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint
 	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d
 
+ARG DEBUG
+RUN if [[ -n $DEBUG ]] ; then \
+        sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
+        && sed -i 's/exec "$@" $wsrep_start_position_opt/"$@" $wsrep_start_position_opt || sleep infinity/' /entrypoint.sh \
+        && microdnf install -y \
+                gdb \
+                net-tools \
+                nc \
+        && curl -L -o /tmp/telnet.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/telnet-0.17-64.el7.x86_64.rpm \
+        && rpmkeys --checksig /tmp/telnet.rpm \
+        && rpm -i /tmp/telnet.rpm \
+        && rm -rf /tmp/telnet.rpm \
+        && microdnf clean all; \
+fi
+
 USER 1001
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]

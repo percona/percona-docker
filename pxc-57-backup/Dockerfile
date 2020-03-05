@@ -60,7 +60,7 @@ RUN sed -i '/nodocs/d' /etc/yum.conf || : \
                 Percona-XtraDB-Cluster-client-57-${PXC_VERSION} \
                     | xargs curl -L -o /tmp/Percona-XtraDB-Cluster-client-57.rpm \
         && repoquery -a --location \
-                 percona-xtrabackup-24 \
+                 percona-xtrabackup-24-${XTRABACKUP_VERSION} \
                     | xargs curl -L -o /tmp/percona-xtrabackup-24.rpm \
         && rpm -iv /tmp/iputils.rpm /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm --nodeps \
         && rm -rf /tmp/iputils.rpm /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm \

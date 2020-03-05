@@ -130,7 +130,7 @@ function backup_s3() {
 
     mc -C /tmp/mc stat "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
     md5_size=$(mc -C /tmp/mc stat --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
-    if [[ $md5_size =~ "Object does not exist" ]] || (( $md5_size < 25000 )); then
+    if [[ $md5_size =~ "Object does not exist" ]] || (( $md5_size < 24000 )); then
         echo empty backup
         exit 1
     fi
