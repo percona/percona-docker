@@ -20,6 +20,21 @@ for arg; do
 	esac
 done
 
+if [ -f "/var/lib/mysql-keyrings/$(hostname)" ]; then
+	# keyring_file_data=/var/lib/mysql-keyrings/keyring
+	# cp "/var/lib/mysql-keyrings/$(hostname)" "/keyring"
+	content=$(cat "$(hostname)")
+	id=${content:38:36}
+	cat > "$DATADIR/auto.cnf" << EOF
+[auto]
+server_uuid=$id
+
+EOF
+else
+	echo "keyring file not found"
+	exit 1
+fi
+
 # usage: file_env VAR [DEFAULT]
 #    ie: file_env 'XYZ_DB_PASSWORD' 'example'
 # (will allow for "$XYZ_DB_PASSWORD_FILE" to fill in the value of
@@ -370,19 +385,6 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		fi
 		rm "$wsrep_verbose_logfile"
 	fi
-fi
-
-if [ -f "/var/lib/mysql-keyrings/$(hostname)" ]; then
-	cp "/var/lib/mysql-keyrings/$(hostname)" "/var/lib/mysql-keyring/keyring"
-	#TODO: parse the keyring
-	cat > "$DATADIR/auto.cnf" << EOF
-[auto]
-server_uuid=8a94f357-aab4-11df-86ab-c80aa9429562
-
-EOF
-else
-	echo "keyring file not found"
-	exit 1
 fi
 
 exec "$@" $wsrep_start_position_opt
