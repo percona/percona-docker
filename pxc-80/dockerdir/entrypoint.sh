@@ -372,6 +372,17 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	fi
 fi
 
-cp /auto.cnf /var/lib/mysql/
+if [ -f "/var/lib/mysql-keyrings/$(hostname)" ]; then
+	cp "/var/lib/mysql-keyrings/$(hostname)" "/var/lib/mysql-keyring/keyring"
+	#TODO: parse the keyring
+	cat > "$DATADIR/auto.cnf" << EOF
+[auto]
+server_uuid=8a94f357-aab4-11df-86ab-c80aa9429562
+
+EOF
+else
+	echo "keyring file not found"
+	exit 1
+fi
 
 exec "$@" $wsrep_start_position_opt
