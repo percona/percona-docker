@@ -70,6 +70,9 @@ function request_streaming() {
     if grep 'WARN: Rejecting JOIN message from ... (garb): new State Transfer required.' /tmp/garbd.log; then
         exit 1
     fi
+    if grep -E "ERROR: .* STATE EXCHANGE: failed for: .*: -107 \(Transport endpoint is not connected\)$" /tmp/garbd.log; then
+        exit 1
+    fi
 }
 
 function backup_volume() {
@@ -82,26 +85,19 @@ function backup_volume() {
 
     echo "Socat to started"
 
-    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream1
+    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream.sst_info
     if [[ $? -ne 0 ]]; then
         echo "socat(1) failed"
         exit 1
     fi
     echo "socat(1) returned $?"
 
-    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream2
+    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream
     if [[ $? -ne 0 ]]; then
         echo "socat(2) failed"
         exit 1
     fi
     echo "socat(2) returned $?"
-
-    socat -u "$SOCAT_OPTS" stdio > xtrabackup.stream
-    if [[ $? -ne 0 ]]; then
-        echo "socat(3) failed"
-        exit 1
-    fi
-    echo "socat(3) returned $?"
 
     echo "Backup finished"
 
@@ -121,15 +117,17 @@ function backup_s3() {
     echo "+ mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
     mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
     set -x
+    xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.sst_info" || :
     xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" || :
     request_streaming
 
     socat -u "$SOCAT_OPTS" stdio \
-        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.1"
+        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.sst_info" 2>&1 \
+        | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
+
     socat -u "$SOCAT_OPTS" stdio \
-        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.2"
-    socat -u "$SOCAT_OPTS" stdio \
-        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
+        | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
     echo "Backup finished"
 

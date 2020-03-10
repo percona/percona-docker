@@ -34,5 +34,4 @@ ping -c1 $RESTORE_SRC_SERVICE || :
 rm -rf /datadir/*
 socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /datadir --parallel=$(grep -c processor /proc/cpuinfo)
 socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /datadir --parallel=$(grep -c processor /proc/cpuinfo)
-socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /datadir --parallel=$(grep -c processor /proc/cpuinfo)
 xtrabackup --prepare --target-dir=/datadir ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY}

@@ -348,9 +348,9 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	DATADIR="$(_get_config 'datadir' "$@")"
 	grastate_loc="${DATADIR}/grastate.dat"
 
-	if [ -f "$grastate_loc" -a -d "$DATADIR/mysql" ]; then
-		uuid=$(grep 'uuid:' "$grastate_loc" | cut -d: -f2 | tr -d ' ')
-		seqno=$(grep 'seqno:' "$grastate_loc" | cut -d: -f2 | tr -d ' ')
+	if [ -s "$grastate_loc" -a -d "$DATADIR/mysql" ]; then
+		uuid=$(grep 'uuid:' "$grastate_loc" | cut -d: -f2 | tr -d ' ' || :)
+		seqno=$(grep 'seqno:' "$grastate_loc" | cut -d: -f2 | tr -d ' ' || :)
 
 		# If sequence number is not equal to -1, wsrep-recover co-ordinates aren't used.
 		# lp:1112724
