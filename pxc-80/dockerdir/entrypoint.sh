@@ -20,21 +20,6 @@ for arg; do
 	esac
 done
 
-if [ -f "/var/lib/mysql-keyrings/$(hostname)" ]; then
-	# keyring_file_data=/var/lib/mysql-keyrings/keyring
-	# cp "/var/lib/mysql-keyrings/$(hostname)" "/keyring"
-	content=$(cat "$(hostname)")
-	id=${content:38:36}
-	cat > "$DATADIR/auto.cnf" << EOF
-[auto]
-server_uuid=$id
-
-EOF
-else
-	echo "keyring file not found"
-	exit 1
-fi
-
 # usage: file_env VAR [DEFAULT]
 #    ie: file_env 'XYZ_DB_PASSWORD' 'example'
 # (will allow for "$XYZ_DB_PASSWORD_FILE" to fill in the value of
@@ -155,7 +140,7 @@ else
 	NODE_IP=$(hostname -I | awk ' { print $1 } ')
 	sed -r "s|^[#]?wsrep_node_address=.*$|wsrep_node_address=${NODE_IP}|" "${CFG}" 1<> "${CFG}"
 	sed -r "s|^[#]?wsrep_node_incoming_address=.*$|wsrep_node_incoming_address=${NODE_NAME}:${NODE_PORT}|" "${CFG}" 1<> "${CFG}"
-	
+
 	if [[ -n "${CLUSTER_JOIN}" ]]; then
 		sed -r "s|^[#]?wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${CLUSTER_JOIN}|" "${CFG}" 1<> "${CFG}"
 	fi
@@ -306,6 +291,23 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		echo 'Initialization complete, now exiting!'
 		exit 0
 	fi
+fi
+
+keyring="/var/lib/mysql-keyrings/$(hostname)"
+if [ -f "$keyring" ]; then
+	sed -i "/\[mysqld\]/a keyring_file_data=$keyring" $CFG
+	sed -i "/\[mysqld\]/a default_table_encryption=1" $CFG
+	content="$(cat "$keyring")"
+	id=${content:38:36}
+	DATADIR="$(grep "datadir=" $CFG | sed "s/datadir=//")"
+	if [ ! -d "$DATADIR" ]; then
+		mkdir -p "$DATADIR"
+	fi
+	printf "[auto]\n" > "$DATADIR/auto.cnf"
+	echo "server_uuid=$id" >> "$DATADIR/auto.cnf"
+else
+	echo "keyring file not found"
+	exit 1
 fi
 
 if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
