@@ -84,7 +84,7 @@ RUN curl -o /usr/bin/kubectl \
 
 RUN install -d -o 1001 -g 0 -m 0775 /backup
 COPY mc /usr/bin/
-COPY recovery-*.sh backup.sh get-pxc-state peer-list /usr/bin/
+COPY recovery-*.sh backup.sh get-pxc-state peer-list my_print_defaults /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001

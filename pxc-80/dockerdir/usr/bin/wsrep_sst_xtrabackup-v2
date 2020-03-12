@@ -1,4 +1,5 @@
 #!/bin/bash -ue
+set -o xtrace
 
 # Copyright (C) 2013 Percona Inc
 #
@@ -1125,45 +1126,44 @@ wait_for_listen() {
          # Note: may not need to get the list of sockets, is it ok to
          # just look at the list of local addresses in tcp?
          local sockets
-         sockets=$(ls -l /proc/$pid/fd | grep socket | cut -d'[' -f2 | cut -d ']' -f1 | tr '
-' '|')
+         sockets=$(ls -l /proc/$pid/fd | grep socket | cut -d'[' -f2 | cut -d ']' -f1 | tr '\n' '|')
 
          # remove the trailing '|'
          sockets=${sockets%|}
          wsrep_log_debug "$LINENO: sockets: $sockets"
 
-         #  if [[ -n $sockets ]]; then
-         # For the network addresses, we expect to be listening
-         # on all interfaces, thus the address should be
-         # 00..000:PORT (all zeros for the IP address).
+         if [[ -n $sockets ]]; then
+            # For the network addresses, we expect to be listening
+            # on all interfaces, thus the address should be
+            # 00..000:PORT (all zeros for the IP address).
 
-         # Dumping the data in the lines
-         #if [[ -n "$WSREP_LOG_DEBUG" ]]; then
-         # lines=$(grep -E "\s(${sockets})\s" /proc/$pid/net/tcp)
-         # if [[ -n $lines ]]; then
-         # while read -r line; do
-         # if [[ -z $line ]]; then
-         # continue
-         # fi
-         # wsrep_log_debug "$LINENO: $line"
-         # done <<< "$lines
+            # Dumping the data in the lines
+            #if [[ -n "$WSREP_LOG_DEBUG" ]]; then
+            # lines=$(grep -E "\s(${sockets})\s" /proc/$pid/net/tcp)
+            # if [[ -n $lines ]]; then
+            # while read -r line; do
+            # if [[ -z $line ]]; then
+            # continue
+            # fi
+            # wsrep_log_debug "$LINENO: $line"
+            #        done <<< "$lines\n"
+            # fi
+            #fi
 
-         # fi
-         #fi
+            # Checking IPv4
+            if grep -E "\s(${sockets})\s" /proc/$pid/net/tcp |
+               awk "{print \$${ip_index}}" |
+               grep -q "^00*:${port_in_hex}$"; then
+               wsrep_log_debug "$LINENO: found a match for pid: $pid"
+               break 2
+            fi
 
-         # Checking IPv4
-         if grep -E "\s(${sockets})\s" /proc/$pid/net/tcp |
-            awk "{print \$${ip_index}}" |
-            grep -q "^00*:${port_in_hex}$"; then
-            wsrep_log_debug "$LINENO: found a match for pid: $pid"
-            break 2
-         fi
-
-         # Also check IPv6
-         if grep -E "\s(${sockets})\s" /proc/$pid/net/tcp6 |
-            awk "{print \$${ip_index}}" |
-            grep -q "^00*:${port_in_hex}$"; then
-            break 2
+            # Also check IPv6
+            if grep -E "\s(${sockets})\s" /proc/$pid/net/tcp6 |
+               awk "{print \$${ip_index}}" |
+               grep -q "^00*:${port_in_hex}$"; then
+               break 2
+            fi
          fi
       done
 
@@ -2241,9 +2241,7 @@ elif [ "${WSREP_SST_OPT_ROLE}" = "joiner" ]; then
 
          # Decompress the qpress files
          wsrep_log_debug "Decompression with $nproc threads"
-         timeit "Joiner-Decompression" "find ${DATA} -type f -name '*.qp' -printf '%p
-%h
-' | $dcmd"
+         timeit "Joiner-Decompression" "find ${DATA} -type f -name '*.qp' -printf '%p\n%h\n' | $dcmd"
          extcode=$?
 
          if [[ $extcode -eq 0 ]]; then
