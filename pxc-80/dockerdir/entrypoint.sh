@@ -293,24 +293,6 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	fi
 fi
 
-keyring="/var/lib/mysql-keyrings/$(hostname)"
-if [ -f "$keyring" ]; then
-	sed -i "/\[mysqld\]/a keyring_file_data=$keyring" $CFG
-	sed -i "/\[mysqld\]/a default_table_encryption=1" $CFG
-	sed -i "/\[mysqld\]/a early-plugin-load=keyring_file.so" $CFG
-	content="$(cat "$keyring")"
-	id=${content:38:36}
-	DATADIR="$(grep "datadir=" $CFG | sed "s/datadir=//")"
-	if [ ! -d "$DATADIR" ]; then
-		mkdir -p "$DATADIR"
-	fi
-	printf "[auto]\n" > "$DATADIR/auto.cnf"
-	echo "server_uuid=$id" >> "$DATADIR/auto.cnf"
-else
-	echo "keyring file not found"
-	exit 1
-fi
-
 if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	"$@" --version | tee /tmp/version_info
 	DATADIR="$(_get_config 'datadir' "$@")"
