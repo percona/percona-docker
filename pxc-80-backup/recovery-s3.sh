@@ -34,6 +34,5 @@ if [[ -n $transition_key ]]; then
     encrypt_prepare_options="--transition-key=\$transition_key"
     xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare --binlog-info=ON $encrypt_prepare_options --rollback-prepared-trx --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=/datadir
 else
-    echo "failed to parse transition key"
-    exit 1
+    xtrabackup --prepare --target-dir=/datadir ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY}
 fi
