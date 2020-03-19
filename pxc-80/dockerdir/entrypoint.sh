@@ -92,6 +92,14 @@ function join {
 	echo "${joined%?}"
 }
 
+# if vault secret file exists we assume we need to turn on encryption
+vault_secret="/etc/mysql/vault-keyring-secret/keyring_vault_n1.conf"
+if [ -f "$vault_secret" ]; then
+	sed -i "/\[mysqld\]/a early-plugin-load=keyring_vault.so" $CFG
+	sed -i "/\[mysqld\]/a default_table_encryption=1" $CFG
+	sed -i "/\[mysqld\]/a keyring_vault_config=$vault_secret" $CFG
+fi
+
 file_env 'XTRABACKUP_PASSWORD' 'xtrabackup'
 file_env 'CLUSTERCHECK_PASSWORD' 'clustercheck'
 NODE_NAME=$(hostname -f)
@@ -140,7 +148,7 @@ else
 	NODE_IP=$(hostname -I | awk ' { print $1 } ')
 	sed -r "s|^[#]?wsrep_node_address=.*$|wsrep_node_address=${NODE_IP}|" "${CFG}" 1<> "${CFG}"
 	sed -r "s|^[#]?wsrep_node_incoming_address=.*$|wsrep_node_incoming_address=${NODE_NAME}:${NODE_PORT}|" "${CFG}" 1<> "${CFG}"
-	
+
 	if [[ -n "${CLUSTER_JOIN}" ]]; then
 		sed -r "s|^[#]?wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${CLUSTER_JOIN}|" "${CFG}" 1<> "${CFG}"
 	fi
