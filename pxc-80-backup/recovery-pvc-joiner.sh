@@ -32,18 +32,7 @@ function check_ssl() {
 
 parse_sst_info() {
    local source_path=$1
-   local group=$2
-   local var=$3
-   local reval=""
-
-   reval=$(my_print_defaults -c "$source_path" $group | awk -F= '{if ($1 ~ /_/) { gsub(/_/,"-",$1); print $1"="$2 } else { print $0 }}' | grep -- "--$var=" | cut -d= -f2- | tail -1)
-
-   # use default if we haven't found a value
-   if [[ -z $reval ]]; then
-      [[ -n $4 ]] && reval=$4
-   fi
-
-   echo $reval
+   awk -F "=" '/transition-key/ {print $2}' "$source_path"
 }
 
 check_ssl
@@ -53,7 +42,7 @@ rm -rf /datadir/*
 socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /datadir --parallel=$(grep -c processor /proc/cpuinfo)
 socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /datadir --parallel=$(grep -c processor /proc/cpuinfo)
 
-transition_key=$(parse_sst_info "/datadir/sst_info" sst transition-key "")
+transition_key=$(parse_sst_info "/datadir/sst_info")
 if [[ -n $transition_key ]]; then
     encrypt_prepare_options="--transition-key=\$transition_key"
     xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare --binlog-info=ON $encrypt_prepare_options --rollback-prepared-trx --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=/datadir
