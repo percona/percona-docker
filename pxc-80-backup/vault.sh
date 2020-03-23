@@ -26,7 +26,9 @@ function vault_get() {
   local vault_root=$(parse_ini "secret_mount_point" "${keyring_vault}")/backup
   local gtid=$(parse_ini "galera-gtid" "${sst_info}")
 
-  vault kv get "${vault_root}/${gtid}" | grep transition_key | sed -e 's/transition_key[[:space:]]*//g'
+  vault kv get "${vault_root}/${gtid}" \
+      | grep transition_key \
+      | sed -e 's/transition_key[[:space:]]*//g'
 }
 
 function vault_store() {
