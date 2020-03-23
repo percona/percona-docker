@@ -11,12 +11,12 @@ SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
 SST_INFO_NAME=sst_info
 
 function get_backup_source() {
-    peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 |
-        grep wsrep_ready:ON:wsrep_connected:ON:wsrep_local_state_comment:Synced:wsrep_cluster_status:Primary |
-        sort |
-        tail -1 |
-        cut -d : -f 2 |
-        cut -d . -f 1
+    peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 \
+        | grep wsrep_ready:ON:wsrep_connected:ON:wsrep_local_state_comment:Synced:wsrep_cluster_status:Primary \
+        | sort \
+        | tail -1 \
+        | cut -d : -f 2 \
+        | cut -d . -f 1
 }
 
 function check_ssl() {
@@ -58,12 +58,12 @@ function request_streaming() {
 
     timeout -k 25 20 \
         garbd \
-        --address "gcomm://$NODE_NAME.$PXC_SERVICE?gmcast.listen_addr=tcp://0.0.0.0:4567" \
-        --donor "$NODE_NAME" \
-        --group "$PXC_SERVICE" \
-        --options "$GARBD_OPTS" \
-        --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
-        2>&1 | tee /tmp/garbd.log
+            --address "gcomm://$NODE_NAME.$PXC_SERVICE?gmcast.listen_addr=tcp://0.0.0.0:4567" \
+            --donor "$NODE_NAME" \
+            --group "$PXC_SERVICE" \
+            --options "$GARBD_OPTS" \
+            --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
+            2>&1 | tee /tmp/garbd.log
 
     if grep 'State transfer request failed' /tmp/garbd.log; then
         exit 1
@@ -132,12 +132,13 @@ function backup_s3() {
         exit 1
     fi
     vault_store /tmp/${SST_INFO_NAME}
-    xbstream -C /tmp -c ${SST_INFO_NAME} | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 |
-        (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
+    xbstream -C /tmp -c ${SST_INFO_NAME} \
+        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
+        | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
-    socat -u "$SOCAT_OPTS" stdio |
-        xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 |
-        (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
+    socat -u "$SOCAT_OPTS" stdio \
+        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
+        | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
     echo "Backup finished"
 
