@@ -27,6 +27,7 @@ RUN set -ex; \
     yum install -y \
         percona-server-server-${PERCONA_VERSION} \
         percona-server-tokudb-${PERCONA_VERSION} \
+        percona-server-devel-${PERCONA_VERSION} \
         percona-server-rocksdb-${PERCONA_VERSION} \
         jemalloc \
         which \
