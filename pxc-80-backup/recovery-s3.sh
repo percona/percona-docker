@@ -3,10 +3,8 @@
 set -o errexit
 set -o xtrace
 
-parse_sst_info() {
-   local source_path=$1
-   awk -F "=" '/transition-key/ {print $2}' "$source_path"
-}
+pwd=$(realpath $(dirname $0))
+. ${pwd}/vault-get-key.sh
 
 { set +x; } 2> /dev/null
 echo "+ mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
@@ -18,7 +16,7 @@ rm -rf /datadir/*
 xbcloud get "s3://${S3_BUCKET_URL}.sst_info" --parallel=10 | xbstream -x -C /datadir --parallel=$(grep -c processor /proc/cpuinfo)
 xbcloud get "s3://${S3_BUCKET_URL}" --parallel=10 | xbstream -x -C /datadir --parallel=$(grep -c processor /proc/cpuinfo)
 
-transition_key=$(parse_sst_info "/datadir/sst_info")
+transition_key=$(vault_get)
 if [[ -n $transition_key ]]; then
     encrypt_prepare_options="--transition-key=\$transition_key"
 fi
