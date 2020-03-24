@@ -3,8 +3,12 @@
 set -o errexit
 set -o xtrace
 
+pwd=$(realpath $(dirname $0))
+. ${pwd}/vault.sh
+
 GARBD_OPTS=""
 SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
+SST_INFO_NAME=sst_info
 
 function get_backup_source() {
     peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 \
@@ -83,16 +87,23 @@ function backup_volume() {
     echo "Backup to $BACKUP_DIR started"
     request_streaming
 
-    # mostly always the first "socat" run receive SST info only
-    socat -u "$SOCAT_OPTS" stdio \
-        > xtrabackup.stream
+    echo "Socat to started"
 
-    # but sometimes we receive real data during the first "socat" run
-    # in such case we need to detect if we need to do the second "socat" run
-    if (( $(stat -c%s xtrabackup.stream) < 50000000 )); then
-        socat -u "$SOCAT_OPTS" stdio \
-            > xtrabackup.stream
+    socat -u "$SOCAT_OPTS" stdio | xbstream -x
+    if [[ $? -ne 0 ]]; then
+        echo "socat(1) failed"
+        exit 1
     fi
+    echo "socat(1) returned $?"
+    vault_store $BACKUP_DIR/${SST_INFO_NAME}
+
+    socat -u "$SOCAT_OPTS" stdio >xtrabackup.stream
+    if [[ $? -ne 0 ]]; then
+        echo "socat(2) failed"
+        exit 1
+    fi
+    echo "socat(2) returned $?"
+
     echo "Backup finished"
 
     stat xtrabackup.stream
@@ -111,21 +122,24 @@ function backup_s3() {
     echo "+ mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
     mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
     set -x
+    xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || :
     xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" || :
     request_streaming
 
-    # mostly always the first "socat" run receive SST info only
-    socat -u "$SOCAT_OPTS" stdio \
-        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
-
-    # but sometimes we receive real data during the first "socat" run
-    # in such case we need to detect if we need to do the second "socat" run
-    ib_size=$(mc -C /tmp/mc stat --json "dest/$S3_BUCKET/$S3_BUCKET_PATH/xtrabackup_checkpoints.00000000000000000000" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
-    if [[ $ib_size =~ "Object does not exist" ]] || (( $ib_size < 20 )); then
-        xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
-        socat -u "$SOCAT_OPTS" stdio \
-            | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+    socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp
+    if [[ $? -ne 0 ]]; then
+        echo "socat(1) failed"
+        exit 1
     fi
+    vault_store /tmp/${SST_INFO_NAME}
+    xbstream -C /tmp -c ${SST_INFO_NAME} \
+        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 |
+        (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
+        
+    socat -u "$SOCAT_OPTS" stdio |
+        xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 |
+        (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
+
     echo "Backup finished"
 
     mc -C /tmp/mc stat "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"

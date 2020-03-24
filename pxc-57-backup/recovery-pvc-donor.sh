@@ -31,5 +31,6 @@ function check_ssl() {
     fi
 }
 
-cat /backup/xtrabackup.stream \
-    | socat -u stdio "$SOCAT_OPTS"
+check_ssl
+cat /backup/sst_info | socat -u stdio "$SOCAT_OPTS"
+cat /backup/xtrabackup.stream | socat -u stdio "$SOCAT_OPTS"
