@@ -25,6 +25,7 @@ ENV XTRABACKUP_VERSION 2.4.18-1.el7
 ENV PS_VERSION 5.7.28-31.1.el7
 ENV PXC_VERSION 5.7.28-31.41.1.el7
 ENV KUBECTL_VERSION=v1.15.6
+ENV VAULT_VERSION=1.3.4
 ENV KUBECTL_MD5SUM=1f851d069020a53de120eac6e9c15e24
 
 RUN curl -L -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
@@ -41,6 +42,7 @@ RUN microdnf update -y \
                 hostname \
                 yum-utils \
                 libaio \
+                unzip \
         && microdnf clean all
 
 # create mysql user/group before mysql installation
@@ -80,14 +82,18 @@ RUN cp /usr/share/doc/percona-xtrabackup-24-*/COPYING /licenses/LICENSE.xtraback
 
 RUN curl -o /usr/bin/kubectl \
         https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl \
+    && curl -o /usr/bin/vault.zip \
+        https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
+    && unzip /usr/bin/vault.zip -d /usr/bin && rm -f /usr/bin/vault.zip \
     && chmod +x /usr/bin/kubectl \
+    && chmod +x /usr/bin/vault \
     && echo "${KUBECTL_MD5SUM} /usr/bin/kubectl" | md5sum -c - \
     && curl -o /licenses/LICENSE.kubectl \
         https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
 
 RUN install -d -o 1001 -g 0 -m 0775 /backup
 COPY mc /usr/bin/
-COPY recovery-*.sh backup.sh get-pxc-state peer-list /usr/bin/
+COPY recovery-*.sh vault.sh backup.sh get-pxc-state peer-list /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001
