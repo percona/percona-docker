@@ -1,20 +1,26 @@
 FROM registry.access.redhat.com/ubi7/ubi-minimal
 
-LABEL name="Percona XtraBackup" \
-	release="2.4" \
-	vendor="Percona" \
-	summary="Percona XtraBackup is an open-source hot backup utility for MySQL - based servers that doesn’t lock your database during the backup" \
-	description="Percona XtraBackup works with MySQL, MariaDB, and Percona Server. It supports completely non-blocking backups of InnoDB, XtraDB, and HailDB storage engines. In addition, it can back up the following storage engines by briefly pausing writes at the end of the backup: MyISAM, Merge, and Archive, including partitioned tables, triggers, and database options." \
-	maintainer="Percona Development <info@percona.com>"
+LABEL org.opencontainers.image.release="2.4"
+LABEL org.opencontainers.image.title="Percona XtraBackup"
+LABEL org.opencontainers.image.vendor="Percona"
+LABEL org.opencontainers.image.description="Percona XtraBackup works with MySQL, MariaDB, and \
+Percona Server. It supports completely non-blocking backups of InnoDB, XtraDB, and HailDB storage engines. \
+In addition, it can back up the following storage engines by briefly pausing writes at the end of the backup: \
+MyISAM, Merge, and Archive, including partitioned tables, triggers, and database options."
+LABEL org.opencontainers.image.license="Apache 2.0"
+LABEL org.opencontainers.image.authors="info@percona.com"
+LABEL org.opencontainers.image.maintainer="Percona Development <info@percona.com>"
 
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
-	&& gpg --keyserver pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 \
+	&& gpg --batch --keyserver pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
+	&& gpg --batch --keyserver pool.sks-keyservers.net --recv-keys 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 \
+	&& gpg --batch --keyserver pool.sks-keyservers.net --recv-keys 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 \
 	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
 	&& gpg --export --armor 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 > ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 \
 	&& gpg --export --armor 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
 	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
-	&& curl -L -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
+	&& curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
@@ -25,14 +31,15 @@ ENV XTRABACKUP_VERSION 2.4.18-1.el7
 ENV PS_VERSION 5.7.28-31.1.el7
 ENV PXC_VERSION 5.7.28-31.41.1.el7
 ENV KUBECTL_VERSION=v1.15.6
-ENV VAULT_VERSION=1.3.4
-ENV KUBECTL_MD5SUM=1f851d069020a53de120eac6e9c15e24
+ENV KUBECTL_SHA256SUM=522115e0f11d83c08435a05e76120c89ea320782ccaff8e301bd14588ec50145
 
-RUN curl -L -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
-	&& curl -L -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
-	&& rpmkeys --checksig /tmp/numactl-libs.rpm /tmp/libev.rpm \
-	&& rpm -i /tmp/numactl-libs.rpm /tmp/libev.rpm \
-	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm
+RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
+	&& rpmkeys --checksig /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm \
+	&& rpm -i /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm \
+	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm
 
 RUN microdnf update -y \
         && microdnf install -y \
@@ -42,7 +49,6 @@ RUN microdnf update -y \
                 hostname \
                 yum-utils \
                 libaio \
-                unzip \
         && microdnf clean all
 
 # create mysql user/group before mysql installation
@@ -54,7 +60,7 @@ RUN groupadd -g 1001 mysql \
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
         && repoquery -a --location \
                 iputils \
-                    | xargs curl -L -o /tmp/iputils.rpm \
+                    | xargs curl -Lf -o /tmp/iputils.rpm \
         && repoquery -a --location \
                 Percona-XtraDB-Cluster-garbd-57-${PXC_VERSION} \
                     | xargs curl -L -o /tmp/Percona-XtraDB-Cluster-garbd-57.rpm \
@@ -72,7 +78,7 @@ RUN sed -i '/nodocs/d' /etc/yum.conf || : \
                python-kitchen \
                python-chardet \
                libxml2-python \
-               yum \	
+               yum \
         && microdnf clean all \
         && rm -rf /var/cache/yum /var/lib/mysql
 
@@ -82,12 +88,8 @@ RUN cp /usr/share/doc/percona-xtrabackup-24-*/COPYING /licenses/LICENSE.xtraback
 
 RUN curl -o /usr/bin/kubectl \
         https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl \
-    && curl -o /usr/bin/vault.zip \
-        https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
-    && unzip /usr/bin/vault.zip -d /usr/bin && rm -f /usr/bin/vault.zip \
     && chmod +x /usr/bin/kubectl \
-    && chmod +x /usr/bin/vault \
-    && echo "${KUBECTL_MD5SUM} /usr/bin/kubectl" | md5sum -c - \
+    && echo "${KUBECTL_SHA256SUM} /usr/bin/kubectl" | sha256sum -c - \
     && curl -o /licenses/LICENSE.kubectl \
         https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
 
