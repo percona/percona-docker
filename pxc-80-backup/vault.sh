@@ -15,6 +15,7 @@ function vault_get() {
     local sst_info=$1
 
     if [ ! -f "${keyring_vault}" ]; then
+        echo "vault configuration not found"
         return 0
     fi
 
@@ -31,7 +32,8 @@ function vault_get() {
     curl \
         -H "X-Vault-Request: true" \
         -H "X-Vault-Token: ${VAULT_TOKEN}" \
-        "${VAULT_ADDR}/v1/${vault_root}/backup/${gtid}" \
+        -H "Content-Type: application/json" \
+        "${VAULT_ADDR}/v1/${vault_root}/${gtid}" \
         | jq -r '.data.transition_key'
 }
 
@@ -64,8 +66,9 @@ function vault_store() {
         -X PUT \
         -H "X-Vault-Request: true" \
         -H "X-Vault-Token: ${VAULT_TOKEN}" \
+        -H "Content-Type: application/json" \
         -d "{\"transition_key\":\"${transition_key}\"}" \
-        "${VAULT_ADDR}/v1/${vault_root}/backup/${gtid}"
+        "${VAULT_ADDR}/v1/${vault_root}/${gtid}"
 
     set -o xtrace
     sed -i '/transition-key/d' $sst_info >/dev/null
