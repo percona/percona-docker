@@ -93,7 +93,7 @@ function join {
 }
 
 # if vault secret file exists we assume we need to turn on encryption
-vault_secret="/etc/mysql/vault-keyring-secret/keyring_vault_n1.conf"
+vault_secret="/etc/mysql/vault-keyring-secret/keyring_vault.conf"
 if [ -f "$vault_secret" ]; then
 	sed -i "/\[mysqld\]/a early-plugin-load=keyring_vault.so" $CFG
 	sed -i "/\[mysqld\]/a default_table_encryption=1" $CFG
