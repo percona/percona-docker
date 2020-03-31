@@ -9,9 +9,9 @@ echo "Changed files between $@:"
 for file in $(git --no-pager diff --name-only "$@"); do
 	dir=$(dirname $file | cut -d '/' -f 1)
 	echo -- $file
-	if [ -d "$file" -a -f "$file/Dockerfile" ]; then
+	if [ -d "$file" ] && [ -f "$file/Dockerfile" -o -f "$file/Dockerfile.k8s" ]; then
 		dockerfilePaths["$file"]=1
-	elif [ -f "$file" -a -d "$dir" -a -f "$dir/Dockerfile" ]; then
+	elif [ -f "$file" -a -d "$dir" ] && [ -f "$dir/Dockerfile" -o -f "$file/Dockerfile.k8s" ]; then
 		dockerfilePaths["$dir"]=1
 	fi
 done
