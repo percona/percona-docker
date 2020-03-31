@@ -40,6 +40,7 @@ RUN microdnf update -y \
                 yum-utils \
                 perl-DBD-MySQL \
                 perl-DBI \
+		gnutls \
         && microdnf clean all
 
 RUN groupadd -g 1001 proxysql \
