@@ -2,6 +2,7 @@
 
 set -o errexit
 
+
 declare -A dockerfilePaths
 pathToTests=$(dirname $0)
 
