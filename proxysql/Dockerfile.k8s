@@ -40,7 +40,6 @@ RUN microdnf update -y \
                 yum-utils \
                 perl-DBD-MySQL \
                 perl-DBI \
-		gnutls \
         && microdnf clean all
 
 RUN groupadd -g 1001 proxysql \
@@ -55,8 +54,10 @@ RUN sed -i '/nodocs/d' /etc/yum.conf || : \
         && repoquery -a --location \
                proxysql2-${PROXYSQL_VERSION} \
                    | xargs curl -L -o /tmp/proxysql2-${PROXYSQL_VERSION}.rpm \
-        && rpm -iv /tmp/proxysql2-${PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm --nodeps \
-        && rm -rf /tmp/proxysql2-${PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm \
+        && curl -L -o /tmp/gnutls.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/gnutls-3.3.29-9.el7_6.x86_64.rpm \
+        && curl -L -o /tmp/nettle.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/nettle-2.7.1-8.el7.x86_64.rpm \
+        && rpm -iv /tmp/proxysql2-${PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm /tmp/gnutls.rpm /tmp/nettle.rpm --nodeps \
+        && rm -rf /tmp/proxysql2-${PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm /tmp/gnutls.rpm /tmp/nettle.rpm \
         && microdnf remove -y \
                yum-utils \
                python-kitchen \
