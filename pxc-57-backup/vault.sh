@@ -28,8 +28,12 @@ function vault_get() {
     export VAULT_ADDR=$(parse_ini "vault_url" "${keyring_vault}")
     local vault_root=$(parse_ini "secret_mount_point" "${keyring_vault}")/backup
     local gtid=$(parse_ini "galera-gtid" "${sst_info}")
+    if [ "$(grep -e '^[[:space:]]*vault_ca' ${keyring_vault})" ]; then
+        ca_path=$(parse_ini "vault_ca" "${keyring_vault}")
+        ca_opt="--cacert $ca_path"
+    fi
 
-    curl \
+    curl $ca_opt \
         -H "X-Vault-Request: true" \
         -H "X-Vault-Token: ${VAULT_TOKEN}" \
         -H "Content-Type: application/json" \
@@ -61,8 +65,12 @@ function vault_store() {
     export VAULT_ADDR=$(parse_ini "vault_url" "${keyring_vault}")
     local vault_root=$(parse_ini "secret_mount_point" "${keyring_vault}")/backup
     local gtid=$(parse_ini "galera-gtid" "${sst_info}")
+    if [ "$(grep -e '^[[:space:]]*vault_ca' ${keyring_vault})" ]; then
+        ca_path=$(parse_ini "vault_ca" "${keyring_vault}")
+        ca_opt="--cacert $ca_path"
+    fi
 
-    curl \
+    curl $ca_opt \
         -X PUT \
         -H "X-Vault-Request: true" \
         -H "X-Vault-Token: ${VAULT_TOKEN}" \
