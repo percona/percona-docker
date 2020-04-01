@@ -15,7 +15,6 @@ function vault_get() {
     local sst_info=$1
 
     if [ ! -f "${keyring_vault}" ]; then
-        echo "vault configuration not found"
         return 0
     fi
 
@@ -42,7 +41,6 @@ function vault_store() {
     local sst_info=$1
 
     if [ ! -f "${keyring_vault}" ]; then
-        echo "vault configuration not found"
         return 0
     fi
 
