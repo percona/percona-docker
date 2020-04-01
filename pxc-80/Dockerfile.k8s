@@ -14,7 +14,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& gpg --export --armor 6341AB2753D78A78A7C27BB124C6A8A7F4A80EB5 > ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 \
 	&& gpg --export --armor 91E97D7C4A5E96F17F3E888F6A2FAEA2352C64E5 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
 	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-CentOS-7 ${GNUPGHOME}/RPM-GPG-KEY-EPEL-7 \
-	&& curl -L -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
+	&& curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
@@ -22,31 +22,31 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 # install exact version of PS for repeatability
 ENV PS_VERSION 8.0.17-8.1.el7
-ENV PXC_VERSION 8.0.18-26.4.3.2.el7
+ENV PXC_VERSION 8.0.18-9.1.rc.el7
 
-RUN curl -L -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
-	&& curl -L -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
-	&& curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm \
-	&& curl -L -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
-	&& curl -L -o /tmp/pv.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/p/pv-1.4.6-1.el7.x86_64.rpm \
+RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/pv.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/p/pv-1.4.6-1.el7.x86_64.rpm \
 	&& rpmkeys --checksig /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm \
 	&& rpm -i /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm \
 	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm
 
 RUN microdnf update -y \
 	&& rpm -e --nodeps tzdata \
-        && percona-release setup ps80 \
+		&& percona-release setup ps80 \
 	&& microdnf install -y \
-                jemalloc \
-                socat \
-                openssl \
-                shadow-utils \
-                hostname \
-                curl \
-                tzdata \
-                libaio \
-                which \
-                pam \
+		jemalloc \
+		socat \
+		openssl \
+		shadow-utils \
+		hostname \
+		curl \
+		tzdata \
+		libaio \
+		which \
+		pam \
 	&& microdnf clean all
 
 # create mysql user/group before mysql installation
@@ -57,32 +57,32 @@ RUN groupadd -g 1001 mysql \
 # we need licenses from docs
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
 	&& microdnf install -y \
-                yum-utils \
-        && curl -L -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-server-${PXC_VERSION}.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-shared.rpm  https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-${PXC_VERSION}.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
-        && curl -L -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-compat-${PXC_VERSION}.x86_64.rpm \
-        && repoquery -a --archlist=x86_64 --location \
-                 elfutils-libs \
-                    | xargs curl -L -o /tmp/elfutils-libs.rpm \
-        && repoquery -a --archlist=x86_64 --location \
-                 systemd-libs \
-                    | xargs curl -L -o /tmp/systemd-libs.rpm \
-        && repoquery -a --archlist=x86_64 --location \
-                 procps-ng \
-                    | xargs curl -L -o /tmp/procps.rpm \
-        && rpm -iv /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm /tmp/procps.rpm  /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm  --nodeps \
-        && rm -rf /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm /tmp/procps.rpm /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm \
-        && microdnf remove -y \
-               yum-utils \
-               python-kitchen \
-               python-chardet \
-               libxml2-python \
-               yum \
-        && microdnf clean all \
-        && rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
-        && rm -rf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam* \
-        && rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf
+		yum-utils \
+	&& curl -Lf -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-server-${PXC_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm  https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-${PXC_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-compat-${PXC_VERSION}.x86_64.rpm \
+	&& repoquery -a --archlist=x86_64 --location \
+			elfutils-libs \
+		| xargs curl -L -o /tmp/elfutils-libs.rpm \
+	&& repoquery -a --archlist=x86_64 --location \
+		systemd-libs \
+	| xargs curl -L -o /tmp/systemd-libs.rpm \
+	&& repoquery -a --archlist=x86_64 --location \
+		procps-ng \
+	| xargs curl -L -o /tmp/procps.rpm \
+	&& rpm -iv /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm /tmp/procps.rpm  /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm  --nodeps \
+	&& rm -rf /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm /tmp/procps.rpm /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm \
+	&& microdnf remove -y \
+		yum-utils \
+		python-kitchen \
+		python-chardet \
+		libxml2-python \
+		yum \
+	&& microdnf clean all \
+		&& rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
+		&& rm -rf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam* \
+		&& rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqladmin$" | xargs rm -rf
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN  cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera \
@@ -90,16 +90,31 @@ RUN  cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.g
 
 
 RUN rmdir /etc/my.cnf.d \
-        && ln -s /etc/mysql/conf.d /etc/my.cnf.d \
-        && rm -f /etc/percona-xtradb-cluster.conf.d/*.cnf \
-        && echo '!include /etc/mysql/node.cnf' > /etc/my.cnf \
-        && echo '!includedir /etc/my.cnf.d/' >> /etc/my.cnf \
-        && echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
+	&& ln -s /etc/mysql/conf.d /etc/my.cnf.d \
+	&& rm -f /etc/percona-xtradb-cluster.conf.d/*.cnf \
+	&& echo '!include /etc/mysql/node.cnf' > /etc/my.cnf \
+	&& echo '!includedir /etc/my.cnf.d/' >> /etc/my.cnf \
+	&& echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
 
 COPY dockerdir /
 RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d
+
+ARG DEBUG
+RUN if [[ -n $DEBUG ]] ; then \
+		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
+		&& sed -i 's/exec "$@" $wsrep_start_position_opt/"$@" $wsrep_start_position_opt || sleep infinity/' /entrypoint.sh \
+		&& microdnf install -y \
+			gdb \
+			net-tools \
+			nc \
+		&& curl -L -o /tmp/telnet.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/telnet-0.17-64.el7.x86_64.rpm \
+		&& rpmkeys --checksig /tmp/telnet.rpm \
+		&& rpm -i /tmp/telnet.rpm \
+		&& rm -rf /tmp/telnet.rpm \
+		&& microdnf clean all; \
+fi
 
 USER 1001
 
