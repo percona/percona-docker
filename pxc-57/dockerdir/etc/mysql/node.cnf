@@ -22,6 +22,7 @@ wsrep_provider=/usr/lib64/galera3/libgalera_smm.so
 
 wsrep_cluster_name=noname
 #wsrep_node_address=noname
+#wsrep_node_incoming_address=nodeip
 
 wsrep_sst_method=xtrabackup-v2
 wsrep_sst_auth="root:"

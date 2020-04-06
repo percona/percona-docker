@@ -32,6 +32,8 @@ function join {
 NODE_IP=$(hostname -I | awk ' { print $1 } ')
 CLUSTER_NAME="$(hostname -f | cut -d'.' -f2)"
 SERVER_ID=${HOSTNAME/$CLUSTER_NAME-}
+NODE_NAME=$(hostname -f)
+NODE_PORT=3306
 
 while read -ra LINE; do
     echo "read line $LINE"
@@ -50,6 +52,7 @@ sed -r "s|^[#]?server_id=.*$|server_id=1${SERVER_ID}|" ${CFG} 1<> ${CFG}
 sed -r "s|^[#]?wsrep_node_address=.*$|wsrep_node_address=${NODE_IP}|" ${CFG} 1<> ${CFG}
 sed -r "s|^[#]?wsrep_cluster_name=.*$|wsrep_cluster_name=${CLUSTER_NAME}|" ${CFG} 1<> ${CFG}
 sed -r "s|^[#]?wsrep_cluster_address=.*$|wsrep_cluster_address=gcomm://${WSREP_CLUSTER_ADDRESS}|" ${CFG} 1<> ${CFG}
+sed -r "s|^[#]?wsrep_node_incoming_address=.*$|wsrep_node_incoming_address=${NODE_NAME}:${NODE_PORT}|" ${CFG} 1<> ${CFG}
 sed -r "s|^[#]?wsrep_sst_auth=.*$|wsrep_sst_auth='xtrabackup:$XTRABACKUP_PASSWORD'|" ${CFG} 1<> ${CFG}
 
 CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
@@ -74,6 +77,8 @@ fi
 
 if [ -f $CA -a -f $KEY -a -f $CERT ]; then
     sed "/^\[mysqld\]/a pxc-encrypt-cluster-traffic=ON\nssl-ca=$CA\nssl-key=$KEY\nssl-cert=$CERT" ${CFG} 1<> ${CFG}
+else
+    sed "/^\[mysqld\]/a pxc-encrypt-cluster-traffic=OFF" ${CFG} 1<> ${CFG}
 fi
 
 # don't need a restart, we're just writing the conf in case there's an

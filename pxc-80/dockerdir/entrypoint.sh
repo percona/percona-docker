@@ -96,7 +96,7 @@ function join {
 vault_secret="/etc/mysql/vault-keyring-secret/keyring_vault.conf"
 if [ -f "$vault_secret" ]; then
 	sed -i "/\[mysqld\]/a early-plugin-load=keyring_vault.so" $CFG
-	sed -i "/\[mysqld\]/a default_table_encryption=1" $CFG
+	sed -i "/\[mysqld\]/a default_table_encryption=ON" $CFG
 	sed -i "/\[mysqld\]/a keyring_vault_config=$vault_secret" $CFG
 fi
 
@@ -232,7 +232,7 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			--  or products like mysql-fabric won't work
 			SET @@SESSION.SQL_LOG_BIN=0;
 
-			DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'root', 'mysql.infoschema', 'mysql.pxc.internal.session', 'mysql.pxc.sst.role', 'mysql.session') OR host NOT IN ('localhost') ;
+			DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mysqlxsys', 'root', 'mysql.infoschema', 'mysql.pxc.internal.session', 'mysql.pxc.sst.role', 'mysql.session') OR host NOT IN ('localhost') ;
 			ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
 			GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
 			${rootCreate}
