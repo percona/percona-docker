@@ -34,20 +34,20 @@ RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_6
 	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm
 
 RUN yum update -y \
-        && rpm -e --nodeps tzdata \
-        && yum install -y \
-                Percona-Server-shared-57-${PS_VERSION} \
-                jemalloc \
-                socat \
-                openssl \
-                shadow-utils \
-                hostname \
-                curl \
-                tzdata \
-                libaio \
-                which \
-                pam \
-        && yum clean all
+	&& rpm -e --nodeps tzdata \
+	&& yum install -y \
+		Percona-Server-shared-57-${PS_VERSION} \
+		jemalloc \
+		socat \
+		openssl \
+		shadow-utils \
+		hostname \
+		curl \
+		tzdata \
+		libaio \
+		which \
+		pam \
+	&& yum clean all
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql \
@@ -56,26 +56,26 @@ RUN groupadd -g 1001 mysql \
 
 # we need licenses from docs
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
-        && yum install -y \
-                yum-utils \
-        && repoquery -a --location \
-                Percona-XtraDB-Cluster-server-57-${PXC_VERSION} \
-                    | xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-server-57.rpm \
-        && repoquery -a --location \
-                Percona-XtraDB-Cluster-shared-57-${PXC_VERSION} \
-                    | xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-shared-57.rpm \
-        && repoquery -a --location \
-                Percona-XtraDB-Cluster-client-57-${PXC_VERSION} \
-                    | xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-client-57.rpm \
-        && repoquery -a --location \
-                percona-xtrabackup-24 \
-                    | xargs curl -Lf -o /tmp/percona-xtrabackup-24.rpm \
-        && rpm -iv /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm --nodeps \
-        && rm -rf /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm \
-        && yum clean all \
-        && rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
-        && rm -rf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam* \
-        && rpm -ql Percona-XtraDB-Cluster-client-57 | egrep -v "mysql$|mysqldump$" | xargs rm -rf
+	&& yum install -y \
+		yum-utils \
+	&& repoquery -a --location \
+		Percona-XtraDB-Cluster-server-57-${PXC_VERSION} \
+		| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-server-57.rpm \
+	&& repoquery -a --location \
+		Percona-XtraDB-Cluster-shared-57-${PXC_VERSION} \
+		| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-shared-57.rpm \
+	&& repoquery -a --location \
+		Percona-XtraDB-Cluster-client-57-${PXC_VERSION} \
+		| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-client-57.rpm \
+	&& repoquery -a --location \
+		percona-xtrabackup-24 \
+		| xargs curl -Lf -o /tmp/percona-xtrabackup-24.rpm \
+	&& rpm -iv /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm --nodeps \
+	&& rm -rf /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm \
+	&& yum clean all \
+	&& rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
+	&& rm -rf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam* \
+	&& rpm -ql Percona-XtraDB-Cluster-client-57 | egrep -v "mysql$|mysqldump$" | xargs rm -rf
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera \
@@ -96,15 +96,15 @@ RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint
 
 ARG DEBUG
 RUN if [[ -n $DEBUG ]] ; then \
-	sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
-	&& sed -i 's/exec "$@" $wsrep_start_position_opt/"$@" $wsrep_start_position_opt || sleep infinity/' /entrypoint.sh \
-	&& yum install -y \
-		gdb \
-		net-tools \
-		telnet \
-		nc \
-	&& yum clean all; \
-fi
+		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
+		&& sed -i 's/exec "$@" $wsrep_start_position_opt/"$@" $wsrep_start_position_opt || sleep infinity/' /entrypoint.sh \
+		&& yum install -y \
+			gdb \
+			net-tools \
+			telnet \
+			nc \
+		&& yum clean all; \
+	fi
 
 USER 1001
 

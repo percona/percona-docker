@@ -35,7 +35,7 @@ RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_6
 
 RUN yum update -y \
 	&& rpm -e --nodeps tzdata \
-		&& percona-release setup ps80 \
+	&& percona-release setup ps80 \
 	&& yum install -y \
 		jemalloc \
 		socat \
@@ -65,12 +65,12 @@ RUN sed -i '/nodocs/d' /etc/yum.conf || : \
 	&& rpm -iv /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-shared-compat.rpm --nodeps \
 	&& rm -rf /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-shared.rpm \
 	&& yum clean all \
-		&& rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
-		&& rm -rf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam* \
-		&& rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqladmin$" | xargs rm -rf
+	&& rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
+	&& rm -rf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam* \
+	&& rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqladmin$" | xargs rm -rf
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN  cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera \
+RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera \
 	&& cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
 
 
