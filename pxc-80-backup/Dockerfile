@@ -42,13 +42,13 @@ RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_6
 	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm
 
 RUN microdnf update -y \
-        && microdnf install -y \
-                socat \
-                shadow-utils \
-                hostname \
-                yum-utils \
-                libaio \
-        && microdnf clean all
+	&& microdnf install -y \
+		socat \
+		shadow-utils \
+		hostname \
+		yum-utils \
+		libaio \
+	&& microdnf clean all
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql \
@@ -57,22 +57,22 @@ RUN groupadd -g 1001 mysql \
 
 # we need licenses from docs
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
-        && repoquery -a --location iputils | xargs curl -Lf -o /tmp/iputils.rpm \
-        && curl -Lf -o /tmp/percona-xtrabackup.rpm http://repo.percona.com/tools/yum/release/7/RPMS/x86_64/percona-xtrabackup-80-${XTRABACKUP_VERSION}.x86_64.rpm \
-        && curl -Lf -o /tmp/percona-server-shared.rpm http://repo.percona.com/ps-80/yum/release/7/RPMS/x86_64/percona-server-shared-${PS_VERSION}.x86_64.rpm \
-        && curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-garbd-${PXC_VERSION}.x86_64.rpm \
-        && curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
-        && rpm -iv /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm --nodeps \
-        && rm -rf /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm \
-        && rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf \
-        && microdnf remove -y \
-               yum-utils \
-               python-kitchen \
-               python-chardet \
-               libxml2-python \
-               yum \
-        && microdnf clean all \
-        && rm -rf /var/cache/yum /var/lib/mysql
+	&& repoquery -a --location iputils | xargs curl -Lf -o /tmp/iputils.rpm \
+	&& curl -Lf -o /tmp/percona-xtrabackup.rpm http://repo.percona.com/tools/yum/release/7/RPMS/x86_64/percona-xtrabackup-80-${XTRABACKUP_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-server-shared.rpm http://repo.percona.com/ps-80/yum/release/7/RPMS/x86_64/percona-server-shared-${PS_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-garbd-${PXC_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
+	&& rpm -iv /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm --nodeps \
+	&& rm -rf /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm \
+	&& rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf \
+	&& microdnf remove -y \
+		yum-utils \
+		python-kitchen \
+		python-chardet \
+		libxml2-python \
+		yum \
+	&& microdnf clean all \
+	&& rm -rf /var/cache/yum /var/lib/mysql
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-xtrabackup-80-*/LICENSE /licenses/LICENSE.xtrabackup \
