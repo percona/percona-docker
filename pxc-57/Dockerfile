@@ -21,6 +21,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 # install exact version of PS for repeatability
+ENV XTRABACKUP_VERSION 2.4.18-1.el7
 ENV PS_VERSION 5.7.28-31.1.el7
 ENV PXC_VERSION 5.7.28-31.41.1.el7
 
@@ -68,7 +69,7 @@ RUN sed -i '/nodocs/d' /etc/yum.conf || : \
 		Percona-XtraDB-Cluster-client-57-${PXC_VERSION} \
 		| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-client-57.rpm \
 	&& repoquery -a --location \
-		percona-xtrabackup-24 \
+		percona-xtrabackup-24-${XTRABACKUP_VERSION} \
 		| xargs curl -Lf -o /tmp/percona-xtrabackup-24.rpm \
 	&& rpm -iv /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm --nodeps \
 	&& rm -rf /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm \
