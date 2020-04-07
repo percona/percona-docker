@@ -56,6 +56,7 @@ RUN groupadd -g 1001 mysql \
 	&& useradd -u 1001 -r -g 1001 -s /sbin/nologin \
 		-c "Default Application User" mysql
 
+
 # we need licenses from docs
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
 	&& repoquery -a --location \
