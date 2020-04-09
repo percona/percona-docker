@@ -30,6 +30,7 @@ RUN set -ex; \
         percona-server-devel-${PERCONA_VERSION} \
         percona-server-rocksdb-${PERCONA_VERSION} \
         jemalloc \
+        openssl \
         which \
         policycoreutils; \
     \
