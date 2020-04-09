@@ -97,16 +97,8 @@ vault_secret="/etc/mysql/vault-keyring-secret/keyring_vault.conf"
 if [ -f "$vault_secret" ]; then
 	sed -i "/\[mysqld\]/a early-plugin-load=keyring_vault.so" $CFG
 	sed -i "/\[mysqld\]/a keyring_vault_config=$vault_secret" $CFG
-	sed -i "/\[mysqld\]/a innodb_encrypt_tables=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_undo_log_encrypt=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_redo_log_encrypt=ON" $CFG
-	sed -i "/\[mysqld\]/a binlog_encryption=ON" $CFG
-	sed -i "/\[mysqld\]/a binlog_rotate_encryption_master_key_at_startup=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_sys_tablespace_encrypt=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_temp_tablespace_encrypt=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_parallel_dblwr_encrypt=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_encrypt_online_alter_logs=ON" $CFG
-	sed -i "/\[mysqld\]/a encrypt_tmp_files=ON" $CFG
+	sed -i "/\[mysqld\]/a innodb_encrypt_tables=OFF" $CFG
+	sed -i "/\[mysqld\]/a encrypt-tmp-files=ON" $CFG
 fi
 
 file_env 'XTRABACKUP_PASSWORD' 'xtrabackup'
