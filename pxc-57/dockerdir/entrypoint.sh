@@ -92,6 +92,13 @@ function join {
 	echo "${joined%?}"
 }
 
+# if vault secret file exists we assume we need to turn on encryption
+vault_secret="/etc/mysql/vault-keyring-secret/keyring_vault.conf"
+if [ -f "$vault_secret" ]; then
+	sed -i "/\[mysqld\]/a early-plugin-load=keyring_vault.so" $CFG
+	sed -i "/\[mysqld\]/a keyring_vault_config=$vault_secret" $CFG
+fi
+
 file_env 'XTRABACKUP_PASSWORD' 'xtrabackup'
 file_env 'CLUSTERCHECK_PASSWORD' 'clustercheck'
 # Is running in Kubernetes/OpenShift, so find all other pods belonging to the cluster

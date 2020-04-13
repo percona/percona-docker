@@ -39,6 +39,7 @@ RUN yum update -y \
                 hostname \
                 perl-DBD-MySQL \
                 perl-DBI \
+                gnutls \
         && yum clean all
 
 RUN groupadd -g 1001 proxysql \

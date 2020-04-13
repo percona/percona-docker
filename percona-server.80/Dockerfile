@@ -21,12 +21,13 @@ RUN set -ex; \
     percona-release setup ps80
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.18-9.1.el7
+ENV PERCONA_VERSION 8.0.19-10.1.el7
 
 RUN set -ex; \
     yum install -y \
         percona-server-server-${PERCONA_VERSION} \
         percona-server-tokudb-${PERCONA_VERSION} \
+        percona-server-devel-${PERCONA_VERSION} \
         percona-server-rocksdb-${PERCONA_VERSION} \
         jemalloc \
         which \
