@@ -49,6 +49,7 @@ RUN yum update -y \
 		libaio \
 		which \
 		pam \
+    nss-pam-ldapd \
 	&& yum clean all
 
 # create mysql user/group before mysql installation
