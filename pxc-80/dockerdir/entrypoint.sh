@@ -103,7 +103,6 @@ if [ -f "$vault_secret" ]; then
 	sed -i "/\[mysqld\]/a innodb_redo_log_encrypt=ON" $CFG
 	sed -i "/\[mysqld\]/a binlog_encryption=ON" $CFG
 	sed -i "/\[mysqld\]/a binlog_rotate_encryption_master_key_at_startup=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_sys_tablespace_encrypt=ON" $CFG
 	sed -i "/\[mysqld\]/a innodb_temp_tablespace_encrypt=ON" $CFG
 	sed -i "/\[mysqld\]/a innodb_parallel_dblwr_encrypt=ON" $CFG
 	sed -i "/\[mysqld\]/a innodb_encrypt_online_alter_logs=ON" $CFG

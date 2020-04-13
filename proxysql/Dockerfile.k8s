@@ -21,7 +21,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 # install exact version for repeatability
-ENV PS_VERSION 5.7.26-29.1.el7
+ENV PS_VERSION 5.7.29-32.1.el7
 ENV PROXYSQL_VERSION 2.0.10-1.1.el7
 
 RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm \
