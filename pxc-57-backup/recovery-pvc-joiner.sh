@@ -44,7 +44,7 @@ socat -u "$SOCAT_OPTS" stdio | xbstream -x -C $tmp --parallel=$(grep -c processo
 set +o xtrace
 transition_key=$(vault_get $tmp/sst_info)
 if [[ -n $transition_key && $transition_key != null ]]; then
-    transition_option="--transition-key=\$transition_key"
+    transition_option="--transition-key=$transition_key"
     master_key_options="--generate-new-master-key"
     echo transition-key exists
 fi
