@@ -145,7 +145,6 @@ Running `docker exec -it ${CLUSTER_NAME}_proxysql add_cluster_nodes.sh` will reg
 Enabling `auth_pam` support
 -------------------------
 Follow the guide https://www.percona.com/blog/2017/04/21/how-to-setup-and-troubleshoot-percona-pam-with-ldap-for-external-authentication/
-* Set container ENV `ENABLE_AUTH_PAM=true`
 * Mount a configured nsswitch.conf to `/etc/nsswitch.conf` in container.
 * Mount configured mysqld pam.d to `/etc/pam.d/mysqld` in container.
 * Mount nslcd and nscd socket from host machine. Make sure container and host nslcd and nscd versions match.
