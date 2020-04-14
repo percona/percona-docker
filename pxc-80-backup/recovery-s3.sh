@@ -3,8 +3,9 @@
 set -o errexit
 set -o xtrace
 
-pwd=$(realpath $(dirname $0))
-. ${pwd}/vault.sh
+LIB_PATH='/usr/lib/pxc'
+. ${LIB_PATH}/check-version.sh
+. ${LIB_PATH}/vault.sh
 
 { set +x; } 2>/dev/null
 echo "+ mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
@@ -20,7 +21,13 @@ xbcloud get "s3://${S3_BUCKET_URL}" --parallel=10 | xbstream -x -C $tmp --parall
 set +o xtrace
 transition_key=$(vault_get $tmp/sst_info)
 if [[ -n $transition_key && $transition_key != null ]]; then
-    transition_option="--transition-key=\$transition_key"
+    MYSQL_VERSION=$(parse_ini 'mysql-version' "$tmp/sst_info")
+    if compare_versions "$MYSQL_VERSION" '<' '5.7.29' &&
+        [[ $MYSQL_VERSION != '5.7.28-31-57.2' ]]; then
+         transition_key="\$transition_key"
+    fi
+
+    transition_option="--transition-key=$transition_key"
     master_key_options="--generate-new-master-key"
     echo transition-key exists
 fi

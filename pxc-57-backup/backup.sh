@@ -3,8 +3,8 @@
 set -o errexit
 set -o xtrace
 
-pwd=$(realpath $(dirname $0))
-. ${pwd}/vault.sh
+LIB_PATH='/usr/lib/pxc'
+. ${LIB_PATH}/vault.sh
 
 GARBD_OPTS=""
 SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
