@@ -392,6 +392,3 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 fi
 
 exec "$@" $wsrep_start_position_opt
-if [ -n "$ENABLE_AUTH_PAM" ]; then
-  exec "nscld"
-fi
