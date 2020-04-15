@@ -20,7 +20,7 @@ xbcloud get "s3://${S3_BUCKET_URL}" --parallel=10 | xbstream -x -C $tmp --parall
 set +o xtrace
 transition_key=$(vault_get $tmp/sst_info)
 if [[ -n $transition_key && $transition_key != null ]]; then
-    transition_option="--transition-key=\$transition_key"
+    transition_option="--transition-key=$transition_key"
     master_key_options="--generate-new-master-key"
     echo transition-key exists
 fi

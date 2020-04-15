@@ -97,16 +97,6 @@ vault_secret="/etc/mysql/vault-keyring-secret/keyring_vault.conf"
 if [ -f "$vault_secret" ]; then
 	sed -i "/\[mysqld\]/a early-plugin-load=keyring_vault.so" $CFG
 	sed -i "/\[mysqld\]/a keyring_vault_config=$vault_secret" $CFG
-	sed -i "/\[mysqld\]/a innodb_encrypt_tables=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_undo_log_encrypt=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_redo_log_encrypt=ON" $CFG
-	sed -i "/\[mysqld\]/a binlog_encryption=ON" $CFG
-	sed -i "/\[mysqld\]/a binlog_rotate_encryption_master_key_at_startup=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_sys_tablespace_encrypt=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_temp_tablespace_encrypt=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_parallel_dblwr_encrypt=ON" $CFG
-	sed -i "/\[mysqld\]/a innodb_encrypt_online_alter_logs=ON" $CFG
-	sed -i "/\[mysqld\]/a encrypt_tmp_files=ON" $CFG
 fi
 
 file_env 'XTRABACKUP_PASSWORD' 'xtrabackup'
@@ -253,7 +243,7 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 			CREATE USER 'monitor'@'${MONITOR_HOST}' IDENTIFIED BY '${MONITOR_PASSWORD}' WITH MAX_USER_CONNECTIONS 10;
 			GRANT SELECT, PROCESS, SUPER, REPLICATION CLIENT, RELOAD ON *.* TO 'monitor'@'${MONITOR_HOST}';
-			GRANT SELECT, UPDATE, DELETE, DROP ON performance_schema.* TO 'monitor'@'${MONITOR_HOST}';
+			GRANT SELECT ON performance_schema.* TO 'monitor'@'${MONITOR_HOST}';
 
 			CREATE USER 'clustercheck'@'localhost' IDENTIFIED BY '${CLUSTERCHECK_PASSWORD}';
 			GRANT PROCESS ON *.* TO 'clustercheck'@'localhost';
