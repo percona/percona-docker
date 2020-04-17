@@ -86,9 +86,12 @@ RUN curl -o /usr/bin/kubectl \
     && curl -o /licenses/LICENSE.kubectl \
         https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
 
-RUN install -d -o 1001 -g 0 -m 0775 /backup
+RUN install -d -o 1001 -g 0 -m 0775 /backup \
+	&& mkdir /usr/lib/pxc
+
+COPY lib/pxc /usr/lib/pxc
 COPY mc /usr/bin/
-COPY recovery-*.sh vault.sh backup.sh get-pxc-state peer-list /usr/bin/
+COPY recovery-*.sh backup.sh get-pxc-state peer-list /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001
