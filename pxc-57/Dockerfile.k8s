@@ -121,10 +121,20 @@ RUN if [[ -n $DEBUG ]] ; then \
 			gdb \
 			net-tools \
 			nc \
+			yum-utils \
+		&& repoquery -a --location \
+			Percona-XtraDB-Cluster-57-debuginfo-${PXC_VERSION} \
+			| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm \
 		&& curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/telnet-0.17-64.el7.x86_64.rpm \
-		&& rpmkeys --checksig /tmp/telnet.rpm \
-		&& rpm -i /tmp/telnet.rpm \
-		&& rm -rf /tmp/telnet.rpm \
+		&& rpmkeys --checksig /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm \
+		&& rpm -i /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm --nodeps \
+		&& rm -rf /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm \
+		&& microdnf remove -y \
+			yum-utils \
+			python-kitchen \
+			python-chardet \
+			libxml2-python \
+			yum \
 		&& microdnf clean all; \
 fi
 
