@@ -48,6 +48,7 @@ RUN microdnf update -y \
 		libaio \
 		which \
 		pam \
+		gdb \
 	&& microdnf clean all
 
 # create mysql user/group before mysql installation
@@ -107,7 +108,6 @@ RUN if [[ -n $DEBUG ]] ; then \
 		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
 		&& sed -i 's/exec "$@" $wsrep_start_position_opt/"$@" $wsrep_start_position_opt || sleep infinity/' /entrypoint.sh \
 		&& microdnf install -y \
-			gdb \
 			net-tools \
 			nc \
 		&& curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/telnet-0.17-64.el7.x86_64.rpm \
