@@ -48,6 +48,7 @@ RUN yum update -y \
 		libaio \
 		which \
 		pam \
+		gdb \
 	&& yum clean all
 
 # create mysql user/group before mysql installation
@@ -96,7 +97,6 @@ RUN if [[ -n $DEBUG ]] ; then \
 		&& rpm -iv /tmp/percona-xtradb-cluster-debuginfo.rpm --nodeps \
 		&& rm -rf /tmp/percona-xtradb-cluster-debuginfo.rpm \
 		&& yum install -y \
-			gdb \
 			net-tools \
 			telnet \
 			nc \
