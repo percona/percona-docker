@@ -22,8 +22,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 # install exact version of PS for repeatability
 ENV XTRABACKUP_VERSION 2.4.20-1.el7
-ENV PS_VERSION 5.7.28-31.1.el7
-ENV PXC_VERSION 5.7.28-31.41.2.el7
+ENV PS_VERSION 5.7.29-32.1.el7
+ENV PXC_VERSION 5.7.29-31.43.1.el7
 
 RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-5.el7.x86_64.rpm \
 	&& curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
