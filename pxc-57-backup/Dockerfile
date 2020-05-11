@@ -1,4 +1,13 @@
-FROM registry.access.redhat.com/ubi7/ubi-minimal
+FROM golang:1.13 AS go_builder
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
+
+RUN go get k8s.io/apimachinery/pkg/util/sets \
+    && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/master/cmd/peer-list/main.go \
+    && go build peer-list.go
+
+FROM centos:7 AS centos7
+
+FROM registry.access.redhat.com/ubi7/ubi-minimal AS ubi7
 
 LABEL name="Percona XtraBackup" \
 	release="2.4" \
@@ -95,7 +104,8 @@ RUN install -d -o 1001 -g 0 -m 0775 /backup \
 
 COPY lib/pxc /usr/lib/pxc
 COPY mc /usr/bin/
-COPY recovery-*.sh backup.sh get-pxc-state peer-list /usr/bin/
+COPY recovery-*.sh backup.sh get-pxc-state /usr/bin/
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001
