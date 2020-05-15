@@ -100,7 +100,7 @@ if [ -f "$vault_secret" ]; then
 fi
 
 file_env 'XTRABACKUP_PASSWORD' 'xtrabackup'
-file_env 'CLUSTERCHECK_PASSWORD' 'clustercheck'
+file_env 'CLUSTERCHECK_PASSWORD' 'clustercheckpassword!'
 NODE_NAME=$(hostname -f)
 NODE_PORT=3306
 # Is running in Kubernetes/OpenShift, so find all other pods belonging to the cluster
