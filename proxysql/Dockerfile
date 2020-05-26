@@ -1,4 +1,11 @@
-FROM centos:7
+FROM golang:1.13 AS go_builder
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
+
+RUN go get k8s.io/apimachinery/pkg/util/sets \
+    && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/master/cmd/peer-list/main.go \
+    && go build peer-list.go
+
+FROM centos:7 AS centos7
 
 LABEL name="ProxySQL" \
 	release="2.0" \
@@ -62,6 +69,7 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/proxysql2-$(echo ${PROXYSQL_VERSION} | cut -d - -f 1)/LICENSE /licenses/LICENSE.proxysql
 
 COPY dockerdir /
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
 RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf \
     && chmod 664 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf
 
