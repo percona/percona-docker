@@ -3,8 +3,9 @@
 set -o errexit
 set -o xtrace
 
-pwd=$(realpath $(dirname $0))
-. ${pwd}/vault.sh
+LIB_PATH='/usr/lib/pxc'
+. ${LIB_PATH}/check-version.sh
+. ${LIB_PATH}/vault.sh
 
 SOCAT_OPTS="TCP:${RESTORE_SRC_SERVICE}:3307,retry=30"
 function check_ssl() {
@@ -44,7 +45,13 @@ socat -u "$SOCAT_OPTS" stdio | xbstream -x -C $tmp --parallel=$(grep -c processo
 set +o xtrace
 transition_key=$(vault_get $tmp/sst_info)
 if [[ -n $transition_key && $transition_key != null ]]; then
-    transition_option="--transition-key=\$transition_key"
+    MYSQL_VERSION=$(parse_ini 'mysql-version' "$tmp/sst_info")
+    if ! check_for_version "$MYSQL_VERSION" '5.7.29' &&
+        [[ $MYSQL_VERSION != '5.7.28-31-57.2' ]]; then
+         transition_key="\$transition_key"
+    fi
+
+    transition_option="--transition-key=$transition_key"
     master_key_options="--generate-new-master-key"
     echo transition-key exists
 fi

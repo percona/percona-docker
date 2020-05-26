@@ -5,7 +5,9 @@ set -o xtrace
 function mysql_root_exec() {
   local server="$1"
   local query="$2"
+  set +o xtrace # hide sensitive information
   MYSQL_PWD=${MYSQL_ROOT_PASSWORD:-password} timeout 600 mysql -h "${server}" -uroot -s -NB -e "${query}"
+  set -o xtrace
 }
 
 function get_cipher() {
@@ -22,6 +24,7 @@ function get_cipher() {
 PROXY_CFG=/etc/proxysql/proxysql.cnf
 PROXY_ADMIN_CFG=/etc/proxysql-admin.cnf
 
+set +o xtrace # hide sensitive information
 MYSQL_ROOT_PASSWORD_ESCAPED=$(sed 's/[\*\.\@\&\#\?\!]/\\&/g' <<<"${MYSQL_ROOT_PASSWORD}")
 
 sed "s/\"admin:admin\"/\"${PROXY_ADMIN_USER:-admin}:${PROXY_ADMIN_PASSWORD:-admin}\"/g"  ${PROXY_CFG} 1<> ${PROXY_CFG}
@@ -31,9 +34,10 @@ sed "s/monitor_password=\"monitor\"/monitor_password=\"${MONITOR_PASSWORD:-monit
 sed "s/PROXYSQL_USERNAME='admin'/PROXYSQL_USERNAME='${PROXY_ADMIN_USER:-admin}'/g"       ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/PROXYSQL_PASSWORD='admin'/PROXYSQL_PASSWORD='${PROXY_ADMIN_PASSWORD:-admin}'/g"   ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/CLUSTER_USERNAME='admin'/CLUSTER_USERNAME='root'/g"                               ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
-sed "s/CLUSTER_PASSWORD='admin'/CLUSTER_PASSWORD='$MYSQL_ROOT_PASSWORD_ESCAPED'/g"               ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
+sed "s/CLUSTER_PASSWORD='admin'/CLUSTER_PASSWORD='$MYSQL_ROOT_PASSWORD_ESCAPED'/g"       ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/MONITOR_USERNAME='monitor'/MONITOR_USERNAME='monitor'/g"                          ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/MONITOR_PASSWORD='monitor'/MONITOR_PASSWORD='${MONITOR_PASSWORD:-monitor}'/g"     ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
+set -o xtrace
 
 ## SSL/TLS support
 CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt

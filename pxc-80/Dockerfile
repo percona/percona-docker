@@ -1,4 +1,11 @@
-FROM centos:7
+FROM golang:1.13 AS go_builder
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
+
+RUN go get k8s.io/apimachinery/pkg/util/sets \
+    && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/master/cmd/peer-list/main.go \
+    && go build peer-list.go
+
+FROM centos:7 AS centos7
 
 LABEL name="Percona XtraDB Cluster" \
 	release="8.0" \
@@ -22,9 +29,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 # install exact version of PS for repeatability
 ENV PS_VERSION 8.0.17-8.1.el7
-ENV PXC_VERSION 8.0.18-9.1.rc.el7
+ENV PXC_VERSION 8.0.18-9.3.el7
+ENV PXC_REPO release
 
-RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-3.el7.x86_64.rpm \
+RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-5.el7.x86_64.rpm \
 	&& curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
 	&& curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm \
 	&& curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
@@ -35,7 +43,7 @@ RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_6
 
 RUN yum update -y \
 	&& rpm -e --nodeps tzdata \
-		&& percona-release setup ps80 \
+	&& percona-release setup ps80 \
 	&& yum install -y \
 		jemalloc \
 		socat \
@@ -47,6 +55,7 @@ RUN yum update -y \
 		libaio \
 		which \
 		pam \
+		gdb \
 	&& yum clean all
 
 # create mysql user/group before mysql installation
@@ -58,19 +67,19 @@ RUN groupadd -g 1001 mysql \
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
 	&& yum install -y \
 		yum-utils \
-	&& curl -Lf -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-server-${PXC_VERSION}.x86_64.rpm \
-	&& curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm  https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-${PXC_VERSION}.x86_64.rpm \
-	&& curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
-	&& curl -Lf -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/experimental/7/RPMS/x86_64/percona-xtradb-cluster-shared-compat-${PXC_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-xtradb-cluster-server-${PXC_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm  https://repo.percona.com/pxc-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-xtradb-cluster-shared-${PXC_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-xtradb-cluster-shared-compat-${PXC_VERSION}.x86_64.rpm \
 	&& rpm -iv /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-shared-compat.rpm --nodeps \
 	&& rm -rf /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-shared.rpm \
 	&& yum clean all \
-		&& rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
-		&& rm -rf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam* \
-		&& rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqladmin$" | xargs rm -rf
+	&& rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
+	&& rm -rf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam* \
+	&& rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqladmin$" | xargs rm -rf
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN  cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera \
+RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera \
 	&& cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
 
 
@@ -82,6 +91,7 @@ RUN rmdir /etc/my.cnf.d \
 	&& echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
 
 COPY dockerdir /
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
 RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d \
 	&& chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d
@@ -90,8 +100,11 @@ ARG DEBUG
 RUN if [[ -n $DEBUG ]] ; then \
 		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
 		&& sed -i 's/exec "$@" $wsrep_start_position_opt/"$@" $wsrep_start_position_opt || sleep infinity/' /entrypoint.sh \
+		&& curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${PXC_VERSION}.x86_64.rpm \
+		&& rpmkeys --checksig /tmp/percona-xtradb-cluster-debuginfo.rpm \
+		&& rpm -iv /tmp/percona-xtradb-cluster-debuginfo.rpm --nodeps \
+		&& rm -rf /tmp/percona-xtradb-cluster-debuginfo.rpm \
 		&& yum install -y \
-			gdb \
 			net-tools \
 			telnet \
 			nc \

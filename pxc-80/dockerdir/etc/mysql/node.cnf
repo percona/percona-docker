@@ -4,6 +4,7 @@ default_authentication_plugin=mysql_native_password
 datadir=/var/lib/mysql
 socket=/tmp/mysql.sock
 skip-host-cache
+core-file
 
 #server_id=0
 binlog_format=ROW

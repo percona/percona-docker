@@ -1,4 +1,13 @@
-FROM registry.access.redhat.com/ubi7/ubi-minimal
+FROM golang:1.13 AS go_builder
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
+
+RUN go get k8s.io/apimachinery/pkg/util/sets \
+    && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/master/cmd/peer-list/main.go \
+    && go build peer-list.go
+
+FROM centos:7 AS centos7
+
+FROM registry.access.redhat.com/ubi7/ubi-minimal AS ubi7
 
 LABEL name="ProxySQL" \
 	release="2.0" \
@@ -21,7 +30,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 # install exact version for repeatability
-ENV PS_VERSION 5.7.26-29.1.el7
+ENV PS_VERSION 5.7.29-32.1.el7
 ENV PROXYSQL_VERSION 2.0.10-1.1.el7
 
 RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm \
@@ -73,6 +82,7 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/proxysql2-$(echo ${PROXYSQL_VERSION} | cut -d - -f 1)/LICENSE /licenses/LICENSE.proxysql
 
 COPY dockerdir /
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
 RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf \
     && chmod 664 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf
 

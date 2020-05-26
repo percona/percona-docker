@@ -24,7 +24,7 @@ RUN set -ex; \
     percona-release enable original release
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 5.6.47-rel87.0.1.el7
+ENV PERCONA_VERSION 5.6.48-rel88.0.1.el7
 
 RUN set -ex; \
     yum install -y \
