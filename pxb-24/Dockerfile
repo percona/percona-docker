@@ -1,24 +1,31 @@
-FROM debian:jessie
+FROM centos:7
 
-MAINTAINER Percona Development <info@percona.com>
+LABEL org.opencontainers.image.authors="info@percona.com"
 
-RUN set -e; \
-  apt-get update; \
-  apt-get install --no-install-recommends --yes \
-    apt-transport-https \
-    ca-certificates pwgen wget \
-  && rm -rf /var/lib/apt/lists/*
+# check repository package signature in secure way
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A; \
+    gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
+    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7; \
+    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+    rpmkeys --checksig /tmp/percona-release.rpm; \
+    yum install -y /tmp/percona-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-RUN wget https://repo.percona.com/apt/percona-release_0.1-4.jessie_all.deb \
-  && dpkg -i percona-release_0.1-4.jessie_all.deb
+ENV XTRABACKUP_VERSION 2.4.20-1.el7
+ENV PS_VERSION 5.7.30-33.1.el7
 
-RUN apt-get update \
-  && apt-get install --no-install-recommends --yes \
-  percona-xtrabackup-24\
-  qpress \
-  ; \
-  rm -rf /var/lib/apt/lists/*
+RUN set -ex; \
+  yum install -y \
+    percona-xtrabackup-24-${XTRABACKUP_VERSION} \
+    Percona-Server-shared-57-${PS_VERSION} \
+    qpress; \
+  \
+  yum clean all; \
+  rm -rf /var/cache/yum 
+
+VOLUME [ "/backup" ]
 
 ENTRYPOINT ["xtrabackup"]
-
-CMD ["/bin/bash"]
