@@ -95,6 +95,24 @@ RUN set -ex; \
 VOLUME ["/data/db"]
 
 COPY ps-entry.sh /entrypoint.sh
+
+ARG DEBUG
+RUN if [[ -n $DEBUG ]] ; then \
+        sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh \
+        && curl -Lf -o /tmp/percona-mongodb-debuginfo.rpm https://repo.percona.com/yum/release/7/RPMS/x86_64/Percona-Server-MongoDB-36-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm \
+        && curl -Lf -o /tmp/percona-mongodb-tools.rpm https://repo.percona.com/yum/release/7/RPMS/x86_64/Percona-Server-MongoDB-36-tools-${FULL_PERCONA_VERSION}.x86_64.rpm \
+        && rpmkeys --checksig /tmp/percona-mongodb-debuginfo.rpm /tmp/percona-mongodb-tools.rpm \
+        && rpm -iv /tmp/percona-mongodb-debuginfo.rpm /tmp/percona-mongodb-tools.rpm --nodeps \
+        && rm -f /tmp/percona-mongodb-debuginfo.rpm /tmp/percona-mongodb-tools.rpm \
+        && yum install -y \
+		net-tools \
+		telnet \
+		sudo \
+		gdb \
+		nc \
+        && yum clean all; \
+    fi
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 27017
