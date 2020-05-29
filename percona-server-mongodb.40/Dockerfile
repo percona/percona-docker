@@ -121,7 +121,6 @@ RUN if [[ -n $DEBUG ]] ; then \
         && yum install -y \
 		net-tools \
 		telnet \
-		sudo \
 		gdb \
 		nc \
 		percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \

@@ -107,7 +107,6 @@ RUN if [[ -n $DEBUG ]] ; then \
         && yum install -y \
 		net-tools \
 		telnet \
-		sudo \
 		gdb \
 		nc \
         && yum clean all; \
