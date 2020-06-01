@@ -28,4 +28,4 @@ RUN set -ex; \
 
 VOLUME [ "/backup" ]
 
-ENTRYPOINT ["xtrabackup"]
+CMD ["/usr/bin/xtrabackup"]
