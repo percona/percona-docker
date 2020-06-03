@@ -107,9 +107,26 @@ RUN set -ex; \
     \
     chmod 0755 /usr/local/bin/k8s-mongodb-initiator /usr/local/bin/mongodb-healthcheck
 
+COPY ps-entry.sh /entrypoint.sh
+
+ARG DEBUG
+RUN if [[ -n $DEBUG ]] ; then \
+        sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh \
+        && curl -Lf -o /tmp/percona-mongodb-debuginfo.rpm https://repo.percona.com/psmdb-42/yum/release/7/RPMS/x86_64/percona-server-mongodb-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm \
+        && rpmkeys --checksig /tmp/percona-mongodb-debuginfo.rpm \
+        && rpm -iv /tmp/percona-mongodb-debuginfo.rpm --nodeps \
+        && rm -f /tmp/percona-mongodb-debuginfo.rpm \
+        && yum install -y \
+		net-tools \
+		telnet \
+		gdb \
+		nc \
+		percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
+        && yum clean all; \
+    fi
+
 VOLUME ["/data/db"]
 
-COPY ps-entry.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 27017
