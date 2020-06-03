@@ -28,9 +28,9 @@ set +o xtrace # hide sensitive information
 MONITOR_PASSWORD_ESCAPED=$(sed 's/[\*\.\@\&\#\?\!]/\\&/g' <<<"${MONITOR_PASSWORD}")
 PROXY_ADMIN_PASSWORD_ESCAPED=$(sed 's/[\*\.\@\&\#\?\!]/\\&/g' <<<"${PROXY_ADMIN_PASSWORD}")
 
-sed "s/\"admin:admin\"/\"${PROXY_ADMIN_USER:-admin}:${PROXY_ADMIN_PASSWORD_ESCAPED:-admin}\"/g"  ${PROXY_CFG} 1<> ${PROXY_CFG}
+sed "s/\"admin:admin\"/\"${PROXY_ADMIN_USER:-admin}:${PROXY_ADMIN_PASSWORD:-admin}\"/g"  ${PROXY_CFG} 1<> ${PROXY_CFG}
 sed "s/cluster_username=\"admin\"/cluster_username=\"${PROXY_ADMIN_USER:-admin}\"/g"     ${PROXY_CFG} 1<> ${PROXY_CFG}
-sed "s/cluster_password=\"admin\"/cluster_password=\"${PROXY_ADMIN_PASSWORD_ESCAPED:-admin}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
+sed "s/cluster_password=\"admin\"/cluster_password=\"${PROXY_ADMIN_PASSWORD:-admin}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
 sed "s/monitor_password=\"monitor\"/monitor_password=\"${MONITOR_PASSWORD_ESCAPED:-monitor}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
 sed "s/PROXYSQL_USERNAME='admin'/PROXYSQL_USERNAME='${PROXY_ADMIN_USER:-admin}'/g"       ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/PROXYSQL_PASSWORD='admin'/PROXYSQL_PASSWORD='${PROXY_ADMIN_PASSWORD_ESCAPED:-admin}'/g"   ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
