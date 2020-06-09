@@ -26,6 +26,7 @@ PROXY_ADMIN_CFG=/etc/proxysql-admin.cnf
 
 sed "s/interfaces=\"0.0.0.0:3306\"/interfaces=\"${MYSQL_INTERFACES:-0.0.0.0:3306}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
 sed "s/stacksize=1048576/stacksize=${MYSQL_STACKSIZE:-1048576}/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
+sed "s/threads=2/threads=${MYSQL_THREADS:-2}/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
 
 set +o xtrace # hide sensitive information
 MYSQL_ROOT_PASSWORD_ESCAPED=$(sed 's/[\*\.\@\&\#\?\!]/\\&/g' <<<"${MYSQL_ROOT_PASSWORD}")
