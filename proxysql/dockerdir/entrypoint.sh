@@ -24,6 +24,8 @@ function get_cipher() {
 PROXY_CFG=/etc/proxysql/proxysql.cnf
 PROXY_ADMIN_CFG=/etc/proxysql-admin.cnf
 
+sed "s/threads=2/threads=${MYSQL_THREADS:-2}/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
+
 set +o xtrace # hide sensitive information
 MYSQL_ROOT_PASSWORD_ESCAPED=$(sed 's/[\*\.\@\&\#\?\!]/\\&/g' <<<"${MYSQL_ROOT_PASSWORD}")
 
