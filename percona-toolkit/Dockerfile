@@ -1,19 +1,35 @@
-FROM debian:jessie
-MAINTAINER Percona Development <info@percona.com>
+FROM centos:8
 
-RUN apt-get update && apt-get install -y --force-yes --no-install-recommends \
-                apt-transport-https ca-certificates \
-                pwgen \
-        && rm -rf /var/lib/apt/lists/*
+LABEL name="Percona Toolkit" \
+	release="3.2.0" \
+	vendor="Percona" \
+	summary="Percona Toolkit is a collection of advanced command-line tools used by Percona" \
+	description="Percona Toolkit is derived from Maatkit and Aspersa, two of the best-known toolkits for MySQL server administration. It is developed and supported by Percona." \
+	maintainer="Percona Development <info@percona.com>"
 
-RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A
+ENV PT_VERSION 3.2.0-1.el8
 
-RUN echo 'deb https://repo.percona.com/apt jessie main' > /etc/apt/sources.list.d/percona.list
+# check repository package signature in secure way
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A; \
+    gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
+    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial; \
+    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+    rpmkeys --checksig /tmp/percona-release.rpm; \
+    yum install -y /tmp/percona-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    percona-release setup -y ps-80
 
-RUN  apt-get update \
-        && apt-get install -y --force-yes percona-toolkit \
-        && rm -rf /var/lib/apt/lists/* 
+RUN set -ex; \
+  yum install -y \
+    percona-toolkit-${PT_VERSION}; \
+  \
+  yum clean all; \
+  rm -rf /var/cache/yum
 
-ENV PERCONA_VERSION 3.0.4
+RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
+            -c "Default Application User" perconatoolkit
 
-WORKDIR /
+USER 1001
