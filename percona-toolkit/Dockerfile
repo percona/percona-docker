@@ -17,17 +17,17 @@ RUN set -ex; \
     rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
-    yum install -y /tmp/percona-release.rpm; \
+    dnf install -y /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release setup -y ps-80
 
 RUN set -ex; \
-  yum install -y \
+  dnf install -y \
     percona-toolkit-${PT_VERSION}; \
   \
-  yum clean all; \
-  rm -rf /var/cache/yum
+  dnf clean all; \
+  rm -rf /var/cache/dnf
 
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" perconatoolkit
