@@ -12,15 +12,17 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     yum install -y /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
-    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    percona-release disable all; \
+    percona-release setup ps-80
 
-ENV XTRABACKUP_VERSION 2.4.20-1.el7
-ENV PS_VERSION 5.7.30-33.1.el7
+ENV XTRABACKUP_VERSION 8.0.13-1.el7
+ENV PS_VERSION 8.0.19-10.1.el7
 
 RUN set -ex; \
   yum install -y \
-    percona-xtrabackup-24-${XTRABACKUP_VERSION} \
-    Percona-Server-shared-57-${PS_VERSION} \
+    percona-xtrabackup-80-${XTRABACKUP_VERSION} \
+    percona-server-shared-${PS_VERSION} \
     qpress; \
   \
   yum clean all; \
