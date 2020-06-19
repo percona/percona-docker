@@ -31,8 +31,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 ENV PS_VERSION 5.7.30-33.1.el7
 ENV PROXYSQL_VERSION 2.0.12-1.1.el7
 
-RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm \
-	&& curl -L -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
+RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-2.el7.x86_64.rpm \
+	&& curl -L -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-6.8.2-1.el7.x86_64.rpm \
 	&& rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm \
 	&& rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm \
 	&& rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
