@@ -20,11 +20,13 @@ RUN set -ex; \
     dnf install -y /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release setup -y ps-80
+    dnf -y module disable mysql perl-DBD-MySQL; \
+    percona-release enable tools experimental
 
 RUN set -ex; \
   dnf install -y \
-    percona-toolkit-${PT_VERSION}; \
+    percona-toolkit-${PT_VERSION} \
+    perl-DBD-MySQL; \
   \
   dnf clean all; \
   rm -rf /var/cache/dnf
