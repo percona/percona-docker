@@ -32,17 +32,17 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 # install exact version of PS for repeatability
-ENV XTRABACKUP_VERSION 8.0.11-1.el7
-ENV PS_VERSION 8.0.18-9.1.el7
-ENV PXC_VERSION 8.0.18-9.3.el7
+ENV XTRABACKUP_VERSION 8.0.12-1.el7
+ENV PS_VERSION 8.0.19-10.1.el7
+ENV PXC_VERSION 8.0.19-10.1.el7
 ENV PXC_REPO release
 ENV KUBECTL_VERSION=v1.15.6
 ENV KUBECTL_SHA256SUM=522115e0f11d83c08435a05e76120c89ea320782ccaff8e301bd14588ec50145
 
 RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-5.el7.x86_64.rpm \
 	&& curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
-	&& curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm \
-	&& curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-2.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-6.8.2-1.el7.x86_64.rpm \
 	&& rpmkeys --checksig /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm \
 	&& rpm -i /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm \
 	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm
@@ -64,12 +64,15 @@ RUN groupadd -g 1001 mysql \
 # we need licenses from docs
 RUN sed -i '/nodocs/d' /etc/yum.conf || : \
 	&& repoquery -a --location iputils | xargs curl -Lf -o /tmp/iputils.rpm \
+	&& repoquery -a --archlist=x86_64 --location elfutils-libs | xargs curl -Lf -o /tmp/elfutils-libs.rpm \
+	&& repoquery -a --archlist=x86_64 --location systemd-libs | xargs curl -Lf -o /tmp/systemd-libs.rpm \
+	&& repoquery -a --archlist=x86_64 --location procps-ng | xargs curl -Lf -o /tmp/procps.rpm \
 	&& curl -Lf -o /tmp/percona-xtrabackup.rpm http://repo.percona.com/tools/yum/testing/7/RPMS/x86_64/percona-xtrabackup-80-${XTRABACKUP_VERSION}.x86_64.rpm \
 	&& curl -Lf -o /tmp/percona-server-shared.rpm http://repo.percona.com/ps-80/yum/release/7/RPMS/x86_64/percona-server-shared-${PS_VERSION}.x86_64.rpm \
 	&& curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-xtradb-cluster-garbd-${PXC_VERSION}.x86_64.rpm \
 	&& curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
-	&& rpm -iv /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm --nodeps \
-	&& rm -rf /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm \
+	&& rpm -iv /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm /tmp/procps.rpm /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm --nodeps \
+	&& rm -rf /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm /tmp/procps.rpm /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm \
 	&& rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf \
 	&& microdnf remove -y \
 		yum-utils \
@@ -96,7 +99,7 @@ RUN install -d -o 1001 -g 0 -m 0775 /backup \
 
 COPY lib/pxc /usr/lib/pxc
 COPY mc /usr/bin/
-COPY recovery-*.sh backup.sh get-pxc-state /usr/bin/
+COPY recovery-*.sh run_backup.sh backup.sh get-pxc-state /usr/bin/
 COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
 
 VOLUME ["/backup"]

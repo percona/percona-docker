@@ -16,7 +16,7 @@ RUN set -ex; \
     percona-release disable all; \
     percona-release setup ps-80
 
-ENV XTRABACKUP_VERSION 8.0.12-1.el7
+ENV XTRABACKUP_VERSION 8.0.13-1.el7
 ENV PS_VERSION 8.0.19-10.1.el7
 
 RUN set -ex; \
