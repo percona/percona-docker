@@ -29,6 +29,7 @@ sed "s/stacksize=1048576/stacksize=${MYSQL_STACKSIZE:-1048576}/g" ${PROXY_CFG} 1
 sed "s/threads=2/threads=${MYSQL_THREADS:-2}/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
 
 set +o xtrace # hide sensitive information
+OPERATOR_PASSWORD_ESCAPED=$(sed 's/[\*\.\@\&\#\?\!]/\\&/g' <<<"${OPERATOR_PASSWORD}")
 MONITOR_PASSWORD_ESCAPED=$(sed 's/[\*\.\@\&\#\?\!]/\\&/g' <<<"${MONITOR_PASSWORD}")
 PROXY_ADMIN_PASSWORD_ESCAPED=$(sed 's/[\*\.\@\&\#\?\!]/\\&/g' <<<"${PROXY_ADMIN_PASSWORD}")
 
@@ -38,8 +39,8 @@ sed "s/cluster_password=\"admin\"/cluster_password=\"${PROXY_ADMIN_PASSWORD:-adm
 sed "s/monitor_password=\"monitor\"/monitor_password=\"${MONITOR_PASSWORD:-monitor}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
 sed "s/PROXYSQL_USERNAME='admin'/PROXYSQL_USERNAME='${PROXY_ADMIN_USER:-admin}'/g"       ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/PROXYSQL_PASSWORD='admin'/PROXYSQL_PASSWORD='${PROXY_ADMIN_PASSWORD_ESCAPED:-admin}'/g"   ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
-sed "s/CLUSTER_USERNAME='admin'/CLUSTER_USERNAME='monitor'/g"                            ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
-sed "s/CLUSTER_PASSWORD='admin'/CLUSTER_PASSWORD='${MONITOR_PASSWORD_ESCAPED:-monitor}'/g"       ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
+sed "s/CLUSTER_USERNAME='admin'/CLUSTER_USERNAME='operator'/g"                            ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
+sed "s/CLUSTER_PASSWORD='admin'/CLUSTER_PASSWORD='${OPERATOR_PASSWORD_ESCAPED:-operator}'/g"       ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/MONITOR_USERNAME='monitor'/MONITOR_USERNAME='monitor'/g"                          ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/MONITOR_PASSWORD='monitor'/MONITOR_PASSWORD='${MONITOR_PASSWORD_ESCAPED:-monitor}'/g"     ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 set -o xtrace
