@@ -6,7 +6,7 @@ set -o xtrace
 function mysql_root_exec() {
   local server="$1"
   local query="$2"
-  MYSQL_PWD="${MONITOR_PASSWORD:-monitor}" timeout 600 mysql -h "${server}" -umonitor -s -NB -e "${query}"
+  MYSQL_PWD="${OPERATOR_PASSWORD:-operator}" timeout 600 mysql -h "${server}" -uoperator -s -NB -e "${query}"
 }
 
 function wait_for_mysql() {
