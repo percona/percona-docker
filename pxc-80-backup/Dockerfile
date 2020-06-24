@@ -54,6 +54,7 @@ RUN microdnf update -y \
 		hostname \
 		yum-utils \
 		libaio \
+		tar \
 	&& microdnf clean all
 
 # create mysql user/group before mysql installation
