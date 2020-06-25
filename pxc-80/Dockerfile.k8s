@@ -59,6 +59,7 @@ RUN microdnf update -y \
 		pam \
 		gdb \
 		tar \
+		perl \
 	&& microdnf clean all
 
 # create mysql user/group before mysql installation

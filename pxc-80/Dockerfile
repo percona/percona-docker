@@ -56,6 +56,7 @@ RUN yum update -y \
 		which \
 		pam \
 		gdb \
+		perl \
 	&& yum clean all
 
 # create mysql user/group before mysql installation
