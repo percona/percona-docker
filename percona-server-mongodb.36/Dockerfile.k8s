@@ -48,6 +48,7 @@ RUN set -ex; \
         yum-utils \
         shadow-utils \
         curl \
+        tar \
         Percona-Server-MongoDB-36-shell-${FULL_PERCONA_VERSION} \
         Percona-Server-MongoDB-36-mongos-${FULL_PERCONA_VERSION}; \
     repoquery -a --location \
