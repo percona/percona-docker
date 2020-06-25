@@ -26,6 +26,7 @@ export OFFLINE_HOSTGROUP_ID='13'
 
 # ProxySQL read/write configuration mode.
 export MODE="singlewrite"
+export WRITE_NODE=""
 
 # max_connections default (used only when INSERTing a new mysql_servers entry)
 export MAX_CONNECTIONS="1000"

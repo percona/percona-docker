@@ -54,6 +54,8 @@ function main() {
         SSL_ARG="--use-ssl=yes"
     fi
 
+    sed "s/WRITE_NODE=.*/WRITE_NODE='$first_host:3306'/g" /etc/proxysql-admin.cnf 1<> /etc/proxysql-admin.cnf
+
     proxysql-admin \
         --config-file=/etc/proxysql-admin.cnf \
         --cluster-hostname="$first_host" \
