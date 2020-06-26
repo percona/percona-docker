@@ -41,7 +41,6 @@ function handle_sigint() {
     if (( $FIRST_RECEIVED == 0 )); then
         echo "SST request failed"
         SST_FAILED=1
-        ps -aux
         pid_s=$(ps -C socat -o pid=)
         kill $pid_s
         exit 1
@@ -75,7 +74,9 @@ function backup_volume() {
     vault_store $BACKUP_DIR/${SST_INFO_NAME}
 
     if (( $SST_FAILED == 0 )); then
+        FIRST_RECEIVED=0
         socat -u "$SOCAT_OPTS" stdio >xtrabackup.stream
+        FIRST_RECEIVED=1
         if [[ $? -ne 0 ]]; then
             echo "socat(2) failed"
             exit 1
@@ -121,9 +122,11 @@ function backup_s3() {
         | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
     if (( $SST_FAILED == 0 )); then
+         FIRST_RECEIVED=0
          socat -u "$SOCAT_OPTS" stdio  \
             | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
             | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
+         FIRST_RECEIVED=1
          echo "Backup finished"
     fi
 
