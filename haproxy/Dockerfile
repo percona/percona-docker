@@ -1,4 +1,4 @@
-DockerfileFROM golang:1.14 AS go_builder
+FROM golang:1.14 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
 RUN go get k8s.io/apimachinery/pkg/util/sets \
