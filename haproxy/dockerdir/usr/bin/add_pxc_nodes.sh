@@ -35,10 +35,10 @@ EOF
 
     echo "${#HA[@]}" > $path_to_haproxy_cfg/AVAILABLE_NODES
     ( IFS=$'\n'; echo "${HA[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
-    if [ -f /etc/haproxy-auto/haproxy-auto.cfg ]; then
-        haproxy -c -f $path_to_haproxy_cfg/haproxy.cfg -f /etc/haproxy-auto/haproxy-auto.cfg
+    if [ -f /etc/haproxy-custom/haproxy-global.cfg ]; then
+        haproxy -c -f $path_to_haproxy_cfg/haproxy.cfg -f /etc/haproxy-custom/haproxy-global.cfg
     else
-        haproxy -c -f $path_to_haproxy_cfg/haproxy.cfg -f /etc/haproxy/haproxy-auto.cfg
+        haproxy -c -f $path_to_haproxy_cfg/haproxy.cfg -f /etc/haproxy/haproxy-global.cfg
     fi
 
     if [ -f "$path_to_haproxy_cfg/haproxy.pid" ]; then
