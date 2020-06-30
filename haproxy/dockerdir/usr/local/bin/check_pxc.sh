@@ -12,7 +12,7 @@ MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER"
 
 AVAILABLE_NODES=1
 if [ -f '/etc/haproxy/pxc/AVAILABLE_NODES' ]; then
-    AVAILABLE_NODES=$(cat /etc/haproxy/pxc/AVAILABLE_NODES)
+    AVAILABLE_NODES=$(/bin/cat /etc/haproxy/pxc/AVAILABLE_NODES)
 fi
 
 PXC_NODE_STATUS=($(MYSQL_PWD="${MONITOR_PASSWORD}" $MYSQL_CMDLINE -h $PXC_SERVER_IP -P $PXC_SERVER_PORT \
