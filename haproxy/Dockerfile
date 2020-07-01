@@ -44,14 +44,14 @@ RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
 STOPSIGNAL SIGUSR1
 
 RUN set -ex; \
-    mkdir -p /etc/haproxy/pxc /etc/haproxy-auto; \
-    chown -R 1001:1001 /run /etc/haproxy /etc/haproxy/pxc /etc/haproxy-auto
+    mkdir -p /etc/haproxy/pxc /etc/haproxy-custom; \
+    chown -R 1001:1001 /run /etc/haproxy /etc/haproxy/pxc /etc/haproxy-custom
 
 COPY dockerdir /
 COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
 
 RUN set -ex; \
-    chown 1001:1001 /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy-auto.cfg /usr/local/bin/check_pxc.sh
+    chown 1001:1001 /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy-global.cfg /usr/local/bin/check_pxc.sh
 
 USER mysql
 
