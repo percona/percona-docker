@@ -18,7 +18,7 @@ plus additional enterprise-grade functionality."
 LABEL org.opencontainers.image.license="SSPLv1"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 4.2.6-6
+ENV PSMDB_VERSION 4.2.7-7
 LABEL org.label-schema.schema-version=${PSMDB_VERSION}
 LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
@@ -47,8 +47,8 @@ ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
 
 RUN set -ex; \
-    curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm; \
-    curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm; \
+    curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-2.el7.x86_64.rpm; \
+    curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-6.8.2-1.el7.x86_64.rpm; \
     rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
     \
     rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
@@ -107,9 +107,10 @@ RUN set -ex; \
     \
     chmod 0755 /usr/local/bin/k8s-mongodb-initiator /usr/local/bin/mongodb-healthcheck
 
+COPY ps-entry.sh /entrypoint.sh
+
 VOLUME ["/data/db"]
 
-COPY ps-entry.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 27017

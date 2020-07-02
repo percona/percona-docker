@@ -33,16 +33,16 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 # install exact version of PS for repeatability
 ENV XTRABACKUP_VERSION 2.4.20-1.el7
-ENV PS_VERSION 5.7.29-32.1.el7
-ENV PXC_VERSION 5.7.29-31.43.1.el7
+ENV PS_VERSION 5.7.30-33.1.el7
+ENV PXC_VERSION 5.7.30-31.43.1.el7
 ENV KUBECTL_VERSION=v1.15.6
 ENV KUBECTL_SHA256SUM=522115e0f11d83c08435a05e76120c89ea320782ccaff8e301bd14588ec50145
 
 RUN percona-release enable original testing
 RUN curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/numactl-libs-2.0.12-5.el7.x86_64.rpm \
 	&& curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm \
-	&& curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm \
-	&& curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-2.el7.x86_64.rpm \
+	&& curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-6.8.2-1.el7.x86_64.rpm \
 	&& rpmkeys --checksig /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm \
 	&& rpm -i /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm \
 	&& rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm
@@ -55,6 +55,7 @@ RUN microdnf update -y \
 		hostname \
 		yum-utils \
 		libaio \
+		tar \
 	&& microdnf clean all
 
 # create mysql user/group before mysql installation

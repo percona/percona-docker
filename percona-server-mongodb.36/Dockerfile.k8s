@@ -35,8 +35,8 @@ ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION 0.5.0
 
 RUN set -ex; \
-    curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-1.el7.x86_64.rpm; \
-    curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-5.9.5-3.el7.x86_64.rpm; \
+    curl -Lf -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-2.el7.x86_64.rpm; \
+    curl -Lf -o /tmp/oniguruma.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-6.8.2-1.el7.x86_64.rpm; \
     rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
     \
     rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
@@ -48,6 +48,7 @@ RUN set -ex; \
         yum-utils \
         shadow-utils \
         curl \
+        tar \
         Percona-Server-MongoDB-36-shell-${FULL_PERCONA_VERSION} \
         Percona-Server-MongoDB-36-mongos-${FULL_PERCONA_VERSION}; \
     repoquery -a --location \
@@ -97,6 +98,24 @@ RUN set -ex; \
 VOLUME ["/data/db"]
 
 COPY ps-entry.sh /entrypoint.sh
+
+ARG DEBUG
+RUN if [[ -n $DEBUG ]] ; then \
+        sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh \
+        && curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/telnet-0.17-64.el7.x86_64.rpm \
+        && curl -Lf -o /tmp/percona-mongodb-debuginfo.rpm https://repo.percona.com/yum/release/7/RPMS/x86_64/Percona-Server-MongoDB-36-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm \
+        && curl -Lf -o /tmp/percona-mongodb-tools.rpm https://repo.percona.com/yum/release/7/RPMS/x86_64/Percona-Server-MongoDB-36-tools-${FULL_PERCONA_VERSION}.x86_64.rpm \
+        && rpmkeys --checksig /tmp/telnet.rpm  /tmp/percona-mongodb-debuginfo.rpm /tmp/percona-mongodb-tools.rpm \
+        && rpm -i /tmp/telnet.rpm /tmp/percona-mongodb-debuginfo.rpm /tmp/percona-mongodb-tools.rpm --nodeps \
+        && rm -f /tmp/telnet.rpm /tmp/percona-mongodb-debuginfo.rpm /tmp/percona-mongodb-tools.rpm \
+        && microdnf install -y \
+		net-tools \
+		sudo \
+		gdb \
+		nc \
+        && microdnf clean all; \
+    fi
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 27017
