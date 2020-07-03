@@ -1,13 +1,26 @@
 FROM centos:8
 
-LABEL name="Percona Toolkit" \
-	release="3.2.0" \
-	vendor="Percona" \
-	summary="Percona Toolkit is a collection of advanced command-line tools used by Percona" \
-	description="Percona Toolkit is derived from Maatkit and Aspersa, two of the best-known toolkits for MySQL server administration. It is developed and supported by Percona." \
-	maintainer="Percona Development <info@percona.com>"
+LABEL org.label-schema.schema-version="1.0"
+LABEL org.label-schema.name="Percona Toolkit"
+LABEL org.label-schema.vendor="Percona"
+LABEL org.label-schema.description="Percona Toolkit is a collection of advanced command-line tools used by Percona support staff \
+to perform a variety of MySQL, MongoDB, and system tasks \
+ that are too difficult or complex to perform manually."
+LABEL org.label-schema.license="GPLv2"
 
-ENV PT_VERSION 3.2.0-1.el8
+LABEL org.opencontainers.image.title="Percona Toolkit"
+LABEL org.opencontainers.image.vendor="Percona"
+LABEL org.opencontainers.image.description="Percona Toolkit is a collection of advanced command-line tools used by Percona support staff \
+to perform a variety of MySQL, MongoDB, and system tasks \
+ that are too difficult or complex to perform manually."
+LABEL org.opencontainers.image.license="GPLv2"
+LABEL org.opencontainers.image.authors="info@percona.com"
+
+ENV PT_VERSION 3.2.0-1
+ENV OS_VER el8
+ENV FULL_PERCONA_PT_VERSION "$PT_VERSION.$OS_VER"
+LABEL org.label-schema.schema-version=${PS_VERSION}
+LABEL org.opencontainers.image.version=${PS_VERSION}
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -26,7 +39,7 @@ RUN set -ex; \
 
 RUN set -ex; \
   dnf install -y \
-    percona-toolkit-${PT_VERSION}; \
+    percona-toolkit-${FULL_PERCONA_PT_VERSION}; \
   \
   dnf clean all; \
   rm -rf /var/cache/dnf
