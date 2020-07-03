@@ -41,15 +41,27 @@ RUN export GNUPGHOME="$(mktemp -d)"; \
 
 RUN set -ex; \
     dnf install -y \
+        dnf-utils \
+        jemalloc \
+        openssl \
+        which; \
+    \
+    repoquery -a --location \
+        policycoreutils \
+            | xargs curl -Lf -o /tmp/policycoreutils.rpm; \
+    repoquery -a --location \
+        selinux-policy \
+            | xargs curl -Lf -o /tmp/selinux-policy.rpm; \
+    rpm -iv /tmp/policycoreutils.rpm /tmp/selinux-policy.rpm --nodeps; \
+    \
+    rm -rf /tmp/policycoreutils.rpm /tmp/selinux-policy.rpm; \
+    dnf install -y \
         Percona-Server-server-57-${FULL_PERCONA_VERSION} \
         Percona-Server-devel-57-${FULL_PERCONA_VERSION} \
         Percona-Server-tokudb-57-${FULL_PERCONA_VERSION} \
-        Percona-Server-rocksdb-57-${FULL_PERCONA_VERSION} \
-        jemalloc \
-        openssl \
-        which \
-        policycoreutils; \
-    \
+        Percona-Server-rocksdb-57-${FULL_PERCONA_VERSION}; \
+    dnf remove -y \
+        dnf-utils; \
     dnf clean all; \
     rm -rf /var/cache/dnf /var/lib/mysql
 
