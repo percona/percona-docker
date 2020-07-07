@@ -25,7 +25,7 @@ function main() {
         NODE_LIST+=( "server $node_name $pxc_host:3306 check inter 10000 rise 1 fall 2 weight 1 backup" )
     done
 
-    NODE_LIST=( "$firs_node" $(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq) )
+    NODE_LIST=( "$firs_node" "$(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq)" )
 
 path_to_haproxy_cfg='/etc/haproxy/pxc'
 cat <<-EOF > "$path_to_haproxy_cfg/haproxy.cfg"
