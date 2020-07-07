@@ -43,6 +43,7 @@ function main() {
         echo "Could not find PEERS ..."
         exit
     fi
+    pod_zero=$(echo "$first_host" | cut -d . -f 1 | sed -r 's/-[0-9]+$/-0/')
     service=$(echo "$first_host" | cut -d . -f 2-)
 
     sleep 15s # wait for evs.inactive_timeout
@@ -54,7 +55,7 @@ function main() {
         SSL_ARG="--use-ssl=yes"
     fi
 
-    sed "s/WRITE_NODE=.*/WRITE_NODE='$first_host:3306'/g" /etc/proxysql-admin.cnf 1<> /etc/proxysql-admin.cnf
+    sed "s/WRITE_NODE=.*/WRITE_NODE='$pod_zero.$service:3306'/g" /etc/proxysql-admin.cnf 1<> /etc/proxysql-admin.cnf
 
     proxysql-admin \
         --config-file=/etc/proxysql-admin.cnf \
