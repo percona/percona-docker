@@ -18,7 +18,7 @@ plus additional enterprise-grade functionality."
 LABEL org.opencontainers.image.license="SSPLv1"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 4.2.7-7
+ENV PSMDB_VERSION 4.2.8-8
 LABEL org.label-schema.schema-version=${PSMDB_VERSION}
 LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
