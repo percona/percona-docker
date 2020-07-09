@@ -46,6 +46,8 @@ STOPSIGNAL SIGUSR1
 RUN set -ex; \
     mkdir -p /etc/haproxy/pxc /etc/haproxy-custom; \
     chown -R 1001:1001 /run /etc/haproxy /etc/haproxy/pxc /etc/haproxy-custom
+COPY LICENSE /licenses/LICENSE.Dockerfile
+RUN cp /usr/share/licenses/percona-haproxy/LICENSE /licenses/LICENSE.haproxy
 
 COPY dockerdir /
 COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
