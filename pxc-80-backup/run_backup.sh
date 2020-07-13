@@ -41,9 +41,13 @@ function handle_sigint() {
     if (( $FIRST_RECEIVED == 0 )); then
         echo "SST request failed"
         SST_FAILED=1
-        pid_s=$(ps -C socat -o pid=)
-        kill $pid_s
-        exit 1
+        pid_s=$(ps -C socat -o pid= || true)
+        if [ -n "${pid_s}" ]; then
+            kill $pid_s
+            exit 1
+        else
+            echo 'Socat does not exist.'
+        fi
      fi
      exit 0
 }
