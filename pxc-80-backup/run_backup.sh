@@ -107,9 +107,6 @@ function backup_s3() {
     mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
     set -x
 
-    xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || :
-    xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" || :
-
     socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp &
     wait $!
     echo "Socat was started"

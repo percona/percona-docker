@@ -50,6 +50,13 @@ function request_streaming() {
         exit 1
     fi
 
+    if [ -n "$S3_BUCKET" ]; then
+        SST_INFO_NAME=sst_info
+        S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
+        xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || :
+        xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" || :
+    fi
+
     echo '[INFO] garbd was started'
         garbd \
             --address "gcomm://$NODE_NAME.$PXC_SERVICE?gmcast.listen_addr=tcp://0.0.0.0:4567" \
