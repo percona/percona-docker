@@ -32,7 +32,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 # install exact version of PS for repeatability
-ENV XTRABACKUP_VERSION 8.0.12-1.el7
+ENV XTRABACKUP_VERSION 8.0.13-1.el7
 ENV PS_VERSION 8.0.19-10.1.el7
 ENV PXC_VERSION 8.0.19-10.1.el7
 ENV PXC_REPO release
