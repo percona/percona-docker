@@ -14,7 +14,7 @@ set -x
 mc -C /tmp/mc ls "dest/${S3_BUCKET_URL}"
 
 rm -rf /datadir/*
-tmp=$(mktemp --tmpdir --directory pxc_sst_XXXX)
+tmp=$(mktemp --directory /datadir/pxc_sst_XXXX)
 xbcloud get "s3://${S3_BUCKET_URL}.sst_info" --parallel=10 | xbstream -x -C $tmp --parallel=$(grep -c processor /proc/cpuinfo)
 xbcloud get "s3://${S3_BUCKET_URL}" --parallel=10 | xbstream --decompress -x -C $tmp --parallel=$(grep -c processor /proc/cpuinfo)
 
