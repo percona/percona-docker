@@ -27,10 +27,12 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
-	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
+	&& percona-release disable all \
+	&& percona-release setup pxc80
 
 # install exact version for repeatability
-ENV PS_VERSION 5.7.30-33.1.el7
+ENV PS_VERSION 8.0.19-10.1.el7
 ENV PROXYSQL_VERSION 2.0.12-1.1.el7
 
 RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-1.6-2.el7.x86_64.rpm \
@@ -41,8 +43,7 @@ RUN curl -L -o /tmp/jq.rpm https://download.fedoraproject.org/pub/epel/7/x86_64/
 
 RUN microdnf update -y \
         && microdnf install -y \
-                Percona-Server-client-57-${PS_VERSION} \
-                Percona-Server-shared-57-${PS_VERSION} \
+                percona-xtradb-cluster-client-${PS_VERSION} \
                 shadow-utils \
                 which \
                 hostname \
@@ -76,7 +77,7 @@ RUN sed -i '/nodocs/d' /etc/yum.conf || : \
                yum \
         && microdnf clean all \
         && rm -rf /var/cache/yum /etc/proxysql /var/lib/proxysql \
-        && rpm -ql Percona-Server-client-57 | egrep -v "mysql$|mysqldump$" | xargs rm -rf \
+        && rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf \
         && install -o 1001 -g 0 -m 775 -d /etc/proxysql /var/lib/proxysql
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
