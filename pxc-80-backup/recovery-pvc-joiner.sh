@@ -37,7 +37,7 @@ function check_ssl() {
 check_ssl
 ping -c1 $RESTORE_SRC_SERVICE || :
 rm -rf /datadir/*
-tmp=$(mktemp --tmpdir --directory pxc_sst_XXXX)
+tmp=$(mktemp --directory /datadir/pxc_sst_XXXX)
 
 socat -u "$SOCAT_OPTS" stdio >$tmp/sst_info
 socat -u "$SOCAT_OPTS" stdio | xbstream --decompress -x -C $tmp --parallel=$(grep -c processor /proc/cpuinfo)
