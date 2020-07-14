@@ -40,16 +40,16 @@ SST_FAILED=0
 function handle_sigint() {
     if (( $FIRST_RECEIVED == 0 )); then
         echo "SST request failed"
+        SST_FAILED=1
         pid_s=$(ps -C socat -o pid= || true)
         if [ -n "${pid_s}" ]; then
-            SST_FAILED=1
             kill $pid_s
-            ps -aux
             exit 1
         else
             echo 'Socat does not exist.'
         fi
      fi
+     exit 0
 }
 
 function backup_volume() {
