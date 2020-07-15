@@ -53,9 +53,9 @@ EOF
     ( IFS=$'\n'; echo "${NODE_LIST_REPL[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
 
     if [ -f /etc/haproxy-custom/haproxy-global.cfg ]; then
-        haproxy -c -f $path_to_haproxy_cfg/haproxy.cfg -f /etc/haproxy-custom/haproxy-global.cfg
+        haproxy -c -f /etc/haproxy-custom/haproxy-global.cfg -f $path_to_haproxy_cfg/haproxy.cfg
     else
-        haproxy -c -f $path_to_haproxy_cfg/haproxy.cfg -f /etc/haproxy/haproxy-global.cfg
+        haproxy -c -f /etc/haproxy/haproxy-global.cfg -f $path_to_haproxy_cfg/haproxy.cfg
     fi
 
     if [ -f "$path_to_haproxy_cfg/haproxy.pid" ]; then
