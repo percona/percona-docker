@@ -39,13 +39,16 @@ FIRST_RECEIVED=0
 SST_FAILED=0
 function handle_sigint() {
     if (( $FIRST_RECEIVED == 0 )); then
-        echo "SST request failed"
-        SST_FAILED=1
-        pid_s=$(ps -C socat -o pid=)
-        kill $pid_s
-        exit 1
-     fi
-     exit 0
+        pid_s=$(ps -C socat -o pid= || true)
+        if [ -n "${pid_s}" ]; then
+            echo "SST request failed"
+            SST_FAILED=1
+            kill $pid_s
+            exit 1
+        else
+            echo "SST request was finished"
+        fi
+    fi
 }
 
 function backup_volume() {
