@@ -40,7 +40,7 @@ rm -rf /datadir/*
 tmp=$(mktemp --directory /datadir/pxc_sst_XXXX)
 
 socat -u "$SOCAT_OPTS" stdio >$tmp/sst_info
-socat -u "$SOCAT_OPTS" stdio | xbstream --decompress -x -C $tmp --parallel=$(grep -c processor /proc/cpuinfo)
+socat -u "$SOCAT_OPTS" stdio | xbstream -x -C $tmp --parallel=$(grep -c processor /proc/cpuinfo)
 
 set +o xtrace
 transition_key=$(vault_get $tmp/sst_info)
