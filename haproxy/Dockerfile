@@ -32,6 +32,7 @@ RUN set -ex; \
         percona-xtradb-cluster-client-${PERCONA_VERSION} \
         which \
         tar \
+        socat \
         policycoreutils; \
     \
     microdnf clean all; \
