@@ -99,7 +99,8 @@ RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint
 ARG DEBUG
 RUN if [[ -n $DEBUG ]] ; then \
 		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
-		&& sed -i 's/exec "$@" $wsrep_start_position_opt/"$@" $wsrep_start_position_opt || sleep infinity/' /entrypoint.sh \
+		&& mv /usr/sbin/mysqld /usr/sbin/mysqld-ps \
+		&& cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld \
 		&& curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${PXC_VERSION}.x86_64.rpm \
 		&& rpmkeys --checksig /tmp/percona-xtradb-cluster-debuginfo.rpm \
 		&& rpm -iv /tmp/percona-xtradb-cluster-debuginfo.rpm --nodeps \
