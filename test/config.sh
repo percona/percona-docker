@@ -35,6 +35,9 @@ testAlias+=(
 	[perconalab/percona-server-mongodb]='mongo'
 	[perconalab/percona-server-mongodb-operator]='mongo'
 
+	[percona/percona-distribution-postgresql]='postgres'
+	[perconalab/percona-distribution-postgresql]='postgres'
+
 	[hola-mundo]='hello-world'
 	[hello-seattle]='hello-world'
 )
