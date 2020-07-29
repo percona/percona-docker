@@ -7,7 +7,11 @@ RUN go get k8s.io/apimachinery/pkg/util/sets \
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
 
-LABEL org.opencontainers.image.authors="info@percona.com"
+LABEL name="HAproxy" \
+      description="TCP proxy loadbalancer for Percona Xtradb Cluster" \
+      vendor="Percona" \
+      summary="TCP proxy for mysql protocol" \
+      org.opencontainers.image.authors="info@percona.com"
 
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
