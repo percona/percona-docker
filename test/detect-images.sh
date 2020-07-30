@@ -17,8 +17,7 @@ for file in $(git --no-pager diff --name-only "$@"); do
 done
 
 for dockerfilePath in "${!dockerfilePaths[@]}"; do
-	tag="percona/${dockerfilePath%.*}:${dockerfilePath#*.}"
-
+	tag="percona/$(echo $dockerfilePath | sed 's/-[0-9].[0-9]//g'):$(echo $dockerfilePath | sed 's/[^0-9]*//g')"
 	echo ======================================================
 	echo = Building $tag
 	echo ======================================================
