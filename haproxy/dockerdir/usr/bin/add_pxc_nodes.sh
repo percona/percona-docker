@@ -63,7 +63,7 @@ EOF
     fi
 
     if [ -n "$main_node" ]; then
-         if ./usr/local/bin/check_pxc.sh '' '' "$main_node" '3306'; then
+         if /usr/local/bin/check_pxc.sh '' '' "$main_node" '3306'; then
              for backup_server in ${NODE_LIST_BACKUP[@]}; do
                  echo "shutdown sessions server $backup_server" | socat stdio /etc/haproxy/pxc/haproxy.sock
              done
