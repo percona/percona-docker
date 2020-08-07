@@ -63,7 +63,7 @@ The `-v /local/datadir:/data/db` part of the command mounts the `/local/datadir`
 
 Docker allows mapping of ports on the container to ports on the host system by using the -p option. If you start the container as follows, you can connect to the database by connecting your client to a port on the host machine. This can greatly simplfy consolidating many instances to a single host. In this example port 6603, the we use the address of the Docker host to connect to the TCP port the Docker deamon is forwarding from:
 
-    docker run --name container-name `-p 6603:3306` -d percona/percona-server-mongodb
+    docker run --name container-name `-p 6603:27017` -d percona/percona-server-mongodb
     mongo docker_host_ip:6603
 
 ## Passing options to the server
