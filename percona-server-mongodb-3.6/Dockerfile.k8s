@@ -7,7 +7,7 @@ LABEL name="Percona Server for MongoDB" \
 	description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
 	maintainer="Percona Development <info@percona.com>"
 
-ENV PSMDB_VERSION 3.6.18-6.0
+ENV PSMDB_VERSION 3.6.19-7.0
 LABEL org.label-schema.schema-version=${PSMDB_VERSION}
 LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
