@@ -23,7 +23,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-	&& percona-release disable all \
+	&& microdnf install -y findutils \
 	&& percona-release setup pdpxc-8.0.19
 
 # install exact version of PS for repeatability
