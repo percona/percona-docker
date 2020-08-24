@@ -8,6 +8,7 @@ function main() {
 
     NODE_LIST=()
     NODE_LIST_REPL=()
+    NODE_LIST_PP=()
     NODE_LIST_BACKUP=()
     firs_node=''
     main_node=''
@@ -25,11 +26,13 @@ function main() {
             firs_node="server $node_name $pxc_host:3306 check inter 10000 rise 1 fall 2 weight 1 on-marked-up shutdown-backup-sessions"
             continue
         fi
-        NODE_LIST_BACKUP+=("galera-nodes/$node_name")
+        NODE_LIST_BACKUP+=("galera-nodes/$node_name" "galera-pp-nodes/$node_name")
         NODE_LIST+=( "server $node_name $pxc_host:3306 check inter 10000 rise 1 fall 2 weight 1 backup" )
+        NODE_LIST_PP+=( "server $node_name $pxc_host:3306 check inter 10000 rise 1 fall 2 weight 1 backup send-proxy-v2" )
     done
 
     NODE_LIST=( "$firs_node" "$(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq)" )
+    NODE_LIST_PP=( "$firs_node send-proxy-v2" "$(printf '%s\n' "${NODE_LIST_PP[@]}" | sort --version-sort -r | uniq)" )
 
 path_to_haproxy_cfg='/etc/haproxy/pxc'
 cat <<-EOF > "$path_to_haproxy_cfg/haproxy.cfg"
@@ -44,6 +47,18 @@ EOF
 
     echo "${#NODE_LIST[@]}" > $path_to_haproxy_cfg/AVAILABLE_NODES
     ( IFS=$'\n'; echo "${NODE_LIST[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+
+cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
+    backend galera-pp-nodes
+      mode tcp
+      option srvtcpka
+      balance roundrobin
+      option external-check
+      external-check path "$MONITOR_PASSWORD"
+      external-check command /usr/local/bin/check_pxc.sh
+EOF
+
+    ( IFS=$'\n'; echo "${NODE_LIST_PP[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
 
 cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
     backend galera-replica-nodes
