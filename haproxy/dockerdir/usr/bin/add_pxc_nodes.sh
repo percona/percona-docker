@@ -11,6 +11,7 @@ function main() {
     NODE_LIST_PP=()
     NODE_LIST_BACKUP=()
     firs_node=''
+    firs_node_pp=''
     main_node=''
     while read pxc_host; do
         if [ -z "$pxc_host" ]; then
@@ -24,15 +25,16 @@ function main() {
         if [ "x$node_id" == 'x0' ]; then
             main_node="$pxc_host"
             firs_node="server $node_name $pxc_host:3306 check inter 10000 rise 1 fall 2 weight 1 on-marked-up shutdown-backup-sessions"
+            firs_node_pp="server $node_name $pxc_host:3306 send-proxy-v2  check inter 10000 rise 1 fall 2 weight 1 on-marked-up shutdown-backup-sessions"
             continue
         fi
         NODE_LIST_BACKUP+=("galera-nodes/$node_name" "galera-pp-nodes/$node_name")
         NODE_LIST+=( "server $node_name $pxc_host:3306 check inter 10000 rise 1 fall 2 weight 1 backup" )
-        NODE_LIST_PP+=( "server $node_name $pxc_host:3306 check inter 10000 rise 1 fall 2 weight 1 backup send-proxy-v2" )
+        NODE_LIST_PP+=( "server $node_name $pxc_host:3306 send-proxy-v2 check inter 10000 rise 1 fall 2 weight 1 backup" )
     done
 
     NODE_LIST=( "$firs_node" "$(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq)" )
-    NODE_LIST_PP=( "$firs_node send-proxy-v2" "$(printf '%s\n' "${NODE_LIST_PP[@]}" | sort --version-sort -r | uniq)" )
+    NODE_LIST_PP=( "$firs_node_pp" "$(printf '%s\n' "${NODE_LIST_PP[@]}" | sort --version-sort -r | uniq)" )
 
 path_to_haproxy_cfg='/etc/haproxy/pxc'
 cat <<-EOF > "$path_to_haproxy_cfg/haproxy.cfg"
