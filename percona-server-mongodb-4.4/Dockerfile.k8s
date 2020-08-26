@@ -1,13 +1,13 @@
 FROM registry.access.redhat.com/ubi7/ubi-minimal
 
 LABEL name="Percona Server for MongoDB" \
-	release="4.2" \
+	release="4.4" \
 	vendor="Percona" \
 	summary="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition" \
 	description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
 	maintainer="Percona Development <info@percona.com>"
 
-ENV PSMDB_VERSION 4.2.8-8
+ENV PSMDB_VERSION 4.4.0-1
 LABEL org.label-schema.schema-version=${PSMDB_VERSION}
 LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
@@ -28,7 +28,7 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable psmdb-42 release
+    percona-release enable psmdb-44 release
 
 # install exact version for repeatability
 ENV OS_VER el7
@@ -118,7 +118,7 @@ ARG DEBUG
 RUN if [[ -n $DEBUG ]] ; then \
         sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh \
         && curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/telnet-0.17-64.el7.x86_64.rpm \
-        && curl -Lf -o /tmp/percona-mongodb-debuginfo.rpm https://repo.percona.com/psmdb-42/yum/release/7/RPMS/x86_64/percona-server-mongodb-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm \
+        && curl -Lf -o /tmp/percona-mongodb-debuginfo.rpm https://repo.percona.com/psmdb-44/yum/release/7/RPMS/x86_64/percona-server-mongodb-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm \
         && rpmkeys --checksig /tmp/telnet.rpm  /tmp/percona-mongodb-debuginfo.rpm \
         && rpm -i /tmp/telnet.rpm /tmp/percona-mongodb-debuginfo.rpm --nodeps \
         && rm -f /tmp/telnet.rpm /tmp/percona-mongodb-debuginfo.rpm \

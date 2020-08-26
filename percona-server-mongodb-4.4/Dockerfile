@@ -39,7 +39,7 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable psmdb-44 testing
+    percona-release enable psmdb-44 release
 
 # install exact version for repeatability
 ENV OS_VER el7

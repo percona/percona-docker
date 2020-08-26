@@ -394,7 +394,7 @@ if [ "$originalArgOne" = 'mongod' ]; then
 	fi
 
 	MONGODB_VERSION=$(mongod --version  | head -1 | awk '{print $3}' | awk -F'.' '{print $1"."$2}')
-	if [ "$MONGODB_VERSION" == 'v4.2' ]; then
+	if [ "$MONGODB_VERSION" == 'v4.2' ] || [ "$MONGODB_VERSION" == 'v4.4' ]; then
 		_mongod_hack_rename_arg_save_val --sslMode --tlsMode "${mongodHackedArgs[@]}"
 
 		if _mongod_hack_have_arg '--tlsMode' "${mongodHackedArgs[@]}"; then
@@ -406,7 +406,7 @@ if [ "$originalArgOne" = 'mongod' ]; then
 			elif _mongod_hack_have_arg 'requireSSL' "${mongodHackedArgs[@]}"; then
 				tlsMode='requireTLS'
 			fi
-          
+
 			if [ "$tlsMode" != "none" ]; then
 				_mongod_hack_ensure_no_arg_val --tlsMode "${mongodHackedArgs[@]}"
 				_mongod_hack_ensure_arg_val --tlsMode "$tlsMode" "${mongodHackedArgs[@]}"
