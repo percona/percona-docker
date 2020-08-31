@@ -24,6 +24,11 @@ function get_cipher() {
 PROXY_CFG=/etc/proxysql/proxysql.cnf
 PROXY_ADMIN_CFG=/etc/proxysql-admin.cnf
 
+if [ -n ${PROXYSQL_SERVICE} ]; then
+    MYSQL_INTERFACES='0.0.0.0:3306;0.0.0.0:33062'
+    CLUSTER_PORT='33062'
+fi
+
 sed "s/interfaces=\"0.0.0.0:3306\"/interfaces=\"${MYSQL_INTERFACES:-0.0.0.0:3306}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
 sed "s/stacksize=1048576/stacksize=${MYSQL_STACKSIZE:-1048576}/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
 sed "s/threads=2/threads=${MYSQL_THREADS:-2}/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
@@ -41,6 +46,7 @@ sed "s/PROXYSQL_USERNAME='admin'/PROXYSQL_USERNAME='${PROXY_ADMIN_USER:-admin}'/
 sed "s/PROXYSQL_PASSWORD='admin'/PROXYSQL_PASSWORD='${PROXY_ADMIN_PASSWORD_ESCAPED:-admin}'/g"   ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/CLUSTER_USERNAME='admin'/CLUSTER_USERNAME='operator'/g"                            ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/CLUSTER_PASSWORD='admin'/CLUSTER_PASSWORD='${OPERATOR_PASSWORD_ESCAPED:-operator}'/g"       ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
+sed "s/CLUSTER_PORT='3306'/CLUSTER_PORT='${CLUSTER_PORT:-3306}'/g"       ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/MONITOR_USERNAME='monitor'/MONITOR_USERNAME='monitor'/g"                          ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/MONITOR_PASSWORD='monitor'/MONITOR_PASSWORD='${MONITOR_PASSWORD_ESCAPED:-monitor}'/g"     ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 set -o xtrace
