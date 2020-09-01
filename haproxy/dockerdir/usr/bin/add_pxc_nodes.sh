@@ -34,7 +34,7 @@ function main() {
             continue
         fi
         NODE_LIST_BACKUP+=("galera-nodes/$node_name" "galera-admin-nodes/$node_name")
-        NODE_LIST+=( "server $node_name $pxc_host:33062 $send_proxy check inter 10000 rise 1 fall 2 weight 1 backup" )
+        NODE_LIST+=( "server $node_name $pxc_host:3306 $send_proxy check inter 10000 rise 1 fall 2 weight 1 backup" )
         NODE_LIST_ADMIN+=( "server $node_name $pxc_host:33062 check inter 10000 rise 1 fall 2 weight 1 backup" )
     done
 
