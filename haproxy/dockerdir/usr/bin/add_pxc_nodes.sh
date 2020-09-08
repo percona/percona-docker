@@ -38,8 +38,20 @@ function main() {
         NODE_LIST_ADMIN+=( "server $node_name $pxc_host:33062 check inter 10000 rise 1 fall 2 weight 1 backup" )
     done
 
-    NODE_LIST=( "$firs_node" "$(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq)" )
-    NODE_LIST_ADMIN=( "$firs_node_admin" "$(printf '%s\n' "${NODE_LIST_ADMIN[@]}" | sort --version-sort -r | uniq)" )
+    if [ -n "$firs_node" ]; then
+        if [[ "${#NODE_LIST[@]}" -ne 0 ]]; then
+            NODE_LIST=( "$firs_node" "$(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq)" )
+            NODE_LIST_ADMIN=( "$firs_node_admin" "$(printf '%s\n' "${NODE_LIST_ADMIN[@]}" | sort --version-sort -r | uniq)" )
+        else
+            NODE_LIST=( "$firs_node" )
+            NODE_LIST_ADMIN=( "$firs_node_admin" )
+        fi
+    else
+        if [[ "${#NODE_LIST[@]}" -ne 0 ]]; then
+            NODE_LIST=( "$(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq)" )
+            NODE_LIST_ADMIN=( "$(printf '%s\n' "${NODE_LIST_ADMIN[@]}" | sort --version-sort -r | uniq)" )
+        fi
+    fi
 
 path_to_haproxy_cfg='/etc/haproxy/pxc'
 cat <<-EOF > "$path_to_haproxy_cfg/haproxy.cfg"
