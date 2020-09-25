@@ -36,7 +36,7 @@ function check_ssl() {
     fi
 
     if [ -f "$CA" -a -f "$KEY" -a -f "$CERT" ]; then
-        GARBD_OPTS="socket.ssl_ca=${CA};socket.ssl_cert=${CERT};socket.ssl_key=${KEY};socket.ssl_cipher=;${GARBD_OPTS}"
+        GARBD_OPTS="socket.ssl_ca=${CA};socket.ssl_cert=${CERT};socket.ssl_key=${KEY};socket.ssl_cipher=;pc.weight=1;${GARBD_OPTS}"
     fi
 }
 
