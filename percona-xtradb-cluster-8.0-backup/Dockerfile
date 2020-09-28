@@ -33,9 +33,9 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 # install exact version of PS for repeatability
 ENV XTRABACKUP_VERSION 8.0.14-1.el7
-ENV PS_VERSION 8.0.19-10.1.el7
-ENV PXC_VERSION 8.0.19-10.1.el7
-ENV PXC_REPO release
+ENV PS_VERSION 8.0.20-11.1.el7
+ENV PXC_VERSION 8.0.20-11.1.el7
+ENV PXC_REPO testing
 ENV KUBECTL_VERSION=v1.15.6
 ENV KUBECTL_SHA256SUM=522115e0f11d83c08435a05e76120c89ea320782ccaff8e301bd14588ec50145
 
@@ -69,7 +69,7 @@ RUN sed -i '/nodocs/d' /etc/yum.conf || : \
 	&& repoquery -a --archlist=x86_64 --location systemd-libs | xargs curl -Lf -o /tmp/systemd-libs.rpm \
 	&& repoquery -a --archlist=x86_64 --location procps-ng | xargs curl -Lf -o /tmp/procps.rpm \
 	&& curl -Lf -o /tmp/percona-xtrabackup.rpm http://repo.percona.com/tools/yum/testing/7/RPMS/x86_64/percona-xtrabackup-80-${XTRABACKUP_VERSION}.x86_64.rpm \
-	&& curl -Lf -o /tmp/percona-server-shared.rpm http://repo.percona.com/ps-80/yum/release/7/RPMS/x86_64/percona-server-shared-${PS_VERSION}.x86_64.rpm \
+	&& curl -Lf -o /tmp/percona-server-shared.rpm http://repo.percona.com/ps-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-server-shared-${PS_VERSION}.x86_64.rpm \
 	&& curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-xtradb-cluster-garbd-${PXC_VERSION}.x86_64.rpm \
 	&& curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/7/RPMS/x86_64/percona-xtradb-cluster-client-${PXC_VERSION}.x86_64.rpm \
 	&& rpm -iv /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm /tmp/procps.rpm /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm --nodeps \
