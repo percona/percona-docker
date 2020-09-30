@@ -43,5 +43,5 @@ mysql_variables=
 	ssl_p2s_ca=""
 	ssl_p2s_cert=""
 	ssl_p2s_key=""
-	ssl_p2s_cipher=""
+	ssl_p2s_cipher="ECDHE-RSA-AES128-GCM-SHA256"
 }
