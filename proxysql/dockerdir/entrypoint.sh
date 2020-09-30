@@ -2,25 +2,6 @@
 
 set -o xtrace
 
-function mysql_root_exec() {
-  local server="$1"
-  local query="$2"
-  set +o xtrace # hide sensitive information
-  MYSQL_PWD=${MONITOR_PASSWORD:-monitor} timeout 600 mysql -h "${server}" -umonitor -s -NB -e "${query}"
-  set -o xtrace
-}
-
-function get_cipher() {
-    local h="$1"
-    local cipher=""
-    while [ -z "$cipher" ]
-    do
-        cipher=$(mysql_root_exec "$h" 'SHOW SESSION STATUS LIKE "Ssl_cipher"' | awk '{print$2}')
-        sleep 1
-    done
-    echo $cipher
-}
-
 PROXY_CFG=/etc/proxysql/proxysql.cnf
 PROXY_ADMIN_CFG=/etc/proxysql-admin.cnf
 
@@ -73,14 +54,11 @@ if [ -f "${SSL_INTERNAL_DIR}/tls.key" ] && [ -f "${SSL_INTERNAL_DIR}/tls.crt" ];
 fi
 
 if [ -f "$CA" ] && [ -f "$KEY" ] && [ -f "$CERT" ] && [ -n "$PXC_SERVICE" ]; then
-    cipher=$(get_cipher "$PXC_SERVICE")
-
     sed "s^have_ssl=false^have_ssl=true^"                   ${PROXY_CFG} 1<> ${PROXY_CFG}
     sed "s^ssl_p2s_ca=\"\"^ssl_p2s_ca=\"$CA\"^"             ${PROXY_CFG} 1<> ${PROXY_CFG}
     sed "s^ssl_p2s_ca=\"\"^ssl_p2s_ca=\"$CA\"^"             ${PROXY_CFG} 1<> ${PROXY_CFG}
     sed "s^ssl_p2s_key=\"\"^ssl_p2s_key=\"$KEY\"^"          ${PROXY_CFG} 1<> ${PROXY_CFG}
     sed "s^ssl_p2s_cert=\"\"^ssl_p2s_cert=\"$CERT\"^"       ${PROXY_CFG} 1<> ${PROXY_CFG}
-    sed "s^ssl_p2s_cipher=\"\"^ssl_p2s_cipher=\"$cipher\"^" ${PROXY_CFG} 1<> ${PROXY_CFG}
 fi
 
 if [ -f "${SSL_DIR}/tls.key" ] && [ -f "${SSL_DIR}/tls.crt" ]; then
