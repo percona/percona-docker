@@ -21,7 +21,7 @@ helps enterprises avoid downtime and outages and meet expected customer experien
 LABEL org.opencontainers.image.license="GPL"
 
 ENV PXC_VERSION 8.0.20-11.1
-ENV PXC_REPO testing
+ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 LABEL org.label-schema.schema-version=${PXC_VERSION}
