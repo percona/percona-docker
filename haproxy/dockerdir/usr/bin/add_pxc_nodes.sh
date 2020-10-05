@@ -110,8 +110,8 @@ EOF
          fi
     fi
 
-    if [ -f "$path_to_haproxy_cfg/haproxy.pid" ]; then
-        kill -SIGUSR2 $(cat /etc/haproxy/pxc/haproxy.pid)
+    if [ -S "$path_to_haproxy_cfg/haproxy-master.sock" ]; then
+        echo 'reload' | socat stdio "$path_to_haproxy_cfg/haproxy-master.sock"
     fi
 }
 
