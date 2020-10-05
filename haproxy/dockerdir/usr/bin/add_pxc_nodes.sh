@@ -64,7 +64,7 @@ cat <<-EOF > "$path_to_haproxy_cfg/haproxy.cfg"
       external-check command /usr/local/bin/check_pxc.sh
 EOF
 
-    echo "${#NODE_LIST[@]}" > $path_to_haproxy_cfg/AVAILABLE_NODES
+    echo "${#NODE_LIST_REPL[@]}" > $path_to_haproxy_cfg/AVAILABLE_NODES
     ( IFS=$'\n'; echo "${NODE_LIST[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
 
 cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
