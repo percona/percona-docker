@@ -60,7 +60,7 @@ function request_streaming() {
         garbd \
             --address "gcomm://$NODE_NAME.$PXC_SERVICE?gmcast.listen_addr=tcp://0.0.0.0:4567" \
             --donor "$NODE_NAME" \
-            --group "${PXC_SERVICE%'-pxc'}" \
+            --group "$PXC_SERVICE" \
             --options "$GARBD_OPTS" \
             --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
             2>&1 | tee /tmp/garbd.log
