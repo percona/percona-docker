@@ -98,7 +98,6 @@ RUN set -ex; \
 	rm -rf /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm \
 	       /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip \
 	       /var/cache/dnf /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam*; \
-	dnf -y remove dnf-utils; \
 	dnf clean all; \
 	rpm -ql Percona-XtraDB-Cluster-client-57 | egrep -v "mysql$|mysqldump$" | xargs rm -rf;
 
@@ -120,8 +119,8 @@ RUN rm -rf /etc/my.cnf.d; \
 	chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d
 
 ARG DEBUG
-RUN set -ex; \
-	if [[ -n $DEBUG ]] ; then \
+RUN if [[ -n $DEBUG ]] ; then \
+                set -ex; \
 		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf; \
 		mv /usr/sbin/mysqld /usr/sbin/mysqld-ps; \
 		cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld; \
