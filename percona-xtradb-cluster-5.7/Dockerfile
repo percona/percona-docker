@@ -126,7 +126,7 @@ RUN set -ex; \
 		mv /usr/sbin/mysqld /usr/sbin/mysqld-ps; \
 		cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld; \
 		repoquery -a --location \
-			Percona-XtraDB-Cluster-57-debuginfo-${PXC_VERSION} \
+			Percona-XtraDB-Cluster-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION} \
 			| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm; \
 		rpmkeys --checksig /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm; \
 		rpm -i /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm --nodeps; \

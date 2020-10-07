@@ -2,6 +2,7 @@
 
 set -o xtrace
 
+touch /tmp/recovery-case
 if [[ "$@" == *--skip-networking* ]]; then
     exec /usr/sbin/mysqld-ps "$@" 
 fi
