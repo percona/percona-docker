@@ -120,15 +120,15 @@ RUN rmdir /etc/my.cnf.d; \
 
 ARG DEBUG
 RUN if [[ -n $DEBUG ]] ; then \
-		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf \
+		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf; \
 		mv /usr/sbin/mysqld /usr/sbin/mysqld-ps; \
 		cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld; \
 		microdnf install -y \
 			net-tools \
 			nc \
 			gdb; \
-		curl -Lf -o http://repo.percona.com/percona/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-57-debuginfo-${PXC_VERSION}.x86_64.rpm; \
-                curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/telnet-0.17-64.el7.x86_64.rpm; \
+		curl -Lf -o /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm http://repo.percona.com/percona/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+                curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
 		rpmkeys --checksig /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm; \
 		rpm -i /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm --nodeps; \
 		rm -rf /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm; \
