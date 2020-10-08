@@ -15,9 +15,14 @@ function main() {
     main_node=''
 
     send_proxy=''
+    path_to_haproxy_cfg='/etc/haproxy/pxc'
     if [[ "${IS_PROXY_PROTOCOL}" = "yes" ]]; then
         send_proxy='send-proxy-v2'
+        touch $path_to_haproxy_cfg/PROXY_PROTOCOL_ENABLED
+    else
+        rm -f $path_to_haproxy_cfg/PROXY_PROTOCOL_ENABLED
     fi
+
     while read pxc_host; do
         if [ -z "$pxc_host" ]; then
             echo "Could not find PEERS ..."
@@ -53,7 +58,6 @@ function main() {
         fi
     fi
 
-path_to_haproxy_cfg='/etc/haproxy/pxc'
 cat <<-EOF > "$path_to_haproxy_cfg/haproxy.cfg"
     backend galera-nodes
       mode tcp

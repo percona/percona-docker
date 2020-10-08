@@ -1,6 +1,10 @@
 #!/bin/bash
 
-PXC_SERVER_PORT='33062'
+PXC_SERVER_PORT='3306'
+if [[ "${IS_PROXY_PROTOCOL}" = "yes" ]]; then
+    PXC_SERVER_PORT='33062'
+fi
+
 MONITOR_USER='monitor'
 TIMEOUT=10
 MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER"
