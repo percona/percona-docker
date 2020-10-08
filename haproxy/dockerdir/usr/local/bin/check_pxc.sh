@@ -3,14 +3,20 @@
 set -o xtrace
 
 PXC_SERVER_IP=$3
-PXC_SERVER_PORT='33062'
+
+PXC_SERVER_PORT='3306'
+path_to_haproxy_cfg='/etc/haproxy/pxc'
+if [ -f "$path_to_haproxy_cfg/PROXY_PROTOCOL_ENABLED" ]; then
+    PXC_SERVER_PORT='33062'
+fi
+
 MONITOR_USER='monitor'
 TIMEOUT=10
 MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER"
 
 AVAILABLE_NODES=1
-if [ -f '/etc/haproxy/pxc/AVAILABLE_NODES' ]; then
-    AVAILABLE_NODES=$(/bin/cat /etc/haproxy/pxc/AVAILABLE_NODES)
+if [ -f "$path_to_haproxy_cfg/AVAILABLE_NODES" ]; then
+    AVAILABLE_NODES=$(/bin/cat $path_to_haproxy_cfg/AVAILABLE_NODES)
 fi
 
 { set +x; } 2>/dev/null
