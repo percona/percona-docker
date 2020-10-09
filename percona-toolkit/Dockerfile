@@ -8,7 +8,7 @@ LABEL name="Percona Toolkit" \
 	maintainer="Percona Development <info@percona.com>"
 
 ENV PS_VERSION 8.0.20-11.1.el8
-ENV PT_VERSION 3.2.0-1.el8
+ENV PT_VERSION 3.2.1-1.el8
 
 # check repository package signature in secure way
 RUN set -ex; \
