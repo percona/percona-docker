@@ -23,7 +23,8 @@ LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
 USER 0
 
-RUN sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh; \
+RUN set -ex; \
+    sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh; \
     curl -Lf -o /tmp/percona-mongodb-server-debuginfo.rpm https://repo.percona.com/yum/release/8/RPMS/x86_64/Percona-Server-MongoDB-36-server-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-mongodb-shell-debuginfo.rpm https://repo.percona.com/yum/release/8/RPMS/x86_64/Percona-Server-MongoDB-36-shell-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-mongodb-tools-debuginfo.rpm https://repo.percona.com/yum/release/8/RPMS/x86_64/Percona-Server-MongoDB-36-tools-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \

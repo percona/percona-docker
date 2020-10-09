@@ -118,8 +118,8 @@ RUN	mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint
 	chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d
 
 ARG DEBUG
-RUN set -ex; \
-	if [[ -n $DEBUG ]] ; then \
+RUN if [[ -n $DEBUG ]] ; then \
+                set -ex; \
 		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf; \
 		mv /usr/sbin/mysqld /usr/sbin/mysqld-ps; \
 		cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld; \
