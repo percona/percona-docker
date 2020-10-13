@@ -16,7 +16,7 @@ It provides superior performance, scalability and instrumentation."
 LABEL org.opencontainers.image.license="GPLv2"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PS_VERSION 8.0.20-11.1
+ENV PS_VERSION 8.0.21-12.2
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 LABEL org.label-schema.schema-version=${PS_VERSION}

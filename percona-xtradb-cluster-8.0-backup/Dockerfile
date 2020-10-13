@@ -22,7 +22,7 @@ helps enterprises avoid downtime and outages and meet expected customer experien
 LABEL org.opencontainers.image.license="GPL"
 
 ENV PXB_VERSION 8.0.14-1
-ENV PS_VERSION 8.0.20-11.1
+ENV PS_VERSION 8.0.21-12.2
 ENV PXC_VERSION 8.0.20-11.1
 ENV PXC_REPO release
 ENV KUBECTL_VERSION=v1.15.6
