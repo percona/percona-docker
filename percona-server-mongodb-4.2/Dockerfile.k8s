@@ -105,7 +105,7 @@ ARG DEBUG
 RUN if [[ -n $DEBUG ]] ; then \
         set -ex; \
         sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh; \
-        curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/os/x86_64/Packages/telnet-0.17-64.el7.x86_64.rpm; \
+        curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
         curl -Lf -o /tmp/percona-mongodb-server-debuginfo.rpm http://repo.percona.com/psmdb-42/yum/release/8/RPMS/x86_64/percona-server-mongodb-server-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
         curl -Lf -o /tmp/percona-mongodb-shell-debuginfo.rpm http://repo.percona.com/psmdb-42/yum/release/8/RPMS/x86_64/percona-server-mongodb-shell-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
         curl -Lf -o /tmp/percona-mongodb-tools-debuginfo.rpm http://repo.percona.com/psmdb-42/yum/release/8/RPMS/x86_64/percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
