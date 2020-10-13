@@ -21,7 +21,7 @@ LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high ava
 helps enterprises avoid downtime and outages and meet expected customer experience."
 LABEL org.opencontainers.image.license="GPL"
 
-ENV PXB_VERSION 8.0.13-1
+ENV PXB_VERSION 8.0.14-1
 ENV PS_VERSION 8.0.20-11.1
 ENV PXC_VERSION 8.0.20-11.1
 ENV PXC_REPO release
@@ -88,7 +88,7 @@ RUN set -ex; \
 	rpmkeys --checksig /tmp/procps-ng.rpm /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm; \
 	rpm -iv /tmp/procps-ng.rpm /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm --nodeps; \
 	rm -rf /tmp/procps-ng.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm; \
-	rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf; \
+	rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqlbinlog$" | xargs rm -rf; \
 	microdnf clean all; \
 	rm -rf /var/cache/yum /var/lib/mysql
 
