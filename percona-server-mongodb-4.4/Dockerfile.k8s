@@ -59,10 +59,10 @@ RUN set -ex; \
     curl -Lf -o /tmp/policycoreutils.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/policycoreutils-2.9-9.el8.x86_64.rpm; \
     curl -Lf -o /tmp/elfutils-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/elfutils-libs-0.178-7.el8.x86_64.rpm; \
     curl -Lf -o /tmp/procps-ng.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/procps-ng-3.3.15-1.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/Percona-Server-MongoDB-server-${FULL_PERCONA_VERSION}.rpm http://repo.percona.com/psmdb-44/yum/release/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-    rpmkeys --checksig /tmp/policycoreutils.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm /tmp/Percona-Server-MongoDB-server-${FULL_PERCONA_VERSION}.rpm; \
-    rpm -iv /tmp/policycoreutils.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm /tmp/Percona-Server-MongoDB-server-${FULL_PERCONA_VERSION}.rpm --nodeps; \
-    rm -rf /tmp/policycoreutils.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm /tmp/Percona-Server-MongoDB-server-${FULL_PERCONA_VERSION}.rpm; \
+    curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-44/yum/release/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    rpmkeys --checksig /tmp/policycoreutils.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm /tmp/Percona-Server-MongoDB-server.rpm; \
+    rpm -iv /tmp/policycoreutils.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
+    rm -rf /tmp/policycoreutils.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm /tmp/Percona-Server-MongoDB-server.rpm; \
     microdnf clean all; \
     rm -rf /var/cache/yum /data/db  && mkdir -p /data/db; \
     chown -R 1001:0 /data/db
@@ -105,27 +105,21 @@ ARG DEBUG
 RUN if [[ -n $DEBUG ]] ; then \
         set -ex; \
         sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh; \
-        curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
-        curl -Lf -o /tmp/percona-mongodb-server-debuginfo.rpm http://repo.percona.com/psmdb-44/yum/release/8/RPMS/x86_64/percona-server-mongodb-server-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-        curl -Lf -o /tmp/percona-mongodb-shell-debuginfo.rpm http://repo.percona.com/psmdb-44/yum/release/8/RPMS/x86_64/percona-server-mongodb-shell-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-        curl -Lf -o /tmp/percona-mongodb-tools-debuginfo.rpm http://repo.percona.com/psmdb-44/yum/release/8/RPMS/x86_64/percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-        curl -Lf -o /tmp/percona-mongodb-mongos-debuginfo.rpm http://repo.percona.com/psmdb-44/yum/release/8/RPMS/x86_64/percona-server-mongodb-mongos-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-        curl -Lf -o /tmp/percona-server-mongodb-debugsource.rpm http://repo.percona.com/psmdb-44/yum/release/8/RPMS/x86_64/percona-server-mongodb-debugsource-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-        rpmkeys --checksig /tmp/telnet.rpm /tmp/percona-mongodb-server-debuginfo.rpm /tmp/percona-mongodb-shell-debuginfo.rpm \
-            /tmp/percona-mongodb-tools-debuginfo.rpm /tmp/percona-mongodb-mongos-debuginfo.rpm \
-            /tmp/percona-mongodb-tools.rpm /tmp/percona-server-mongodb-debugsource.rpm; \
-        rpm -i /tmp/telnet.rpm /tmp/percona-mongodb-server-debuginfo.rpm /tmp/percona-mongodb-shell-debuginfo.rpm \
-            /tmp/percona-mongodb-tools-debuginfo.rpm /tmp/percona-mongodb-mongos-debuginfo.rpm \
-            /tmp/percona-mongodb-tools.rpm /tmp/percona-server-mongodb-debugsource.rpm --nodeps; \
-        rm -f /tmp/telnet.rpm /tmp/percona-mongodb-server-debuginfo.rpm /tmp/percona-mongodb-shell-debuginfo.rpm \
-            /tmp/percona-mongodb-tools-debuginfo.rpm /tmp/percona-mongodb-mongos-debuginfo.rpm \
-            /tmp/percona-mongodb-tools.rpm /tmp/percona-server-mongodb-debugsource.rpm; \
+		curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
+		rpm -i /tmp/telnet.rpm; \ 
+		rm -f /tmp/telnet.rpm; \
+
         microdnf install -y \
 		    net-tools \
 		    sudo \
 		    gdb \
 		    nc \
-		    percona-server-mongodb-tools-${FULL_PERCONA_VERSION}; \
+		    percona-server-mongodb-server-debuginfo-${FULL_PERCONA_VERSION} \
+		    percona-server-mongodb-shell-debuginfo-${FULL_PERCONA_VERSION} \
+		    percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION} \
+		    percona-server-mongodb-mongos-debuginfo-${FULL_PERCONA_VERSION} \
+		    percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
+		    percona-server-mongodb-debugsource-${FULL_PERCONA_VERSION}; \
         microdnf clean all; \
         rm -rf /var/cache/yum; \
     fi
