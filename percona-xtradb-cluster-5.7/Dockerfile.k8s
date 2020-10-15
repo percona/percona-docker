@@ -7,6 +7,7 @@ RUN go get k8s.io/apimachinery/pkg/util/sets; \
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
 
+# Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona XtraDB Cluster" \
       release="5.7" \
       vendor="Percona" \
