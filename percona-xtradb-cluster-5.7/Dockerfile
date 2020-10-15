@@ -43,7 +43,8 @@ RUN set -ex; \
 	dnf install -y /tmp/percona-release.rpm; \
 	rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
 	rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-	dnf -y module disable mysql
+	dnf -y module disable mysql; \
+	percona-release enable tools release
 
 RUN set -ex; \
 	curl -Lf -o /tmp/pv.rpm https://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
@@ -69,8 +70,9 @@ RUN set -ex; \
 		numactl-libs \
 		libev \
 		jq \
+		qpress \
 		oniguruma \
-                cracklib-dicts \
+		cracklib-dicts \
 		dnf-utils; \
 	dnf clean all; \
 	rm -rf /var/cache/dnf
@@ -82,6 +84,7 @@ RUN groupadd -g 1001 mysql; \
 
 # we need licenses from docs
 RUN set -ex; \
+	percona-release disable tools release; \
 	repoquery -a --location \
 		Percona-XtraDB-Cluster-server-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION} \
 		| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-server-57.rpm; \

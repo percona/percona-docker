@@ -90,7 +90,7 @@ function backup_volume() {
     echo "Backup finished"
 
     stat xtrabackup.stream
-    if (($(stat -c%s xtrabackup.stream) < 50000000)); then
+    if (($(stat -c%s xtrabackup.stream) < 5000000)); then
         echo empty backup
         exit 1
     fi
