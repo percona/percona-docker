@@ -7,12 +7,13 @@ RUN go get k8s.io/apimachinery/pkg/util/sets; \
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
 
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="Percona XtraDB Cluster"
-LABEL org.label-schema.vendor="Percona"
-LABEL org.label-schema.description="Percona XtraDB Cluster is a high availability solution that \
-helps enterprises avoid downtime and outages and meet expected customer experience."
-LABEL org.label-schema.license="GPL"
+# Please don't remove old-style LABEL since it's needed for RedHat certification
+LABEL name="Percona XtraBackup" \
+	release="2.4" \
+	vendor="Percona" \
+	summary="Percona XtraBackup is an open-source hot backup utility for MySQL - based servers that doesn’t lock your database during the backup" \
+	description="Percona XtraBackup works with MySQL, MariaDB, and Percona Server. It supports completely non-blocking backups of InnoDB, XtraDB, and HailDB storage engines. In addition, it can back up the following storage engines by briefly pausing writes at the end of the backup: MyISAM, Merge, and Archive, including partitioned tables, triggers, and database options." \
+	maintainer="Percona Development <info@percona.com>"
 
 LABEL org.opencontainers.image.title="Percona XtraDB Cluster"
 LABEL org.opencontainers.image.vendor="Percona"

@@ -9,11 +9,11 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="ProxySQL" \
-	release="2.0" \
-	vendor="Percona" \
-	summary="High-performance MySQL proxy with a GPL license" \
-	description="ProxySQL is a high performance, high availability, protocol aware proxy for MySQL and forks (like Percona Server and MariaDB). All the while getting the unlimited freedom that comes with a GPL license." \
-	maintainer="Percona Development <info@percona.com>"
+      release="2.0" \
+      vendor="Percona" \
+      summary="High-performance MySQL proxy with a GPL license" \
+      description="ProxySQL is a high performance, high availability, protocol aware proxy for MySQL and forks (like Percona Server and MariaDB). All the while getting the unlimited freedom that comes with a GPL license." \
+      maintainer="Percona Development <info@percona.com>"
 
 LABEL org.opencontainers.image.title="ProxySQL"
 LABEL org.opencontainers.image.vendor="Percona"
