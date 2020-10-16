@@ -46,7 +46,8 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable original testing
+    percona-release enable original testing; \
+    percona-release enable tools release
 
 RUN set -ex; \
 	curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-9.el8.x86_64.rpm; \
@@ -70,6 +71,7 @@ RUN set -ex; \
 		findutils \
 		diffutils \
 		procps-ng \
+		qpress \
 		tar \
                 cracklib-dicts \
 		libaio; \

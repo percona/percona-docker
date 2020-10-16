@@ -35,6 +35,7 @@ fi
 echo "+ xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare --binlog-info=ON --rollback-prepared-trx \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp"
 
+innobackupex ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY}  --parallel=$(grep -c processor /proc/cpuinfo) --decompress $tmp
 xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare --binlog-info=ON $transition_option --rollback-prepared-trx \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp
 
