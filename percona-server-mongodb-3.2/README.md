@@ -68,7 +68,7 @@ Docker allows mapping of ports on the container to ports on the host system by u
 
 ## Passing options to the server
 
-You can pass arbitrary command line options to the MySQL server by appending them to the `run command`:
+You can pass arbitrary command line options to the MongoDB server by appending them to the `run command`:
 
     docker run --name my-container-name -d percona/percona-server-mongodb --option1=value --option2=value
 
@@ -78,7 +78,7 @@ In this case, the values of option1 and option2 will be passed directly to the s
 
 # Supported Docker Versions
 
-These images are officially supported by the MySQL team on Docker version 1.9. Support for older versions (down to 1.0) is provided on a best-effort basis, but we strongly recommend running on the most recent version, since that is assumed for parts of the documentation above.
+These images are officially supported by the MongoDB team on Docker version 1.9. Support for older versions (down to 1.0) is provided on a best-effort basis, but we strongly recommend running on the most recent version, since that is assumed for parts of the documentation above.
 
 # User Feedback
 
