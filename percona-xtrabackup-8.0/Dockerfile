@@ -1,21 +1,5 @@
 FROM centos:8
 
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="Percona XtraBackup"
-LABEL org.label-schema.vendor="Percona"
-LABEL org.label-schema.description="Percona XtraBackup tools provide a method of performing a hot backup of your MySQL data while the system is running. \
-Percona XtraBackup is a free, online, open source, \
-complete database backups solution \
-for all versions of Percona Server for MySQL and MySQL®."
-LABEL org.label-schema.license="GPLv2"
-
-LABEL org.opencontainers.image.title="Percona XtraBackup"
-LABEL org.opencontainers.image.vendor="Percona"
-LABEL org.opencontainers.image.description="Percona XtraBackup tools provide a method of performing a hot backup of your MySQL data while the system is running. \
-Percona XtraBackup is a free, online, open source, \
-complete database backups solution \
-for all versions of Percona Server for MySQL and MySQL®."
-LABEL org.opencontainers.image.license="GPLv2"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV XTRABACKUP_VERSION 8.0.14-1
@@ -23,8 +7,6 @@ ENV PS_VERSION 8.0.21-12.2
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
-LABEL org.label-schema.schema-version=${XTRABACKUP_VERSION}
-LABEL org.opencontainers.image.version=${XTRABACKUP_VERSION}
 
 # check repository package signature in secure way
 RUN set -ex; \
