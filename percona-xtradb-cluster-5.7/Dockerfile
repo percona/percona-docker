@@ -7,18 +7,7 @@ RUN go get k8s.io/apimachinery/pkg/util/sets; \
 
 FROM centos:8 AS centos8
 
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="Percona XtraDB Cluster"
-LABEL org.label-schema.vendor="Percona"
-LABEL org.label-schema.description="Percona XtraDB Cluster is a high availability solution that \
-helps enterprises avoid downtime and outages and meet expected customer experience."
-LABEL org.label-schema.license="GPL"
-
-LABEL org.opencontainers.image.title="Percona XtraDB Cluster"
-LABEL org.opencontainers.image.vendor="Percona"
-LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high availability solution that \
-helps enterprises avoid downtime and outages and meet expected customer experience."
-LABEL org.opencontainers.image.license="GPL"
+LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXB_VERSION 2.4.20-1
 ENV PS_VERSION 5.7.31-34.1
@@ -27,8 +16,6 @@ ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-LABEL org.label-schema.schema-version=${PXC_VERSION}
-LABEL org.opencontainers.image.version=${PXC_VERSION}
 
 # check repository package signature in secure way
 RUN set -ex; \

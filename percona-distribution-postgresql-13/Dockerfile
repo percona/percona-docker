@@ -1,28 +1,10 @@
 FROM centos:8
 
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="Percona Distribution for PostgreSQL"
-LABEL org.label-schema.vendor="Percona"
-LABEL org.label-schema.description="PostgreSQL is an advanced Object-Relational database management system (DBMS). \
-The postgresql11-server package contains the programs needed to create \
-and run a PostgreSQL server, which will in turn allow you to create \
-and maintain PostgreSQL databases."
-LABEL org.label-schema.license="PostgreSQL"
-
-LABEL org.opencontainers.image.title="Percona Distribution for PostgreSQL"
-LABEL org.opencontainers.image.vendor="Percona"
-LABEL org.opencontainers.image.description="PostgreSQL is an advanced Object-Relational database management system (DBMS). \
-The postgresql11-server package contains the programs needed to create \
-and run a PostgreSQL server, which will in turn allow you to create \
-and maintain PostgreSQL databases."
-LABEL org.opencontainers.image.license="PostgreSQL"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PPG_VERSION 13.0-1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
-LABEL org.label-schema.schema-version=${PPG_VERSION}
-LABEL org.opencontainers.image.version=${PPG_VERSION}
 
 # check repository package signature in secure way
 RUN set -ex; \

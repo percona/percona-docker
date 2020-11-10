@@ -1,29 +1,11 @@
 FROM centos:8
 
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="Percona Server for MongoDB"
-LABEL org.label-schema.vendor="Percona"
-LABEL org.label-schema.description="Percona Server for MongoDB is our free and \
-open-source drop-in replacement for MongoDB Community Edition. \
-It offers all the features and benefits of MongoDB Community Edition, \
-plus additional enterprise-grade functionality."
-LABEL org.label-schema.license="SSPLv1"
-
-LABEL org.opencontainers.image.title="Percona Server for MongoDB"
-LABEL org.opencontainers.image.vendor="Percona"
-LABEL org.opencontainers.image.description="Percona Server for MongoDB is our free and \
-open-source drop-in replacement for MongoDB Community Edition. \
-It offers all the features and benefits of MongoDB Community Edition, \
-plus additional enterprise-grade functionality."
-LABEL org.opencontainers.image.license="SSPLv1"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PSMDB_VERSION 3.6.20-9.0
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
-LABEL org.label-schema.schema-version=${PSMDB_VERSION}
-LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
 # check repository package signature in secure way
 RUN set -ex; \
