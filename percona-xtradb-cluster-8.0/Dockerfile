@@ -9,11 +9,6 @@ FROM centos:8 AS centos8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.20-11.3
-ENV PXC_REPO release
-ENV OS_VER el8
-ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-
 # check repository package signature in secure way
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -34,6 +29,11 @@ RUN set -ex; \
 	rpmkeys --checksig /tmp/pv.rpm; \
 	rpm -i /tmp/pv.rpm; \
 	rm -rf /tmp/pv.rpm
+
+ENV PXC_VERSION 8.0.20-11.3
+ENV PXC_REPO release
+ENV OS_VER el8
+ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 
 RUN set -ex; \
 	percona-release setup -y ps-80; \
@@ -91,12 +91,13 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera; \
     cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
 
-RUN rmdir /etc/my.cnf.d; \
-	ln -s /etc/mysql/conf.d /etc/my.cnf.d; \
-	rm -f /etc/percona-xtradb-cluster.conf.d/*.cnf; \
-	echo '!include /etc/mysql/node.cnf' > /etc/my.cnf; \
-	echo '!includedir /etc/my.cnf.d/' >> /etc/my.cnf; \
-	echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
+RUN set -ex; \
+    rmdir /etc/my.cnf.d; \
+    ln -s /etc/mysql/conf.d /etc/my.cnf.d; \
+    rm -f /etc/percona-xtradb-cluster.conf.d/*.cnf; \
+    echo '!include /etc/mysql/node.cnf' > /etc/my.cnf; \
+    echo '!includedir /etc/my.cnf.d/' >> /etc/my.cnf; \
+    echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
 
 COPY dockerdir /
 COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/

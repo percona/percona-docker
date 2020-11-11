@@ -2,10 +2,6 @@ FROM centos:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PS_VERSION 5.7.31-34.1
-ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
-
 RUN groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
 		-c "Default Application User" mysql
@@ -23,6 +19,10 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     dnf -y module disable mysql
+
+ENV PS_VERSION 5.7.31-34.1
+ENV OS_VER el8
+ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
 RUN set -ex; \
     dnf install -y \
@@ -50,7 +50,8 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership
-RUN /usr/bin/install -m 0775 -o mysql -g root -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d; \
+RUN set -ex; \
+    /usr/bin/install -m 0775 -o mysql -g root -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d; \
 # comment out a few problematic configuration values
 	find /etc/percona-server.cnf /etc/percona-server.conf.d /etc/my.cnf.d -name '*.cnf' -print0 \
 		| xargs -0 grep -lZE '^(bind-address|log|user)' \

@@ -2,11 +2,6 @@ FROM centos:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 4.4.1-3
-ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
-ENV K8S_TOOLS_VERSION "0.5.0"
-
 # check repository package signature in secure way
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -20,6 +15,11 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable psmdb-44 release
+
+ENV PSMDB_VERSION 4.4.1-3
+ENV OS_VER el8
+ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
+ENV K8S_TOOLS_VERSION "0.5.0"
 
 RUN set -ex; \
     dnf install -y \
