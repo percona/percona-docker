@@ -7,20 +7,6 @@ RUN go get k8s.io/apimachinery/pkg/util/sets \
 
 FROM centos:8 AS centos8
 
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="ProxySQL"
-LABEL org.label-schema.vendor="Percona"
-LABEL org.label-schema.description="ProxySQL is a high performance, high availability, \
-protocol aware proxy for MySQL and forks (like Percona Server and MariaDB). \
-All the while getting the unlimited freedom that comes with a GPL license."
-LABEL org.label-schema.license="GPL+"
-
-LABEL org.opencontainers.image.title="ProxySQL"
-LABEL org.opencontainers.image.vendor="Percona"
-LABEL org.opencontainers.image.description="ProxySQL is a high performance, high availability, \
-protocol aware proxy for MySQL and forks (like Percona Server and MariaDB). \
-All the while getting the unlimited freedom that comes with a GPL license."
-LABEL org.opencontainers.image.license="GPL+"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXC_VERSION 8.0.19-10.1
@@ -28,8 +14,6 @@ ENV PROXYSQL_VERSION 2.0.14-1.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
 ENV FULL_PROXYSQL_VERSION "$PROXYSQL_VERSION.$OS_VER"
-LABEL org.label-schema.schema-version=${PROXYSQL_VERSION}
-LABEL org.opencontainers.image.version=${PROXYSQL_VERSION}
 
 # check repository package signature in secure way
 RUN set -ex; \

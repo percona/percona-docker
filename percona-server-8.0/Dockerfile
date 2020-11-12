@@ -1,26 +1,10 @@
 FROM centos:8
 
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="Percona Server for MySQL"
-LABEL org.label-schema.vendor="Percona"
-LABEL org.label-schema.description="Percona Server for MySQL® is a free, fully compatible, \
-enhanced and open source drop-in replacement for any MySQL database. \
-It provides superior performance, scalability and instrumentation."
-LABEL org.label-schema.license="GPLv2"
-
-LABEL org.opencontainers.image.title="Percona Server for MySQL"
-LABEL org.opencontainers.image.vendor="Percona"
-LABEL org.opencontainers.image.description="Percona Server for MySQL® is a free, fully compatible, \
-enhanced and open source drop-in replacement for any MySQL database. \
-It provides superior performance, scalability and instrumentation."
-LABEL org.opencontainers.image.license="GPLv2"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PS_VERSION 8.0.21-12.2
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
-LABEL org.label-schema.schema-version=${PS_VERSION}
-LABEL org.opencontainers.image.version=${PS_VERSION}
 
 RUN groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
