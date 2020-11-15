@@ -9,14 +9,6 @@ FROM centos:8 AS centos8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXB_VERSION 2.4.20-1
-ENV PS_VERSION 5.7.31-34.1
-ENV PXC_VERSION 5.7.31-31.45.3
-ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
-ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
-ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-
 # check repository package signature in secure way
 RUN set -ex; \
 	export GNUPGHOME="$(mktemp -d)"; \
@@ -32,6 +24,14 @@ RUN set -ex; \
 	rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
 	dnf -y module disable mysql; \
 	percona-release enable tools release
+
+ENV PXB_VERSION 2.4.20-1
+ENV PS_VERSION 5.7.31-34.1
+ENV PXC_VERSION 5.7.31-31.45.3
+ENV OS_VER el8
+ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
+ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 
 RUN set -ex; \
 	curl -Lf -o /tmp/pv.rpm https://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
@@ -98,15 +98,16 @@ RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.ga
 COPY dockerdir /
 COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
 
-RUN rm -rf /etc/my.cnf.d; \
-	ln -s /etc/mysql/conf.d /etc/my.cnf.d; \
-	rm -f /etc/percona-xtradb-cluster.conf.d/*.cnf; \
-	echo '!include /etc/mysql/node.cnf' > /etc/my.cnf; \
-	echo '!includedir /etc/my.cnf.d/' >> /etc/my.cnf; \
-	echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf; \
-	mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d; \
-	chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d; \
-	chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d
+RUN set -ex; \
+    rm -rf /etc/my.cnf.d; \
+    ln -s /etc/mysql/conf.d /etc/my.cnf.d; \
+    rm -f /etc/percona-xtradb-cluster.conf.d/*.cnf; \
+    echo '!include /etc/mysql/node.cnf' > /etc/my.cnf; \
+    echo '!includedir /etc/my.cnf.d/' >> /etc/my.cnf; \
+    echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf; \
+    mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d; \
+    chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d; \
+    chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d
 
 ARG DEBUG
 RUN if [[ -n $DEBUG ]] ; then \

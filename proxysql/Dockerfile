@@ -9,12 +9,6 @@ FROM centos:8 AS centos8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.19-10.1
-ENV PROXYSQL_VERSION 2.0.14-1.1
-ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
-ENV FULL_PROXYSQL_VERSION "$PROXYSQL_VERSION.$OS_VER"
-
 # check repository package signature in secure way
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -31,6 +25,12 @@ RUN set -ex; \
     dnf -y module disable mysql perl-DBD-MySQL; \
     percona-release setup pxc80; \
     percona-release enable tools testing
+
+ENV PXC_VERSION 8.0.19-10.1
+ENV PROXYSQL_VERSION 2.0.14-1.1
+ENV OS_VER el8
+ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
+ENV FULL_PROXYSQL_VERSION "$PROXYSQL_VERSION.$OS_VER"
 
 RUN set -ex; \
     dnf install -y \
