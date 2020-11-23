@@ -1,5 +1,6 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 
+# Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona Server for MongoDB" \
 	release="3.6" \
 	vendor="Percona" \
