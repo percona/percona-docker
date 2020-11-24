@@ -1,12 +1,12 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="Percona Server for MongoDB"
-LABEL org.label-schema.vendor="Percona"
-LABEL org.label-schema.description="Percona Server for MongoDB is our free and \
-open-source drop-in replacement for MongoDB Community Edition. \
-It offers all the features and benefits of MongoDB Community Edition, \
-plus additional enterprise-grade functionality."
+# Please don't remove old-style LABEL since it's needed for RedHat certification
+LABEL name="Percona Server for MongoDB" \
+	release="3.6" \
+	vendor="Percona" \
+	summary="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition" \
+	description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
+	maintainer="Percona Development <info@percona.com>"
 LABEL org.label-schema.license="SSPLv1"
 
 LABEL org.opencontainers.image.title="Percona Server for MongoDB"
@@ -91,7 +91,7 @@ RUN if [[ -n $DEBUG ]] ; then \
         set -ex; \
         sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh; \
 		curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
-		rpm -i /tmp/telnet.rpm; \ 
+		rpm -i /tmp/telnet.rpm; \
 		rm -f /tmp/telnet.rpm; \
 
         microdnf install -y \
