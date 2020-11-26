@@ -5,7 +5,8 @@ FROM centos:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-RUN groupdel input; \
+RUN set -ex; \
+    groupdel input; \
     userdel systemd-coredump; \
     groupadd -g 999 mysql; \
     useradd -u 999 -r -g 999 -s /sbin/nologin \
