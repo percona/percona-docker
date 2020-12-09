@@ -42,7 +42,7 @@ RUN set -ex; \
 
 RUN set -ex; \
     curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-1.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
     rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
     rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
@@ -55,8 +55,8 @@ RUN set -ex; \
         Percona-Server-MongoDB-36-mongos-${FULL_PERCONA_VERSION}; \
     \
     curl -Lf -o /tmp/policycoreutils.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/policycoreutils-2.9-9.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/elfutils-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/elfutils-libs-0.178-7.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/procps-ng.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/procps-ng-3.3.15-1.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/elfutils-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/elfutils-libs-0.180-1.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/procps-ng.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/procps-ng-3.3.15-3.el8.x86_64.rpm; \
     curl -Lf -o /tmp/Percona-Server-MongoDB-36-server.rpm https://repo.percona.com/yum/release/8/RPMS/x86_64/Percona-Server-MongoDB-36-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/policycoreutils.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm /tmp/Percona-Server-MongoDB-36-server.rpm; \
     rpm -iv /tmp/policycoreutils.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm /tmp/Percona-Server-MongoDB-36-server.rpm --nodeps; \
