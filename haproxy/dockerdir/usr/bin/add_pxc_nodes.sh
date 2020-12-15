@@ -64,7 +64,6 @@ cat <<-EOF > "$path_to_haproxy_cfg/haproxy.cfg"
       option srvtcpka
       balance roundrobin
       option external-check
-      external-check path "$MONITOR_PASSWORD"
       external-check command /usr/local/bin/check_pxc.sh
 EOF
 
@@ -77,7 +76,6 @@ cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
       option srvtcpka
       balance roundrobin
       option external-check
-      external-check path "$MONITOR_PASSWORD"
       external-check command /usr/local/bin/check_pxc.sh
 EOF
 
@@ -89,7 +87,6 @@ cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
       option srvtcpka
       balance roundrobin
       option external-check
-      external-check path "$MONITOR_PASSWORD"
       external-check command /usr/local/bin/check_pxc.sh
 EOF
     ( IFS=$'\n'; echo "${NODE_LIST_REPL[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
