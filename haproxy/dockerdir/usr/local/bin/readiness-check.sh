@@ -6,11 +6,10 @@ if [[ "${IS_PROXY_PROTOCOL}" = "yes" ]]; then
 fi
 
 MONITOR_USER='monitor'
-MONITOR_PASSWORD=$(cat /etc/mysql/mysql-users-secret/monitor)
 TIMEOUT=10
 MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER"
 
-export MYSQL_PWD=$MONITOR_PASSWORD
+export MYSQL_PWD=$(cat /etc/mysql/mysql-users-secret/monitor)
 
 STATUS=$($MYSQL_CMDLINE -h127.0.0.1 -P$PXC_SERVER_PORT -e 'select 1;' | sed -n -e '2p' | tr '\n' ' ')
 
