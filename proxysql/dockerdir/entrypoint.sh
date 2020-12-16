@@ -8,7 +8,7 @@ PROXY_ADMIN_CFG=/etc/proxysql-admin.cnf
 if [ -n ${PROXYSQL_SERVICE} ]; then
     MYSQL_INTERFACES='0.0.0.0:3306;0.0.0.0:33062'
     CLUSTER_PORT='33062'
-    WRITERS_ARE_READERS='yes'
+    sed "s/#export WRITERS_ARE_READERS=.*$/export WRITERS_ARE_READERS='yes'/g" ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 fi
 
 sed "s/interfaces=\"0.0.0.0:3306\"/interfaces=\"${MYSQL_INTERFACES:-0.0.0.0:3306}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
@@ -31,7 +31,6 @@ sed "s/CLUSTER_PASSWORD='admin'/CLUSTER_PASSWORD='${OPERATOR_PASSWORD_ESCAPED:-o
 sed "s/CLUSTER_PORT='3306'/CLUSTER_PORT='${CLUSTER_PORT:-3306}'/g"       ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/MONITOR_USERNAME='monitor'/MONITOR_USERNAME='monitor'/g"                          ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 sed "s/MONITOR_PASSWORD='monitor'/MONITOR_PASSWORD='${MONITOR_PASSWORD_ESCAPED:-monitor}'/g"     ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
-sed "s/WRITERS_ARE_READERS='backup'/WRITERS_ARE_READERS='${WRITERS_ARE_READERS:-backup}'/g"     ${PROXY_ADMIN_CFG} 1<> ${PROXY_ADMIN_CFG}
 set -o xtrace
 
 ## SSL/TLS support
