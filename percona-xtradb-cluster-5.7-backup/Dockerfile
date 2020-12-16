@@ -1,9 +1,12 @@
 FROM golang:1.13 AS go_builder
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
-RUN go get k8s.io/apimachinery/pkg/util/sets; \
-    curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/master/cmd/peer-list/main.go; \
-    go build peer-list.go
+RUN git clone https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
+
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
+RUN go build main.go
+
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
+RUN go build
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
 
@@ -51,10 +54,10 @@ RUN set -ex; \
     percona-release enable tools release
 
 RUN set -ex; \
-	curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-9.el8.x86_64.rpm; \
+	curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
-	curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-1.el8.x86_64.rpm; \
+	curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/pv.rpm https://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/compat-openssl.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/compat-openssl10-1.0.2o-3.el8.x86_64.rpm; \
 	rpmkeys --checksig /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm; \
@@ -114,7 +117,8 @@ RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 COPY lib/pxc /usr/lib/pxc
 COPY mc /usr/bin/
 COPY recovery-*.sh backup.sh get-pxc-state /usr/bin/
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr/pitr /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001
