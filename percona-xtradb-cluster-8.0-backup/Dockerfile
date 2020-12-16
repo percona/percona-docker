@@ -6,7 +6,7 @@ WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
 RUN go build main.go
 
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
-RUN go build main.go
+RUN go build
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
 
