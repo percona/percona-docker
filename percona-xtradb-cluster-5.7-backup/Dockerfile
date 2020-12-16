@@ -1,9 +1,12 @@
 FROM golang:1.13 AS go_builder
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
-RUN go get k8s.io/apimachinery/pkg/util/sets; \
-    curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/master/cmd/peer-list/main.go; \
-    go build peer-list.go
+RUN git clone --branch=master  https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
+
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
+RUN go build main.go
+
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
+RUN go build
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
 
@@ -114,7 +117,8 @@ RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 COPY lib/pxc /usr/lib/pxc
 COPY mc /usr/bin/
 COPY recovery-*.sh backup.sh get-pxc-state /usr/bin/
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr/pitr /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001
