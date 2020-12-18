@@ -97,11 +97,14 @@ EOF
     SOCKET='/etc/haproxy/pxc/haproxy.sock'
     path_to_custom_global_cnf='/etc/haproxy-custom'
     if [ -f "$path_to_custom_global_cnf/haproxy-global.cfg" ]; then
+        haproxy -c -f "$path_to_custom_global_cnf/haproxy-global.cfg" -f $path_to_haproxy_cfg/haproxy.cfg || EC=$?
+    fi
+
+    if [ -f "$path_to_custom_global_cnf/haproxy-global.cfg" -a -z "$EC" ]; then
         SOCKET_CUSTOM=$(grep 'stats socket' "$path_to_custom_global_cnf/haproxy-global.cfg" | awk '{print $3}')
         if [ -S "$SOCKET_CUSTOM" ]; then
             SOCKET="$SOCKET_CUSTOM"
         fi
-        haproxy -c -f "$path_to_custom_global_cnf/haproxy-global.cfg" -f $path_to_haproxy_cfg/haproxy.cfg
     else
         haproxy -c -f /etc/haproxy/haproxy-global.cfg -f $path_to_haproxy_cfg/haproxy.cfg
     fi
