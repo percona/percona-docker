@@ -25,9 +25,9 @@ helps enterprises avoid downtime and outages and meet expected customer experien
 LABEL org.opencontainers.image.license="GPL"
 
 # do not use PXB 8.0.14-1 (PXB-2279)
-ENV PXB_VERSION 8.0.13-1
+ENV PXB_VERSION 8.0.22-15.1
 ENV PS_VERSION 8.0.21-12.2
-ENV PXC_VERSION 8.0.20-11.3
+ENV PXC_VERSION 8.0.21-12.1
 ENV PXC_REPO release
 ENV KUBECTL_VERSION=v1.15.6
 ENV KUBECTL_SHA256SUM=522115e0f11d83c08435a05e76120c89ea320782ccaff8e301bd14588ec50145

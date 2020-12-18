@@ -1,15 +1,15 @@
 #!/bin/bash
 
-function mysql_root_exec() {
+function mysql_exec() {
   local server="$1"
   local query="$2"
-  MYSQL_PWD=${MYSQL_ROOT_PASSWORD:-password} timeout 600 mysql -h${server} -uroot -s -NB -e "${query}"
+  MYSQL_PWD=${PXC_PASS:-password} timeout 600 mysql -h${server} -uxtrabackup -s -NB -e "${query}"
 }
 
 function wait_for_mysql() {
     local h="$1"
     for i in {1..10}; do
-        if [ "$(mysql_root_exec "$h" 'select 1')" == "1" ]; then
+        if [ "$(mysql_exec "$h" 'select 1')" == "1" ]; then
             return
         fi
         echo "MySQL is not up yet... sleeping ..."
@@ -20,7 +20,7 @@ function wait_for_mysql() {
 echo
 while read -ra LINE; do
     wait_for_mysql $LINE
-    STATUS=$(mysql_root_exec "$LINE" "SHOW GLOBAL STATUS LIKE 'wsrep_%';")
+    STATUS=$(mysql_exec "$LINE" "SHOW GLOBAL STATUS LIKE 'wsrep_%';")
     READY=$(echo "$STATUS" | grep wsrep_ready | awk '{print$2}')
     ONLINE=$(echo "$STATUS" | grep wsrep_connected | awk '{print$2}')
     STATE=$(echo "$STATUS" | grep wsrep_local_state_comment | awk '{print$2}')
