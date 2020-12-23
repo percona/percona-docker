@@ -9,6 +9,7 @@ if [ -f "$path_to_haproxy_cfg/PROXY_PROTOCOL_ENABLED" ]; then
 fi
 
 MONITOR_USER='monitor'
+MONITOR_PASSWORD=$(/bin/cat /etc/mysql/mysql-users-secret/monitor)
 TIMEOUT=10
 MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER"
 
@@ -17,7 +18,6 @@ if [ -f "$path_to_haproxy_cfg/AVAILABLE_NODES" ]; then
     AVAILABLE_NODES=$(/bin/cat $path_to_haproxy_cfg/AVAILABLE_NODES)
 fi
 
-MONITOR_PASSWORD=${MONITOR_PASSWORD:-$PATH}
 PXC_NODE_STATUS=($(MYSQL_PWD="${MONITOR_PASSWORD}" $MYSQL_CMDLINE -h $PXC_SERVER_IP -P $PXC_SERVER_PORT \
         -e "SHOW STATUS LIKE 'wsrep_local_state';SHOW VARIABLES LIKE 'pxc_maint_mode';SHOW GLOBAL STATUS LIKE 'wsrep_cluster_status';" \
         | /usr/bin/grep -A 1 -E 'wsrep_local_state$|pxc_maint_mode$|wsrep_cluster_status$' | /usr/bin/sed -n -e '2p' -e '5p' -e '8p' | /usr/bin/tr '\n' ' '))
