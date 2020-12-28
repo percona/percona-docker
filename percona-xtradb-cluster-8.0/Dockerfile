@@ -30,7 +30,7 @@ RUN set -ex; \
 	rpm -i /tmp/pv.rpm; \
 	rm -rf /tmp/pv.rpm
 
-ENV PXC_VERSION 8.0.20-11.3
+ENV PXC_VERSION 8.0.21-12.1
 ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
@@ -46,6 +46,7 @@ RUN set -ex; \
 		hostname \
 		curl \
 		tzdata \
+		diffutils \
 		libaio \
 		which \
 		pam \
@@ -54,7 +55,7 @@ RUN set -ex; \
 		libev \
 		jq \
 		oniguruma \
-                cracklib-dicts \
+		cracklib-dicts \
 		dnf-utils; \
 	dnf clean all; \
 	rm -rf /var/cache/dnf
