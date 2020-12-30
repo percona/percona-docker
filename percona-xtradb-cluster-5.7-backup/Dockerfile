@@ -8,6 +8,14 @@ RUN go build
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
 RUN go build
 
+ENV MC_VERSION=RELEASE.2020-12-18T10-53-53Z
+ENV MC_SHA256SUM=a49d84f1f29376c85379ecc91ff6aee813d3f8b464f2986e6e2411109bc6ac12
+RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/mc.${MC_VERSION} \
+    && chmod +x /go/bin/mc \
+    && echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
+    && curl -o /go/bin/LICENSE.mc \
+        https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
+
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
@@ -115,8 +123,9 @@ RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 	mkdir /usr/lib/pxc
 
 COPY lib/pxc /usr/lib/pxc
-COPY mc /usr/bin/
 COPY recovery-*.sh backup.sh get-pxc-state /usr/bin/
+COPY --from=go_builder /go/bin/mc /usr/bin/
+COPY --from=go_builder /go/bin/LICENSE.mc /licenses/LICENSE.mc
 COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr/pitr /usr/bin/
 
