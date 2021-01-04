@@ -24,7 +24,8 @@ LABEL org.opencontainers.image.license="GPL+"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXC_VERSION 8.0.20-11.3
-ENV PROXYSQL_VERSION 2.0.15-1.1
+# use 2.0.12 version of proxysql until PSQLADM-282 is resolved
+ENV PROXYSQL_VERSION 2.0.12-1.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
 ENV FULL_PROXYSQL_VERSION "$PROXYSQL_VERSION.$OS_VER"
