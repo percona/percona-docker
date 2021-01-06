@@ -50,6 +50,7 @@ function request_streaming() {
         exit 1
     fi
 
+    set +o errexit
     echo '[INFO] garbd was started'
         garbd \
             --address "gcomm://$NODE_NAME.$PXC_SERVICE?gmcast.listen_addr=tcp://0.0.0.0:4567" \
@@ -62,6 +63,9 @@ function request_streaming() {
 
     echo '[INFO] garbd was finished'
 
+    if [ -f '/tmp/backup-is-completed' ]; then
+        exit 0
+    fi
     exit $EXID_CODE
 }
 
