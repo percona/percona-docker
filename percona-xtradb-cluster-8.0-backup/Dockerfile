@@ -10,7 +10,7 @@ RUN go build
 
 ENV MC_VERSION=RELEASE.2020-12-18T10-53-53Z
 ENV MC_SHA256SUM=a49d84f1f29376c85379ecc91ff6aee813d3f8b464f2986e6e2411109bc6ac12
-RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/mc.${MC_VERSION} \
+RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
     && chmod +x /go/bin/mc \
     && echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
     && curl -o /go/bin/LICENSE.mc \
