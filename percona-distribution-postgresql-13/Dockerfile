@@ -2,7 +2,7 @@ FROM centos:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PPG_VERSION 13.0-1
+ENV PPG_VERSION 13.1-1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
 
@@ -19,7 +19,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release setup -y ppg13; \
-    percona-release enable ppg-13.0 testing
+    percona-release enable ppg-13.1 release
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
