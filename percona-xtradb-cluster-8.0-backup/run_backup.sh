@@ -151,4 +151,7 @@ else
     backup_volume
 fi
 
+if (( $SST_FAILED == 0 )); then
+    touch /tmp/backup-is-completed
+fi
 exit $SST_FAILED
