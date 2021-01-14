@@ -3,8 +3,10 @@ set -e
 set -o xtrace
 
 if [ "$1" = 'haproxy' ]; then
-    haproxy_opt='-W -db '
-    cp /etc/haproxy/haproxy.cfg /etc/haproxy/pxc
+    if [ ! -f '/etc/haproxy/pxc/haproxy.cfg' ]; then
+        cp /etc/haproxy/haproxy.cfg /etc/haproxy/pxc
+    fi
+
     custom_conf='/etc/haproxy-custom/haproxy-global.cfg'
     if [ -f "$custom_conf" ]; then
         haproxy -c -f $custom_conf -f /etc/haproxy/pxc/haproxy.cfg || EC=$?
@@ -13,6 +15,7 @@ if [ "$1" = 'haproxy' ]; then
         fi
     fi
 
+    haproxy_opt='-W -db '
     if [ -f "$custom_conf" -a -z "$EC" ]; then
         haproxy_opt+="-f $custom_conf "
     else
