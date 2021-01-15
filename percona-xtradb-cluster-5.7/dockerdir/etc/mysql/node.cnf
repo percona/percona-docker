@@ -5,6 +5,7 @@ datadir=/var/lib/mysql
 socket=/tmp/mysql.sock
 skip-host-cache
 
+#coredumper
 #server_id=0
 binlog_format=ROW
 default_storage_engine=InnoDB
