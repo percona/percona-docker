@@ -26,7 +26,7 @@ RUN set -ex; \
     percona-release setup pxc80; \
     percona-release enable tools testing
 
-ENV PXC_VERSION 8.0.20-11.3
+ENV PXC_VERSION 8.0.21-12.1
 ENV PROXYSQL_VERSION 2.0.15-1.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
