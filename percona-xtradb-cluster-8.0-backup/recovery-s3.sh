@@ -32,18 +32,18 @@ if [[ -n $transition_key && $transition_key != null ]]; then
     echo transition-key exists
 fi
 
-echo "+ xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare --binlog-info=ON --rollback-prepared-trx \
+echo "+ xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare --rollback-prepared-trx \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp"
 
-xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare --binlog-info=ON $transition_option --rollback-prepared-trx \
+xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare $transition_option --rollback-prepared-trx \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp
 
-echo "+ xtrabackup --defaults-group=mysqld --datadir=/datadir --move-back --binlog-info=ON \
+echo "+ xtrabackup --defaults-group=mysqld --datadir=/datadir --move-back \
     --force-non-empty-directories $master_key_options \
     --keyring-vault-config=/etc/mysql/vault-keyring-secret/keyring_vault.conf --early-plugin-load=keyring_vault.so \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp"
 
-xtrabackup --defaults-group=mysqld --datadir=/datadir --move-back --binlog-info=ON \
+xtrabackup --defaults-group=mysqld --datadir=/datadir --move-back \
     --force-non-empty-directories $transition_option $master_key_options \
     --keyring-vault-config=/etc/mysql/vault-keyring-secret/keyring_vault.conf --early-plugin-load=keyring_vault.so \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp
