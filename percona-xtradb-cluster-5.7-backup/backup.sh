@@ -77,6 +77,9 @@ function request_streaming() {
     if grep 'INFO: Shifting CLOSED -> DESTROYED (TO: -1)' /tmp/garbd.log; then
         exit 1
     fi
+    if ! grep 'INFO: Sending state transfer request' /tmp/garbd.log; then
+        exit 1
+    fi
 }
 
 function backup_volume() {
