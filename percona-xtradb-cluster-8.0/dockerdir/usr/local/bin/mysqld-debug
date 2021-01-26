@@ -3,8 +3,8 @@
 set -o xtrace
 
 touch /tmp/recovery-case
-if [[ "$@" == *--skip-networking* ]]; then
+if [[ "$@" == *"--wsrep_start_position"* ]] || [[ "$@" == "" ]] ; then
+   /usr/sbin/mysqld-ps "$@" || sleep infinity
+else
     exec /usr/sbin/mysqld-ps "$@" 
 fi
-
-/usr/sbin/mysqld-ps "$@" || sleep infinity
