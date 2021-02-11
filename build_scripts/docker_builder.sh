@@ -18,7 +18,7 @@ Usage: $0 [OPTIONS]
         --load_docker=PATH  Load docker from image archive. using path from paramiter
         --test_docker       Run basic tests to verify docker image
         --repo=github_repo  Default value is https://github.com/percona/percona-docker.git
-        --branch=BRANCH     Default branch is master
+        --branch=BRANCH     Default branch is main
         --help) usage ;;
 Example $0 --builddir=/tmp/docker_build --build_docker=1 --save_docker=1 --docker-name=percona-server-mongodb.36 --version=3.6.1-1.0
 EOF
@@ -77,7 +77,7 @@ BUILD=0
 VERSION=0
 SAVE=0
 LOAD=0
-BRANCH=master
+BRANCH=main
 TEST=0
 OS=
 REPO="https://github.com/percona/percona-docker.git"

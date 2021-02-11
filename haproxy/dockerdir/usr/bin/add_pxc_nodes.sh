@@ -114,8 +114,8 @@ EOF
          fi
     fi
 
-    if [ -S "$path_to_haproxy_cfg/haproxy-master.sock" ]; then
-        echo 'reload' | socat stdio "$path_to_haproxy_cfg/haproxy-master.sock"
+    if [ -S "$path_to_haproxy_cfg/haproxy-main.sock" ]; then
+        echo 'reload' | socat stdio "$path_to_haproxy_cfg/haproxy-main.sock"
     fi
 }
 

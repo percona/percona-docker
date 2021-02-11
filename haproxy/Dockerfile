@@ -2,7 +2,7 @@ FROM golang:1.14 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
 RUN go get k8s.io/apimachinery/pkg/util/sets \
-    && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/master/cmd/peer-list/main.go \
+    && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go \
     && go build peer-list.go
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
