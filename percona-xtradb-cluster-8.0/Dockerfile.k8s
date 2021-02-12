@@ -117,15 +117,26 @@ RUN if [[ -n $DEBUG ]] ; then \
 		sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf; \
 		mv /usr/sbin/mysqld /usr/sbin/mysqld-ps; \
 		cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld; \
+		percona-release enable pdpxc-8.0 release; \
 		microdnf install -y \
 			net-tools \
 			nc \
+			percona-toolkit \
 			gdb; \
-                curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
+		percona-release disable pdpxc-8.0 release; \
+		curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
+		curl -Lf -o /tmp/tcpdump.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/tcpdump-4.9.3-1.el8.x86_64.rpm; \
+
+		curl -Lf -o /tmp/perf.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/perf-4.18.0-240.10.1.el8_3.x86_64.rpm; \
+		curl -Lf -o /tmp/bzip2.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/bzip2-1.0.6-26.el8.x86_64.rpm; \
+		curl -Lf -o /tmp/libbpf.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/libbpf-0.0.8-4.el8.x86_64.rpm; \
+		curl -Lf -o /tmp/slang.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/slang-2.3.2-3.el8.x86_64.rpm; \
+
+		curl -Lf -o /tmp/strace.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/strace-5.1-1.el8.x86_64.rpm; \
 		curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-		rpmkeys --checksig /tmp/telnet.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm; \
-		rpm -i /tmp/telnet.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm --nodeps; \
-		rm -rf /tmp/telnet.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm; \
+		rpmkeys --checksig /tmp/telnet.rpm /tmp/tcpdump.rpm /tmp/perf.rpm /tmp/bzip2.rpm /tmp/libbpf.rpm /tmp/slang.rpm /tmp/strace.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm; \
+		rpm -i /tmp/telnet.rpm /tmp/tcpdump.rpm /tmp/perf.rpm /tmp/bzip2.rpm /tmp/libbpf.rpm /tmp/slang.rpm /tmp/strace.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm --nodeps; \
+		rm -rf /tmp/telnet.rpm /tmp/tcpdump.rpm /tmp/perf.rpm /tmp/bzip2.rpm /tmp/libbpf.rpm /tmp/slang.rpm /tmp/strace.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm; \
 		microdnf clean all; \
 		rm -rf /var/cache/yum; \
 fi
