@@ -118,11 +118,17 @@ RUN if [[ -n $DEBUG ]] ; then \
 		rpmkeys --checksig /tmp/Percona-XtraDB-Cluster-debuginfo.rpm; \
 		rpm -iv /tmp/Percona-XtraDB-Cluster-debuginfo.rpm --nodeps; \
 		rm -rf /tmp/Percona-XtraDB-Cluster-debuginfo.rpm; \
+		percona-release enable pdpxc-8.0 release; \
 		dnf install -y \
 			net-tools \
 			telnet \
 			nc \
-			gdb; \
+			gdb \
+			perf \
+			strace \
+			tcpdump \
+			percona-toolkit; \
+		percona-release disable pdpxc-8.0 release; \
 		dnf clean all; \
 		rm -rf /var/cache/dnf; \
 	fi
