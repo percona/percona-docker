@@ -15,7 +15,7 @@ RUN wget https://repo.percona.com/apt/percona-release_latest.xenial_all.deb \
     && dpkg -i percona-release_latest.xenial_all.deb
 
 ENV PERCONA_MAJOR 5.6
-ENV PERCONA_VERSION 5.6.49-28.42-3.xenial
+ENV PERCONA_VERSION 5.6.50-28.44-1.xenial
 
 # the "/var/lib/mysql" stuff here is because the mysql-server postinst doesn't have an explicit way to disable the mysql_install_db codepath besides having a database already "configured" (ie, stuff in /var/lib/mysql/mysql)
 # also, we set debconf keys to make APT a little quieter
