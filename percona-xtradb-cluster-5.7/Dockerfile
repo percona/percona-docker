@@ -118,9 +118,12 @@ RUN if [[ -n $DEBUG ]] ; then \
 		repoquery -a --location \
 			Percona-XtraDB-Cluster-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION} \
 			| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm; \
-		rpmkeys --checksig /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm; \
-		rpm -i /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm --nodeps; \
-		rm -rf /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm; \
+		repoquery -a --location \
+			Percona-XtraDB-Cluster-server-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION} \
+			| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm; \
+		rpmkeys --checksig /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm; \
+		rpm -i /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm --nodeps; \
+		rm -rf /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm; \
 		dnf install -y \
 			net-tools \
 			telnet \

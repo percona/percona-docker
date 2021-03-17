@@ -132,10 +132,11 @@ RUN if [[ -n $DEBUG ]] ; then \
 			nc \
 			gdb; \
 		curl -Lf -o /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm http://repo.percona.com/percona/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-                curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
-		rpmkeys --checksig /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm; \
-		rpm -i /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm --nodeps; \
-		rm -rf /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm; \
+		curl -Lf -o /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm http://repo.percona.com/percona/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-server-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+		curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
+		rpmkeys --checksig /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm; \
+		rpm -i /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm --nodeps; \
+		rm -rf /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm; \
 		microdnf clean all; \
 		rm -rf /var/cache/yum; \
 fi
