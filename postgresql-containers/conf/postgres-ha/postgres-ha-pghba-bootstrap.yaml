@@ -1,0 +1,4 @@
+---
+postgresql:
+  pg_hba:
+    - local all postgres peer
