@@ -1,7 +1,11 @@
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 # Percona Docker Images Collection
 
-This repository contains a collection of Dockerfiles for Percona sofware.
-See individual directories for more details.
+This repository contains a collection of Dockerfiles for Percona sofware. Dockerfiles can be used to customize and build docker images.
+Read more about Docker files [here](https://docs.docker.com/engine/reference/builder/).
+
+See individual directories for instructions on how to build and run Percona software.
 
 # Contributing
 
