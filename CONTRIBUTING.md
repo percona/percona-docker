@@ -18,7 +18,7 @@ Please make sure to read and observe the [Contribution Policy](code-of-conduct.m
 
 Improvement and bugfix tasks for Percona's projects are tracked in Jira. If you find a bug in Percona Docker Images or one of the related projects, you should submit a report to that project's [Jira issue tracker](https://jira.percona.com).
 
-Although not mandatory, it is a good practice [to examine already open Jira issues](https://jira.percona.com/issues/?jql=project%20%3D%20%22Cloud%20Dev%22) before submitting a pull request. For bigger contributions, we suggest creating a Jira issue first and discussing it with the engineering team and community before proposing any code changes.
+Although not mandatory, it is a good practice [to examine already open Jira issues](https://jira.percona.com/issues/?jql=project%20%3D%20%22Cloud%20Dev%22) first. For bigger contributions, we suggest creating a Jira issue and discussing it with the engineering team and community before proposing any code changes.
 
 Another good place to discuss Percona's projects with developers and other community members is the [community forum](https://forums.percona.com).
 
