@@ -26,7 +26,7 @@ Another good place to discuss Percona's projects with developers and other commu
 
 Contributions to the source tree should follow the workflow described below:
 
-1. First, you need to [fork the repository on GitHub](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork), clone your fork locally, and then [sync your local fork to upstream](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork). After that, before starting to work on changes, make sure to always sync your fork with upstream.
+1. First, you need to [fork the repository on GitHub](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo), clone your fork locally, and then [sync your local fork to upstream](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork). After that, before starting to work on changes, make sure to always sync your fork with upstream.
 2. Create a branch for changes you are planning to make. If there is a Jira ticket related to your contribution, it is recommended to name your branch in the following way: `<Jira issue number>-<short description>`, where the issue number is something like `K8SPXC-622`.
 
    Create the branch in your local repo as follows:
