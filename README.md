@@ -17,4 +17,4 @@ See the [Contribution Guide](CONTRIBUTING.md) for more information.
 
 If you find a bug in Percona Docker Images or one of the related projects, you should submit a report to that project's [Jira](https://jira.percona.com) issue tracker.
 
-Learn more about submitting bugs, new features ideas and improvements in the [Contribution Guide](CONTRIBUTING.md).
+Learn more about submitting bugs, new feature ideas, and improvements in the [Contribution Guide](CONTRIBUTING.md).

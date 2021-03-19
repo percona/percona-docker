@@ -14,13 +14,15 @@ Please make sure to read and observe the [Contribution Policy](code-of-conduct.m
 
 ## Submitting a pull request
 
+### 1. Making a bug report
+
 Improvement and bugfix tasks for Percona's projects are tracked in Jira. If you find a bug in Percona Docker Images or one of the related projects, you should submit a report to that project's [Jira issue tracker](https://jira.percona.com).
 
 Although not mandatory, it is a good practice [to examine already open Jira issues](https://jira.percona.com/issues/?jql=project%20%3D%20%22Cloud%20Dev%22) before submitting a pull request. For bigger contributions, we suggest creating a Jira issue first and discussing it with the engineering team and community before proposing any code changes.
 
 Another good place to discuss Percona's projects with developers and other community members is the [community forum](https://forums.percona.com).
 
-### 1. Contributing to the source tree
+### 2. Contributing to the source tree
 
 Contributions to the source tree should follow the workflow described below:
 
@@ -47,4 +49,4 @@ Contributions to the source tree should follow the workflow described below:
 
 ## Code review
 
-Your contribution will be reviewed by other developers contributing to the project. The more complex your changes are, the more experts will be involved. You will receive feedback and recommendations directly on your pull request on GitHub, so keep an eye on your submission and be prepared to make further amendments. The developers might even provide some concrete suggestions on how to modify your code to better match the project’s expectations.
+Your contribution will be reviewed by other developers contributing to the project. The more complex your changes are, the more experts will be involved. You will receive feedback and recommendations directly on your pull request on GitHub, so keep an eye on your submission and be prepared to make further amendments. The developers might even provide some concrete suggestions on modifying your code to match the project’s expectations better.
