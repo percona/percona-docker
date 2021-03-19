@@ -1,26 +1,20 @@
-# Percona Docker Images Collection 
-[![CLA assistant](https://cla-assistant.percona.com/readme/badge/percona/percona-docker)](https://cla-assistant.percona.com/percona/percona-docker)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Collection of Dockerfiles for Percona sofware.
-See individual directories for more details.
+# Percona Docker Images Collection
+
+This repository contains a collection of Dockerfiles for Percona sofware. Dockerfiles can be used to customize and build docker images.
+Read more about Dockerfiles [here](https://docs.docker.com/engine/reference/builder/).
+
+See individual directories for instructions on how to build and run Percona software.
+
+# Contributing
+
+Percona welcomes and encourages community contributions to help improve our projects.
+
+See the [Contribution Guide](CONTRIBUTING.md) for more information.
 
 ## Submitting Bug Reports
 
-If you find a bug in Percona Docker Images or one of the related projects, you should submit a report to that project's [JIRA](https://jira.percona.com) issue tracker.
+If you find a bug in Percona Docker Images or one of the related projects, you should submit a report to that project's [Jira](https://jira.percona.com) issue tracker.
 
-Your first step should be [to search](https://jira.percona.com/issues/?jql=project%20%3D%20%22Cloud%20Dev%22) the existing set of open tickets for a similar report. If you find that someone else has already reported your problem, then you can upvote that report to increase its visibility.
-
-If there is no existing report, submit a report following these steps:
-
-1. [Sign in to Percona JIRA.](https://jira.percona.com/login.jsp) You will need to create an account if you do not have one.
-2. [Go to the Create Issue screen and select the relevant project.](https://jira.percona.com/secure/CreateIssueDetails!init.jspa?pid=12500&issuetype=1&priority=3)
-3. Fill in the fields of Summary, Description, Steps To Reproduce, and Affects Version to the best you can. If the bug corresponds to a crash, attach the stack trace from the logs.
-
-An excellent resource is [Elika Etemad's article on filing good bug reports.](http://fantasai.inkedblade.net/style/talks/filing-good-bugs/).
-
-As a general rule of thumb, please try to create bug reports that are:
-
-- *Reproducible.* Include steps to reproduce the problem.
-- *Specific.* Include as much detail as possible: which version, what environment, etc.
-- *Unique.* Do not duplicate existing tickets.
-- *Scoped to a Single Bug.* One bug per report.
+Learn more about submitting bugs, new feature ideas, and improvements in the [Contribution Guide](CONTRIBUTING.md).
