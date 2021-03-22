@@ -115,9 +115,12 @@ RUN if [[ -n $DEBUG ]] ; then \
 		repoquery -a --location \
 			Percona-XtraDB-Cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION} \
 			| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-debuginfo.rpm; \
-		rpmkeys --checksig /tmp/Percona-XtraDB-Cluster-debuginfo.rpm; \
-		rpm -iv /tmp/Percona-XtraDB-Cluster-debuginfo.rpm --nodeps; \
-		rm -rf /tmp/Percona-XtraDB-Cluster-debuginfo.rpm; \
+		repoquery -a --location \
+			Percona-XtraDB-Cluster-server-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION} \
+			| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-server-debuginfo.rpm; \
+		rpmkeys --checksig /tmp/Percona-XtraDB-Cluster-debuginfo.rpm /tmp/Percona-XtraDB-Cluster-server-debuginfo.rpm; \
+		rpm -iv /tmp/Percona-XtraDB-Cluster-debuginfo.rpm /tmp/Percona-XtraDB-Cluster-server-debuginfo.rpm --nodeps; \
+		rm -rf /tmp/Percona-XtraDB-Cluster-debuginfo.rpm /tmp/Percona-XtraDB-Cluster-server-debuginfo.rpm; \
 		percona-release enable pdpxc-8.0 release; \
 		dnf install -y \
 			net-tools \
