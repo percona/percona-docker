@@ -10,7 +10,10 @@ fi
 
 MONITOR_USER='monitor'
 MONITOR_PASSWORD=$(/bin/cat /etc/mysql/mysql-users-secret/monitor)
-TIMEOUT=10
+CUSTOM_TIMEOUT=$(/bin/cat /etc/mysql/haproxy-env-secret/HA_CONNECTION_TIMEOUT)
+OK_IF_DONOR=$(/bin/cat /etc/mysql/haproxy-env-secret/OK_IF_DONOR)
+TIMEOUT=${CUSTOM_TIMEOUT:-10}
+DONOR_IS_OK=${OK_IF_DONOR:-0}
 MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER"
 
 AVAILABLE_NODES=1
@@ -28,7 +31,7 @@ PXC_NODE_STATUS=($(MYSQL_PWD="${MONITOR_PASSWORD}" $MYSQL_CMDLINE -h $PXC_SERVER
 echo "The following values are used for PXC node $PXC_SERVER_IP in backend $HAPROXY_PROXY_NAME:"
 echo "wsrep_local_state is ${PXC_NODE_STATUS[0]}; pxc_maint_mod is ${PXC_NODE_STATUS[1]}; wsrep_cluster_status is ${PXC_NODE_STATUS[2]}; $AVAILABLE_NODES nodes are available"
 if [[ ${PXC_NODE_STATUS[2]} == 'Primary' &&  ( ${PXC_NODE_STATUS[0]} -eq 4 || \
-    ${PXC_NODE_STATUS[0]} -eq 2 && "${AVAILABLE_NODES}" -le 1 ) \
+    ${PXC_NODE_STATUS[0]} -eq 2 && ( "${AVAILABLE_NODES}" -le 1 || "${DONOR_IS_OK}" -eq 1 ) ) \
     && ${PXC_NODE_STATUS[1]} == 'DISABLED' ]];
 then
     echo "PXC node $PXC_SERVER_IP for backend $HAPROXY_PROXY_NAME is ok"

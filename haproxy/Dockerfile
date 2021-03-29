@@ -37,6 +37,7 @@ RUN set -ex; \
         which \
         tar \
         socat \
+        procps-ng \
         policycoreutils; \
     \
     microdnf clean all; \
