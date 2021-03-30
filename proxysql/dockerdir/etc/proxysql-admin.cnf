@@ -35,3 +35,6 @@ export MAX_CONNECTIONS="1000"
 # Determines the maximum number of writesets a node can have queued
 # before the node is SHUNNED to avoid stale reads.
 export MAX_TRANSACTIONS_BEHIND=100
+
+# Use STDIN for passing credentials to MySQL client (PSQLADM-282)
+export USE_STDIN_FOR_CREDENTIALS=1
