@@ -33,12 +33,10 @@ helps enterprises avoid downtime and outages and meet expected customer experien
 LABEL org.opencontainers.image.license="GPL"
 
 ENV PXB_VERSION 2.4.22-1
-ENV PS_VERSION 5.7.32-35.1
 ENV PXC_VERSION 5.7.33-31.49.1
 ENV KUBECTL_VERSION=v1.15.6
 ENV KUBECTL_SHA256SUM=522115e0f11d83c08435a05e76120c89ea320782ccaff8e301bd14588ec50145
 ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 LABEL org.label-schema.schema-version=${PXC_VERSION}
@@ -58,8 +56,8 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable original testing; \
-    percona-release enable tools release
+    percona-release enable-only tools release; \
+    percona-release enable pxc-57 release
 
 RUN set -ex; \
 	curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
@@ -75,8 +73,6 @@ RUN set -ex; \
 
 RUN set -ex; \
 	microdnf install -y \
-		Percona-Server-shared-57-${FULL_PERCONA_VERSION} \
-		Percona-Server-shared-compat-57-${FULL_PERCONA_VERSION} \
 		socat \
 		shadow-utils \
 		hostname \

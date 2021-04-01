@@ -23,13 +23,12 @@ RUN set -ex; \
 	rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
 	rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
 	dnf -y module disable mysql; \
-	percona-release enable tools release
+	percona-release enable-only tools release; \
+	percona-release enable pxc-57 release
 
 ENV PXB_VERSION 2.4.22-1
-ENV PS_VERSION 5.7.31-34.1
 ENV PXC_VERSION 5.7.33-31.49.1
 ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 
@@ -41,7 +40,6 @@ RUN set -ex; \
 
 RUN set -ex; \
 	dnf --setopt=install_weak_deps=False --best install -y \
-		Percona-Server-shared-57-${FULL_PERCONA_VERSION} \
 		jemalloc \
 		socat \
 		openssl \
@@ -71,7 +69,6 @@ RUN groupadd -g 1001 mysql; \
 
 # we need licenses from docs
 RUN set -ex; \
-	percona-release disable tools release; \
 	repoquery -a --location \
 		Percona-XtraDB-Cluster-server-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION} \
 		| xargs curl -Lf -o /tmp/Percona-XtraDB-Cluster-server-57.rpm; \
