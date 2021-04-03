@@ -20,10 +20,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && rpm -i /tmp/percona-release.rpm \
     && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
     && rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-    && percona-release setup pdpxc-8.0.21
+    && percona-release setup pdpxc-8.0.22
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.21-12.1.el7
+ENV PERCONA_VERSION 8.0.22-13.1.el7
 
 RUN set -ex; \
     microdnf install -y postgresql-libs shadow-utils yum-utils logrotate \
