@@ -11,7 +11,7 @@ RUN microdnf -y update; \
 
 ENV LC_ALL en_US.utf-8
 ENV LANG en_US.utf-8
-ENV PGVERSION 13
+ARG PG_MAJOR=13
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -28,8 +28,8 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable ppg-${PGVERSION} experimental; \
-    percona-release enable ppg-${PGVERSION}.2 testing
+    percona-release enable ppg-${PG_MAJOR} experimental; \
+    percona-release enable ppg-${PG_MAJOR} release
 
 RUN set -ex; \
     curl -Lf -o /tmp/c-ares.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/c-ares-1.13.0-5.el8.x86_64.rpm; \
