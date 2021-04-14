@@ -11,7 +11,7 @@ RUN microdnf -y update; \
 
 ENV LC_ALL en_US.utf-8
 ENV LANG en_US.utf-8
-ENV PG_MAJOR 13
+ARG PG_MAJOR=13
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -29,7 +29,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable ppg-${PG_MAJOR//.} experimental; \
-    percona-release enable ppg-${PG_MAJOR//.}.2 testing
+    percona-release enable ppg-${PG_MAJOR//.} release
 
 RUN set -ex; \
     microdnf -y install \
@@ -37,13 +37,14 @@ RUN set -ex; \
         gettext \
         hostname \
         perl \
+        libedit \
         procps-ng; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
     microdnf -y install \
         libpq \
         llvm9.0 \
         openssh \
-	    percona-postgresql${PG_MAJOR//.}; \
+        percona-postgresql${PG_MAJOR//.}; \
     microdnf -y clean all
 
 # Preserving PGVERSION out of paranoia
