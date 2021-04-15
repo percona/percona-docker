@@ -14,6 +14,7 @@ function main() {
     firs_node_admin=''
     main_node=''
 
+    SERVER_OPTIONS=${HA_SERVER_OPTIONS:-'check inter 10000 rise 1 fall 2 weight 1'}
     send_proxy=''
     path_to_haproxy_cfg='/etc/haproxy/pxc'
     if [[ "${IS_PROXY_PROTOCOL}" = "yes" ]]; then
@@ -31,16 +32,16 @@ function main() {
 
         node_name=$(echo "$pxc_host" | cut -d . -f -1)
         node_id=$(echo $node_name |  awk -F'-' '{print $NF}')
-        NODE_LIST_REPL+=( "server $node_name $pxc_host:3306 $send_proxy check inter 10000 rise 1 fall 2 weight 1" )
+        NODE_LIST_REPL+=( "server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS" )
         if [ "x$node_id" == 'x0' ]; then
             main_node="$pxc_host"
-            firs_node="server $node_name $pxc_host:3306 $send_proxy check inter 10000 rise 1 fall 2 weight 1 on-marked-up shutdown-backup-sessions"
-            firs_node_admin="server $node_name $pxc_host:33062 check inter 10000 rise 1 fall 2 weight 1 on-marked-up shutdown-backup-sessions"
+            firs_node="server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS on-marked-up shutdown-backup-sessions"
+            firs_node_admin="server $node_name $pxc_host:33062 $SERVER_OPTIONS on-marked-up shutdown-backup-sessions"
             continue
         fi
         NODE_LIST_BACKUP+=("galera-nodes/$node_name" "galera-admin-nodes/$node_name")
-        NODE_LIST+=( "server $node_name $pxc_host:3306 $send_proxy check inter 10000 rise 1 fall 2 weight 1 backup" )
-        NODE_LIST_ADMIN+=( "server $node_name $pxc_host:33062 check inter 10000 rise 1 fall 2 weight 1 backup" )
+        NODE_LIST+=( "server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS backup" )
+        NODE_LIST_ADMIN+=( "server $node_name $pxc_host:33062 $SERVER_OPTIONS backup" )
     done
 
     if [ -n "$firs_node" ]; then
