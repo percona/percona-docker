@@ -62,18 +62,18 @@ RUN set -ex; \
     curl -Lf -o /tmp/llvm.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/llvm-10.0.1-3.module_el8.3.0+467+cb298d5b.x86_64.rpm; \
     curl -Lf -o /tmp/python3-psutil.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-psutil-5.4.3-10.el8.x86_64.rpm; \
     curl -Lf -o /tmp/python3-prettytable.rpm  http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-prettytable-0.7.2-14.el8.noarch.rpm; \
+    curl -Lf -o /tmp/python3-click.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-click-6.7-8.el8.noarch.rpm; \
     rpmkeys --checksig /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm /tmp/openssh-server.rpm \
-                       /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm; \
+                       /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm; \
     rpm -i /tmp/perl-DBI.rpm /tmp/llvm-libs.rpm /tmp/llvm.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
-           /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm; \
+           /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm; \
     rm -rf /tmp/perl-DBI.rpm /tmp/llvm-libs.rpm /tmp/llvm.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
-           /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm
+           /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm
 
 RUN  set -ex; \
      microdnf -y install \
 		--enablerepo="epel" \
 		python3-pip \
-		tzdata \
 		python3-psycopg2 \
 		percona-patroni \
 		percona-pgaudit \
@@ -90,6 +90,7 @@ RUN  set -ex; \
 		percona-wal2json${PG_MAJOR//.} \
 		file \
 		unzip; \
+	microdnf -y reinstall tzdata; \
 	microdnf -y clean all --enablerepo="epel"
 
 
@@ -144,4 +145,4 @@ ENTRYPOINT ["/opt/crunchy/bin/postgres-ha/bootstrap-postgres-ha.sh"]
 
 USER 26
 
-CMD ["/opt/patroni/bin/patroni"]
+CMD ["/usr/bin/patroni"]
