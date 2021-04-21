@@ -16,8 +16,7 @@
 --- System Setup
 SET application_name="container_setup";
 
-CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
-CREATE EXTENSION IF NOT EXISTS pgaudit;
+CREATE EXTENSION IF NOT EXISTS pg_stat_monitor;
 
 ALTER USER postgres PASSWORD 'PG_ROOT_PASSWORD';
 
@@ -37,8 +36,7 @@ GRANT ALL ON primarytable TO "PG_PRIMARY_USER";
 
 \c "PG_DATABASE"
 
-CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
-CREATE EXTENSION IF NOT EXISTS pgaudit;
+CREATE EXTENSION IF NOT EXISTS pg_stat_monitor;
 
 --- Verify permissions via PG_USER
 
