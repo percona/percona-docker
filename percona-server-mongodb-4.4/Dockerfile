@@ -76,6 +76,9 @@ RUN set -ex; \
     \
     chmod 0755 /usr/local/bin/k8s-mongodb-initiator /usr/local/bin/mongodb-healthcheck
 
+RUN set -ex; \
+    curl -fSL https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js -o /js-yaml.js
+
 COPY ps-entry.sh /entrypoint.sh
 
 VOLUME ["/data/db"]
