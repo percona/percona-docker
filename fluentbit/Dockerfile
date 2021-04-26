@@ -20,27 +20,23 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && rpm -i /tmp/percona-release.rpm \
     && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
     && rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-    && percona-release setup pdpxc-8.0.22
+    && percona-release setup pdpxc-8.0.21
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.22-13.1.el7
+ENV PERCONA_VERSION 8.0.21-12.1.el7
 
 RUN set -ex; \
-    microdnf install -y postgresql-libs shadow-utils yum-utils logrotate \
+    microdnf install -y postgresql-libs shadow-utils logrotate \
     percona-xtradb-cluster-client-${PERCONA_VERSION} tar; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
-    repoquery -a --archlist=x86_64 --location \
-        systemd-libs \
-        | xargs curl -Lf -o /tmp/systemd-libs.rpm; \
-    repoquery -a --archlist=x86_64 --location \
-        elfutils-libs \
-            | xargs curl -Lf -o /tmp/elfutils-libs.rpm; \
+    curl -Lf https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi/server/7/7Server/x86_64/os/Packages/s/systemd-libs-219-78.el7_9.3.x86_64.rpm -o /tmp/systemd-libs.rpm; \
+    curl -Lf https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi/server/7/7Server/x86_64/os/Packages/e/elfutils-libs-0.176-5.el7.x86_64.rpm -o /tmp/elfutils-libs.rpm; \
     curl -Lf https://packages.fluentbit.io/centos/7/x86_64/td-agent-bit-1.6.2-1.x86_64.rpm -o /tmp/td-agent-bit.rpm; \
     rpmkeys --checksig /tmp/td-agent-bit.rpm /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm; \
-    rpm -i /tmp/td-agent-bit.rpm /tmp/systemd-libs.rpm /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm --nodeps; \
-    rm -f /tmp/td-agent-bit.rpm /tmp/systemd-libs.rpm /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm; \
-    rm -rf /var/cache 
+    rpm -i /tmp/td-agent-bit.rpm /tmp/systemd-libs.rpm /tmp/elfutils-libs.rpm --nodeps; \
+    rm -f /tmp/td-agent-bit.rpm /tmp/systemd-libs.rpm /tmp/elfutils-libs.rpm; \
+    rm -rf /var/cache
 
 
 RUN groupadd -g 1001 mysql
