@@ -38,6 +38,7 @@ RUN set -ex; \
         tar \
         socat \
         procps-ng \
+        vim-minimal \
         policycoreutils; \
     \
     microdnf clean all; \
