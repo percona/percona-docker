@@ -50,6 +50,11 @@ set_default_pgha_autoconfig_env()  {
             export PGHA_PGBACKREST_LOCAL_S3_STORAGE="false"
             default_pgha_autoconfig_env_vars+=("PGHA_PGBACKREST_LOCAL_S3_STORAGE")
         fi
+        if [[ ! -v PGHA_PGBACKREST_LOCAL_GCS_STORAGE ]]
+        then
+            export PGHA_PGBACKREST_LOCAL_GCS_STORAGE="false"
+            default_pgha_autoconfig_env_vars+=("PGHA_PGBACKREST_LOCAL_GCS_STORAGE")
+        fi
         if [[ ! -v PGHA_PGBACKREST_INITIALIZE ]]
         then
             export PGHA_PGBACKREST_INITIALIZE="false"
@@ -57,7 +62,7 @@ set_default_pgha_autoconfig_env()  {
         fi
     else
         echo_info "pgBackRest auto-config disabled"
-        echo_info "PGHA_PGBACKREST_LOCAL_S3_STORAGE and PGHA_PGBACKREST_INITIALIZE will be ignored if provided"
+        echo_info "PGHA_PGBACKREST_LOCAL_S3_STORAGE, PGHA_PGBACKREST_LOCAL_GCS_STORAGE and PGHA_PGBACKREST_INITIALIZE will be ignored if provided"
     fi
 
     if [[ ! -v PGHA_SYNC_REPLICATION ]]
@@ -257,10 +262,10 @@ validate_env() {
 build_bootstrap_config_file() {
 
     bootstrap_file="/tmp/postgres-ha-bootstrap.yaml"
-    echo "---" >> "${bootstrap_file}"
+    echo "---" > "${bootstrap_file}"
 
     pghba_file="/tmp/postgres-ha-pghba.yaml"
-    cat "${CRUNCHY_DIR}/conf/postgres-ha/postgres-ha-pghba-bootstrap.yaml" >> "${pghba_file}"
+    cat "${CRUNCHY_DIR}/conf/postgres-ha/postgres-ha-pghba-bootstrap.yaml" > "${pghba_file}"
 
     if [[ "${PGHA_BASE_BOOTSTRAP_CONFIG}" == "true" ]]
     then
@@ -287,6 +292,10 @@ build_bootstrap_config_file() {
         if [[ "${PGHA_PGBACKREST_LOCAL_S3_STORAGE}" == "true" ]]
         then
             ${CRUNCHY_DIR}/bin/yq m -i -x "${bootstrap_file}" "${CRUNCHY_DIR}/conf/postgres-ha/postgres-ha-pgbackrest-local-s3.yaml"
+        fi
+        if [[ "${PGHA_PGBACKREST_LOCAL_GCS_STORAGE}" == "true" ]]
+        then
+            ${CRUNCHY_DIR}/bin/yq m -i -x "${bootstrap_file}" "${CRUNCHY_DIR}/conf/postgres-ha/postgres-ha-pgbackrest-local-gcs.yaml"
         fi
     else
         echo_info "pgBackRest config for postgres-ha configuration disabled"
@@ -386,13 +395,45 @@ build_bootstrap_config_file() {
       "${CRUNCHY_DIR}/bin/yq" m -i -a "${pghba_file}" "${CRUNCHY_DIR}/conf/postgres-ha/postgres-ha-pghba-notls.yaml"
     fi
 
-    # Disable archive_mode to prevent WAL from being pushed while potentially still connected
-    # to another pgBackRest repository while initializing (e.g. while performing a pgBackRest
-    # restore)
+    # If SCRAM passwords are selected, set this as part of the bootstrapped
+    # password parameter
+    if [[ "${PGHA_PASSWORD_TYPE}" == "scram-sha-256" ]]
+    then
+      "${CRUNCHY_DIR}/bin/yq" w -i "${bootstrap_file}" bootstrap.dcs.postgresql.parameters.password_encryption "scram-sha-256"
+    fi
+
+    # If SCRAM passwords are selected, set this as part of the bootstrapped
+    # password parameter
+    if [[ "${PGHA_PASSWORD_TYPE}" == "scram-sha-256" ]]
+    then
+      "${CRUNCHY_DIR}/bin/yq" w -i "${bootstrap_file}" bootstrap.dcs.postgresql.parameters.password_encryption "scram-sha-256"
+    fi
+
+    # If this is being restored to a new cluster, disable archive_mode to
+    # prevent WAL from being pushed while potentiallystill connected to another
+    # pgBackRest repository while initializing (e.g. while performing a
+    # pgBackRest restore).
+    #
+    # Otherwise, ensure that archive_mode is set explicitly to on.
     if [[ "${PGHA_BOOTSTRAP_METHOD}" == "pgbackrest_init" ]]
     then
-      echo_info "Disabling archive mode for bootstrap method ${PGHA_BOOTSTRAP_METHOD}"
-      "${CRUNCHY_DIR}/bin/yq" w -i "${bootstrap_file}" postgresql.parameters.archive_mode "off"
+        # get the name of the cluster source from the pgBackRest repository
+        if [[ "${PGBACKREST_REPO1_PATH}" =~ \/backrestrepo\/(.*)-backrest-shared-repo$ ]];
+        then
+            bootstrap_cluster_source="${BASH_REMATCH[1]}"
+        fi
+
+        # get the name of the cluster target
+        if [[ "${PGBACKREST_DB_PATH}" =~ \/pgdata\/(.*)$ ]];
+        then
+            bootstrap_cluster_target="${BASH_REMATCH[1]}"
+        fi
+
+        if [[ "${bootstrap_cluster_source}" != "${bootstrap_cluster_target}" ]];
+        then
+            echo_info "Disabling archiving for bootstrap method ${PGHA_BOOTSTRAP_METHOD}"
+            "${CRUNCHY_DIR}/bin/yq" w -i --style=single "${bootstrap_file}" postgresql.parameters.archive_command "false"
+        fi
     fi
 
     # merge the pg_hba.conf settings into the main bootstrap file

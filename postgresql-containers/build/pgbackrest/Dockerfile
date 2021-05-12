@@ -11,7 +11,9 @@ RUN mkdir -p build/_output/bin; \
     CGO_ENABLED=$CGO_ENABLED GOOS=$GOOS GOARCH=$GOARCH \
     go build \
         -o build/_output/bin/pgbackrest ./cmd/pgbackrest; \
-    cp -r build/_output/bin/pgbackrest /usr/local/bin/pgbackrest
+    cp -r build/_output/bin/pgbackrest /usr/local/bin/pgbackrest; \
+    ./bin/license_aggregator.sh; \
+    cp -r ./licenses /licenses
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 
@@ -43,7 +45,7 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable ppg-${PG_MAJOR//.} release
+    percona-release enable ppg-${PG_MAJOR}.2 testing
 
 RUN set -ex; \
     microdnf -y update; \
@@ -52,25 +54,29 @@ RUN set -ex; \
         gettext \
         hostname \
         perl \
+        tar \
+        bzip2 \
+        lz4 \
         procps-ng; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
     microdnf -y install  \
-        openssh \
         systemd \
         libpq \
+        nss_wrapper \
         libedit; \ 
     microdnf -y clean all
 
 RUN set -ex; \
     curl -Lf -o /tmp/perl-DBI.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBI-1.641-3.module_el8.1.0+199+8f0a6bbd.x86_64.rpm; \
     curl -Lf -o /tmp/perl-XML-Parser.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-XML-Parser-2.44-11.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/openssh.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-8.0p1-5.el8.x86_64.rpm; \
     curl -Lf -o /tmp/openssh-server.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-server-8.0p1-5.el8.x86_64.rpm; \
     curl -Lf -o /tmp/openssh-clients.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-clients-8.0p1-5.el8.x86_64.rpm; \
     curl -Lf -o /tmp/perl-libxml-perl.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-libxml-perl-0.08-33.el8.noarch.rpm; \
     curl -Lf -o /tmp/perl-DBD-Pg.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBD-Pg-3.7.4-4.module_el8.3.0+426+0b4e9c0a.x86_64.rpm; \
-    rpmkeys --checksig /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm; \
-    rpm -i /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
-    rm -rf /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
+    rpmkeys --checksig /tmp/openssh.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm; \
+    rpm -i /tmp/openssh.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
+    rm -rf /tmp/openssh.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
     microdnf -y install  \
         percona-pgbackrest; \
     microdnf -y clean all
@@ -86,6 +92,7 @@ RUN set -ex; \
 COPY bin/pgbackrest-restore /opt/crunchy/bin
 COPY conf/pgbackrest-restore /opt/crunchy/conf
 COPY --from=go_builder /usr/local/bin/pgbackrest /opt/crunchy/bin/
+COPY --from=go_builder /licenses /licenses
 COPY bin/common /opt/crunchy/bin
 COPY bin/pgbackrest-common /opt/crunchy/bin
 
@@ -96,11 +103,10 @@ RUN set -ex; \
 COPY bin/pgbackrest-repo /usr/local/bin
 
 RUN set -ex; \
-    chmod +x /usr/local/bin/pgbackrest-repo.sh /usr/local/bin/archive-push-s3.sh; \
+    chmod +x /usr/local/bin/pgbackrest-repo.sh /usr/local/bin/archive-push-s3.sh \
+      /usr/local/bin/archive-push-gcs.sh; \
     mkdir -p /etc/pgbackrest; \
     chown -R postgres:postgres /etc/pgbackrest; \
-    chmod g=u /etc/passwd; \
-    chmod g=u /etc/group; \
     chmod -R g=u /etc/pgbackrest; \
     rm -f /run/nologin
 
@@ -112,6 +118,9 @@ RUN set -ex; \
 VOLUME ["/sshd", "/pgdata", "/backrestrepo"]
 
 USER 26
+
+# Defines a unique directory name that will be utilized by the nss_wrapper in the UID script
+ENV NSS_WRAPPER_SUBDIR="pgbackrest"
 
 ENTRYPOINT ["/opt/crunchy/bin/uid_postgres.sh"]
 

@@ -42,6 +42,7 @@ RUN set -ex; \
         hostname \
         perl \
         procps-ng \
+        nss_wrapper \
         percona-pgbouncer; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
     microdnf -y clean all
@@ -52,6 +53,7 @@ RUN set -ex; \
 COPY bin/pgbouncer /opt/crunchy/bin
 COPY bin/common /opt/crunchy/bin
 COPY conf/pgbouncer /opt/crunchy/conf
+COPY licenses /licenses
 
 RUN set -ex; \
     chown -R 2:0 /opt/crunchy /pgconf; \
@@ -59,9 +61,10 @@ RUN set -ex; \
 
 EXPOSE 6432
 
-RUN chmod g=u /etc/passwd
-
 VOLUME ["/pgconf"]
+
+# Defines a unique directory name that will be utilized by the nss_wrapper in the UID script
+ENV NSS_WRAPPER_SUBDIR="pgbouncer"
 
 ENTRYPOINT ["opt/crunchy/bin/uid_daemon.sh"]
 
