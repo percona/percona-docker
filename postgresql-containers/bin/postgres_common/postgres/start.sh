@@ -31,7 +31,7 @@ function trap_sigterm() {
     fi
     if [[ ${ENABLE_SSHD} == "true" ]]; then
         echo_info "killing SSHD.."
-        killall sshd
+        pkill sshd
     fi
 }
 
@@ -361,6 +361,9 @@ configure_archiving() {
         if [[ "${BACKREST_LOCAL_AND_S3_STORAGE}" == "true" ]]
         then
             cat "${CRUNCHY_DIR}/conf/postgres/backrest-archive-command-local-and-s3" >> /"${PGDATA?}"/postgresql.conf
+        elif [[ "${BACKREST_LOCAL_AND_GCS_STORAGE}" == "true" ]]
+        then
+            cat "${CRUNCHY_DIR}/conf/postgres/backrest-archive-command-local-and-gcs" >> /"${PGDATA?}"/postgresql.conf
         else
             cat "${CRUNCHY_DIR}/conf/postgres/backrest-archive-command" >> /"${PGDATA?}"/postgresql.conf
         fi

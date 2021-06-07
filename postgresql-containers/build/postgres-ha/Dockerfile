@@ -41,8 +41,7 @@ RUN set -ex; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
     microdnf -y install \
         libpq \
-        llvm9.0 \
-        openssh \
+        llvm \
         percona-postgresql${PG_MAJOR//.}; \
     microdnf -y clean all
 
@@ -51,23 +50,22 @@ ENV PGROOT="/usr/pgsql-${PG_MAJOR}" PGVERSION="${PG_MAJOR}"
 
 RUN set -ex; \
     curl -Lf -o /tmp/perl-DBI.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBI-1.641-3.module_el8.1.0+199+8f0a6bbd.x86_64.rpm; \
+    curl -Lf -o /tmp/openssh.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-8.0p1-5.el8.x86_64.rpm; \
     curl -Lf -o /tmp/openssh-server.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-server-8.0p1-5.el8.x86_64.rpm; \
     curl -Lf -o /tmp/openssh-clients.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-clients-8.0p1-5.el8.x86_64.rpm; \
     curl -Lf -o /tmp/perl-libxml-perl.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-libxml-perl-0.08-33.el8.noarch.rpm; \
     curl -Lf -o /tmp/perl-DBD-Pg.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBD-Pg-3.7.4-4.module_el8.3.0+426+0b4e9c0a.x86_64.rpm; \
     curl -Lf -o /tmp/perl-XML-Parser.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-XML-Parser-2.44-11.el8.x86_64.rpm; \
     curl -Lf -o /tmp/perl-DBI.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBI-1.641-3.module_el8.1.0+199+8f0a6bbd.x86_64.rpm; \
-    curl -Lf -o /tmp/llvm-libs.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/llvm-libs-10.0.1-3.module_el8.3.0+467+cb298d5b.x86_64.rpm; \
-    curl -Lf -o /tmp/llvm.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/llvm-10.0.1-3.module_el8.3.0+467+cb298d5b.x86_64.rpm; \
     curl -Lf -o /tmp/python3-psutil.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-psutil-5.4.3-10.el8.x86_64.rpm; \
     curl -Lf -o /tmp/python3-prettytable.rpm  http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-prettytable-0.7.2-14.el8.noarch.rpm; \
     curl -Lf -o /tmp/python3-click.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-click-6.7-8.el8.noarch.rpm; \
     rpmkeys --checksig /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm /tmp/openssh-server.rpm \
-                       /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm; \
-    rpm -i /tmp/perl-DBI.rpm /tmp/llvm-libs.rpm /tmp/llvm.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
-           /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm; \
-    rm -rf /tmp/perl-DBI.rpm /tmp/llvm-libs.rpm /tmp/llvm.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
-           /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm
+                       /tmp/openssh.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm; \
+    rpm -i /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
+           /tmp/openssh.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm; \
+    rm -rf /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
+           /tmp/openssh.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm
 
 RUN  set -ex; \
      microdnf -y install \
@@ -86,6 +84,10 @@ RUN  set -ex; \
 		psmisc \
 		rsync \
 		perl \
+		nss_wrapper \
+		tar \
+		bzip2 \
+		lz4 \
 		percona-wal2json${PG_MAJOR//.} \
 		file \
 		unzip; \
@@ -108,7 +110,6 @@ EXPOSE 5432
 COPY bin/postgres_common /opt/crunchy/bin
 COPY bin/common /opt/crunchy/bin
 COPY conf/postgres_common /opt/crunchy/conf
-COPY conf/licenses /licenses
 COPY redhat/atomic/help.1 /help.1
 COPY redhat/atomic/help.md /help.md
 COPY licenses /licenses
@@ -124,8 +125,6 @@ RUN set -ex; \
         https://raw.githubusercontent.com/mikefarah/yq/master/LICENSE
 
 RUN set -ex; \ 
-    chmod g=u /etc/passwd; \
-    chmod g=u /etc/group; \
     mkdir /.ssh; \
     chown 26:0 /.ssh; \
     chmod g+rwx /.ssh; \
@@ -139,6 +138,9 @@ RUN set -ex; \
 # The VOLUME directive must appear after all RUN directives to ensure the proper
 # volume permissions are applied when building the image
 VOLUME ["/sshd", "/pgconf", "/pgdata", "/pgwal", "/recover", "/backrestrepo"]
+
+# Defines a unique directory name that will be utilized by the nss_wrapper in the UID script
+ENV NSS_WRAPPER_SUBDIR="postgres"
 
 ENTRYPOINT ["/opt/crunchy/bin/postgres-ha/bootstrap-postgres-ha.sh"]
 

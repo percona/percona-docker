@@ -53,6 +53,7 @@ RUN set -ex; \
         hostname \
         perl \
         shadow-utils \
+        nss_wrapper \
         procps-ng; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
     microdnf -y install \
@@ -73,6 +74,7 @@ COPY --from=go_builder /usr/local/bin/badgerserver /opt/crunchy/bin/badgerserver
 COPY conf/pgbadger /opt/crunchy/conf
 COPY bin/common /opt/crunchy/bin
 COPY bin/pgbadger /opt/crunchy/bin
+COPY licenses /licenses
 
 RUN set -ex; \
     chown -R postgres:postgres /opt/crunchy /report /bin; \
@@ -81,11 +83,10 @@ RUN set -ex; \
 
 EXPOSE 10000
 
-RUN set -ex; \
-    chmod g=u /etc/passwd; \
-    chmod g=u /etc/group
-
 VOLUME ["/pgdata", "/report"]
+
+# Defines a unique directory name that will be utilized by the nss_wrapper in the UID script
+ENV NSS_WRAPPER_SUBDIR="pgbadger"
 
 ENTRYPOINT ["opt/crunchy/bin/uid_postgres.sh"]
 
