@@ -45,7 +45,7 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable ppg-${PG_MAJOR}.2 testing
+    percona-release enable ppg-${PG_MAJOR} release
 
 RUN set -ex; \
     microdnf -y update; \
