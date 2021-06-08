@@ -91,7 +91,7 @@ RUN set -ex; \
 	curl -Lf -o /tmp/Percona-XtraDB-Cluster-shared-57.rpm https://repo.percona.com/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-shared-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
 	curl -Lf -o /tmp/Percona-XtraDB-Cluster-client-57.rpm https://repo.percona.com/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-client-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
 	curl -Lf -o /tmp/percona-xtrabackup-24.rpm http://repo.percona.com/percona/yum/release/8/RPMS/x86_64/percona-xtrabackup-24-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
-	curl -Lf -o /tmp/nscd.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/nscd-2.28-127.el8.x86_64.rpm; \
+	curl -Lf -o /tmp/nscd.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/nscd-2.28-151.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/nss-pam-ldapd.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/nss-pam-ldapd-0.9.9-3.el8.x86_64.rpm; \
 	rpmkeys --checksig /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/nscd.rpm /tmp/nss-pam-ldapd.rpm; \
 	rpm -iv /tmp/Percona-XtraDB-Cluster-server-57.rpm /tmp/Percona-XtraDB-Cluster-shared-57.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/nscd.rpm /tmp/nss-pam-ldapd.rpm --nodeps; \
@@ -130,7 +130,7 @@ RUN if [[ -n $DEBUG ]] ; then \
 			gdb; \
 		curl -Lf -o /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm http://repo.percona.com/percona/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
 		curl -Lf -o /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm http://repo.percona.com/percona/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-server-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-		curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
+		curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
 		rpmkeys --checksig /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm; \
 		rpm -i /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm --nodeps; \
 		rm -rf /tmp/telnet.rpm /tmp/Percona-XtraDB-Cluster-57-debuginfo-57.rpm /tmp/Percona-XtraDB-Cluster-server-57-debuginfo-57.rpm; \
