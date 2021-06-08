@@ -105,7 +105,7 @@ ARG DEBUG
 RUN if [[ -n $DEBUG ]] ; then \
         set -ex; \
         sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh; \
-		curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-73.el8_1.1.x86_64.rpm; \
+		curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
 		rpm -i /tmp/telnet.rpm; \
 		rm -f /tmp/telnet.rpm; \
 
