@@ -7,7 +7,7 @@ LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/check-version.sh
 . ${LIB_PATH}/vault.sh
 
-SOCAT_OPTS="TCP:${RESTORE_SRC_SERVICE}:3307,retry=30,no-sni=1"
+SOCAT_OPTS="TCP:${RESTORE_SRC_SERVICE}:3307,retry=30"
 function check_ssl() {
     CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
     if [ -f /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt ]; then
