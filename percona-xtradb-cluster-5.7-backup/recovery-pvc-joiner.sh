@@ -30,7 +30,7 @@ function check_ssl() {
     fi
 
     if [ -f "$CA" -a -f "$KEY" -a -f "$CERT" ]; then
-        SOCAT_OPTS="openssl-connect:${RESTORE_SRC_SERVICE}:3307,reuseaddr,cert=${CERT},key=${KEY},cafile=${CA},verify=1,commonname='',retry=30"
+        SOCAT_OPTS="openssl-connect:${RESTORE_SRC_SERVICE}:3307,reuseaddr,cert=${CERT},key=${KEY},cafile=${CA},verify=1,commonname='',retry=30,no-sni=1"
     fi
 }
 
