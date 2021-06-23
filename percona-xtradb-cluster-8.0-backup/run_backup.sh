@@ -97,6 +97,15 @@ function backup_volume() {
     md5sum xtrabackup.stream | tee md5sum.txt
 }
 
+is_object_exist() {
+    local bucket="$1"
+    local object="$2"
+
+    if [[ -n "$(mc -C /tmp/mc --json ls  "dest/$bucket/$object" | jq '.status')" ]]; then
+        return 1
+    fi
+}
+
 function backup_s3() {
     S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
 
@@ -106,8 +115,9 @@ function backup_s3() {
     mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
     set -x
 
-    xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || :
-    xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" || :
+
+    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
+    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 
     socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp &
     wait $!
