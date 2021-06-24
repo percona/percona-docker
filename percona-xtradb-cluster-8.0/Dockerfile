@@ -30,7 +30,7 @@ RUN set -ex; \
 	rpm -i /tmp/pv.rpm; \
 	rm -rf /tmp/pv.rpm
 
-ENV PXC_VERSION 8.0.22-13.1
+ENV PXC_VERSION 8.0.23-14.1
 ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
