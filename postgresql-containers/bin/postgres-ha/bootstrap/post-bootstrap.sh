@@ -21,18 +21,6 @@ enable_debugging
 
 echo_info "postgres-ha post-bootstrap starting"
 
-# When using the 'pgbackrest_init' bootstrap method, make sure backrest is stopped before writing
-# to the DB.  This is because when using this bootstrap method, the current instance will still
-# be connected to the pgBackRest repository for another cluster (i.e. the cluster being
-# bootstrapped from), and we want to ensure there is no ability to push WAL to that repo.  Please
-# note that when using 'pgbackrest_init' archive_mode should also be disabled, and this simply 
-# serves as an extra precaution.
-if [[ "${PGHA_BOOTSTRAP_METHOD}" == "pgbackrest_init" ]]
-then
-    pgbackrest stop
-    err_check "$?" "post bootstrap" "Could not stop pgBackRest, ${setup_file} will not be run"
-fi
-
 if [[ "${PGHA_BOOTSTRAP_METHOD}" == "initdb" ]]
 then
     # Run either a custom or the defaul setup.sql file
