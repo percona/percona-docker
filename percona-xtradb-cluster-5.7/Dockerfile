@@ -34,14 +34,14 @@ ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 
 RUN set -ex; \
 	curl -Lf -o /tmp/pv.rpm https://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
-	rpmkeys --checksig /tmp/pv.rpm; \
-	rpm -i /tmp/pv.rpm; \
-	rm -rf /tmp/pv.rpm
+	curl -Lf -o /tmp/socat.rpm http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/socat-1.7.4.1-1.el8.x86_64.rpm; \
+	rpmkeys --checksig /tmp/pv.rpm /tmp/socat.rpm; \
+	rpm -i /tmp/pv.rpm /tmp/socat.rpm; \
+	rm -rf /tmp/pv.rpm /tmp/socat.rpm
 
 RUN set -ex; \
 	dnf --setopt=install_weak_deps=False --best install -y \
 		jemalloc \
-		socat \
 		openssl \
 		shadow-utils \
 		hostname \
