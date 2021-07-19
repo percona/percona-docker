@@ -39,7 +39,7 @@ fi
 # If the PGDATA directory for the replica is invalid according to pgBackRest, then clear out
 # the directory and then perform a regular (i.e. non-delta) pgBackRest restore.  pgBackRest
 # specifically determines whether or not a PGDATA directory is valid by checking "for the
-# for the presence of pg_version or backup.manifest (left over from an aborted restore).
+# for the presence of PG_VERSION or backup.manifest (left over from an aborted restore).
 # If neither file is found then --delta and --force will be disabled but the restore will proceed
 # unless there are files in the $PGDATA directory (or any tablespace directories) in which case the
 # operation will be aborted" (https://pgbackrest.org/release.html).

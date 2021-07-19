@@ -402,13 +402,6 @@ build_bootstrap_config_file() {
       "${CRUNCHY_DIR}/bin/yq" w -i "${bootstrap_file}" bootstrap.dcs.postgresql.parameters.password_encryption "scram-sha-256"
     fi
 
-    # If SCRAM passwords are selected, set this as part of the bootstrapped
-    # password parameter
-    if [[ "${PGHA_PASSWORD_TYPE}" == "scram-sha-256" ]]
-    then
-      "${CRUNCHY_DIR}/bin/yq" w -i "${bootstrap_file}" bootstrap.dcs.postgresql.parameters.password_encryption "scram-sha-256"
-    fi
-
     # If this is being restored to a new cluster, disable archive_mode to
     # prevent WAL from being pushed while potentiallystill connected to another
     # pgBackRest repository while initializing (e.g. while performing a
