@@ -6,7 +6,7 @@ if [[ "${IS_PROXY_PROTOCOL}" = "yes" ]]; then
 fi
 
 MONITOR_USER='monitor'
-TIMEOUT=${READINESS_CHECK_TIMEOUT:-10}
+TIMEOUT=${LIVENESS_CHECK_TIMEOUT:-10}
 MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER"
 
 export MYSQL_PWD=$(cat /etc/mysql/mysql-users-secret/monitor)
