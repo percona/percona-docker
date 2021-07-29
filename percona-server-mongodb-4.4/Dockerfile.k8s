@@ -99,6 +99,10 @@ RUN set -ex; \
 
 VOLUME ["/data/db"]
 
+RUN set -ex; \
+    curl -fSL https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js -o /js-yaml.js; \
+    echo "45dc3dd03dc07a06705a2c2989b8c7f709013f04bd5386e3279d4e447f07ebd7  /js-yaml.js" | sha256sum -c -
+
 COPY ps-entry.sh /entrypoint.sh
 
 ARG DEBUG
