@@ -33,7 +33,7 @@ helps enterprises avoid downtime and outages and meet expected customer experien
 LABEL org.opencontainers.image.license="GPL"
 
 # do not use PXB 8.0.14-1 (PXB-2279)
-ENV PXB_VERSION 8.0.25-17.1
+ENV PXB_VERSION 8.0.23-16.1
 ENV PS_VERSION 8.0.23-14.1
 ENV PXC_VERSION 8.0.23-14.1
 ENV PXC_REPO release
