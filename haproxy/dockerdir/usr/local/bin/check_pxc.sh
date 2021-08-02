@@ -10,8 +10,16 @@ fi
 
 MONITOR_USER='monitor'
 MONITOR_PASSWORD=$(/bin/cat /etc/mysql/mysql-users-secret/monitor)
-CUSTOM_TIMEOUT=$(/bin/cat /etc/mysql/haproxy-env-secret/HA_CONNECTION_TIMEOUT)
-OK_IF_DONOR=$(/bin/cat /etc/mysql/haproxy-env-secret/OK_IF_DONOR)
+
+PATH_TO_SECRET='/etc/mysql/haproxy-env-secret'
+if [ -f "$PATH_TO_SECRET/HA_CONNECTION_TIMEOUT" ]; then
+    CUSTOM_TIMEOUT=$(/bin/cat $PATH_TO_SECRET/HA_CONNECTION_TIMEOUT)
+fi
+
+if [ -f "$PATH_TO_SECRET/OK_IF_DONOR" ]; then
+    OK_IF_DONOR=$(/bin/cat $PATH_TO_SECRET/OK_IF_DONOR)
+fi
+
 TIMEOUT=${CUSTOM_TIMEOUT:-10}
 DONOR_IS_OK=${OK_IF_DONOR:-0}
 MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER"
