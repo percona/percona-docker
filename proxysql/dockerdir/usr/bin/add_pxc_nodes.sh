@@ -55,7 +55,10 @@ function main() {
         SSL_ARG="--use-ssl=yes"
     fi
 
-    sed "s/WRITE_NODE=.*/WRITE_NODE='$pod_zero.$service:3306'/g" /etc/proxysql-admin.cnf 1<> /etc/proxysql-admin.cnf
+    # don't assign pod to WRITE_NODE if it's replica in cross-site replication
+    if [ "$(mysql_root_exec "$service" 'select @@read_only')" != "1" ]; then
+        sed "s/WRITE_NODE=.*/WRITE_NODE='$pod_zero.$service:3306'/g" /etc/proxysql-admin.cnf 1<> /etc/proxysql-admin.cnf
+    fi
 
     proxysql-admin \
         --config-file=/etc/proxysql-admin.cnf \
