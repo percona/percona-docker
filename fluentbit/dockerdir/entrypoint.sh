@@ -11,7 +11,7 @@ if [  "$1" = 'logrotate' ]; then
         cat /tmp/passwd > /etc/passwd
         rm -rf /tmp/passwd
     fi
-    exec go-cron "0 0 * * *" logrotate -v -s /opt/percona/logrotate/logrotate.status /opt/percona/logrotate/logrotate-$SERVICE_TYPE.conf
+    exec go-cron "0 0 * * *" sh -c "logrotate -s /opt/percona/logrotate/logrotate.status /opt/percona/logrotate/logrotate-$SERVICE_TYPE.conf;/usr/bin/find /var/lib/mysql/ -name GRA_*.log -mtime +7 -delete"
 else
     if [ "$1" = 'fluent-bit' ]; then
         fluentbit_opt+='-c /etc/fluentbit/fluentbit.conf'
