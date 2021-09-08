@@ -39,7 +39,7 @@ RUN set -ex; \
     repoquery -a --archlist=x86_64 --location \
         elfutils-libs \
             | xargs curl -Lf -o /tmp/elfutils-libs.rpm; \
-    curl -Lf https://packages.fluentbit.io/centos/7/x86_64/td-agent-bit-1.6.2-1.x86_64.rpm -o /tmp/td-agent-bit.rpm; \
+    curl -Lf https://packages.fluentbit.io/centos/7/x86_64/td-agent-bit-1.8.6-1.x86_64.rpm -o /tmp/td-agent-bit.rpm; \
     rpmkeys --checksig /tmp/procps-ng.rpm /tmp/td-agent-bit.rpm /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm; \
     rpm -i /tmp/td-agent-bit.rpm /tmp/systemd-libs.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm --nodeps; \
     rm -f /tmp/td-agent-bit.rpm /tmp/systemd-libs.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm; \
