@@ -55,5 +55,6 @@ USER 1001
 EXPOSE 3000 10008
 VOLUME ["/var/lib/orchestrator"]
 
+WORKDIR /usr/local/orchestrator
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/local/orchestrator/orchestrator", "-quiet", "-config", "/etc/orchestrator/orchestrator.conf.json", "http"]
