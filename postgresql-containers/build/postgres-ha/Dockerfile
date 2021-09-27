@@ -77,7 +77,7 @@ RUN  set -ex; \
 		percona-patroni \
 		percona-pgaudit \
 		percona-pgaudit${PG_MAJOR//.}_set_user \
-		percona-pgbackrest \
+		percona-pgbackrest-2.33 \
 		percona-postgresql${PG_MAJOR//.}-contrib \
 		percona-postgresql${PG_MAJOR//.}-server \
 		percona-postgresql${PG_MAJOR//.}-plpython* \
@@ -126,7 +126,7 @@ RUN set -ex; \
     curl -o /licenses/LICENSE.yq \
         https://raw.githubusercontent.com/mikefarah/yq/master/LICENSE
 
-RUN set -ex; \ 
+RUN set -ex; \
     mkdir /.ssh; \
     chown 26:0 /.ssh; \
     chmod g+rwx /.ssh; \
