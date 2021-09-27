@@ -60,7 +60,7 @@ RUN set -ex; \
         systemd \
         libpq \
         nss_wrapper \
-        libedit; \ 
+        libedit; \
     microdnf -y clean all
 
 RUN set -ex; \
@@ -75,7 +75,7 @@ RUN set -ex; \
     rpm -i /tmp/openssh.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
     rm -rf /tmp/openssh.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
     microdnf -y install  \
-        percona-pgbackrest; \
+        percona-pgbackrest-2.33; \
     microdnf -y clean all
 
 RUN set -ex; \
