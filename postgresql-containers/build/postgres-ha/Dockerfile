@@ -1,5 +1,7 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 
+USER 0
+
 LABEL name="Percona PostgreSQL Distribution" \
     vendor="Percona" \
     summary="Percona Distribution for PostgreSQL" \
@@ -129,6 +131,8 @@ RUN set -ex; \
     chown 26:0 /.ssh; \
     chmod g+rwx /.ssh; \
     rm -f /run/nologin
+
+RUN chmod 750 /var/spool/pgbackrest
 
 # add volumes to allow override of pg_hba.conf and postgresql.conf
 # add volumes to offer a restore feature
