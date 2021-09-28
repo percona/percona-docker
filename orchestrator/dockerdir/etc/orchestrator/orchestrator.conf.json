@@ -13,7 +13,10 @@
   "ListenAddress": ":3000",
   "MasterFailoverDetachReplicaMasterHost": true,
   "MySQLHostnameResolveMethod": "@@report_host",
-  "MySQLTopologyCredentialsConfigFile": "/etc/orchestrator/orc-topology.cnf",
+  "MySQLTopologyCredentialsConfigFile": "/etc/orchestrator/credentials/orc-topology.cnf",
+  "MySQLTopologySSLPrivateKeyFile": "/etc/orchestrator/ssl/tls.key",
+  "MySQLTopologySSLCertFile": "/etc/orchestrator/ssl/tls.crt",
+  "MySQLTopologySSLCAFile": "/etc/orchestrator/ssl/ca.crt",
   "OnFailureDetectionProcesses": [
     "echo 'Detected {failureType} on {failureCluster}. Affected replicas: {countSlaves}' >> /tmp/recovery.log"
   ],
