@@ -9,7 +9,7 @@ wait_for_leader() {
     local retry=0
     local leader=""
 
-    until [ ${leader} -ne "" ]; do
+    until [[ ${leader} != "" ]]; do
         if [ ${retry} -gt 60 ]; then
             echo "Waiting for leader failed after 60 attempts"
             exit 1
@@ -23,8 +23,7 @@ wait_for_leader() {
 }
 
 am_i_leader() {
-    local resp=$(curl -w httpcode=%{http_code} "${ORC_HOST}/api/leader-check" 2>/dev/null)
-    local http_code=$(echo "${resp}" | sed -e 's/.*\httpcode=//')
+    local http_code=$(curl -w httpcode=%{http_code} "${ORC_HOST}/api/leader-check" 2>/dev/null | sed -e 's/.*\httpcode=//')
 
     if [ ${http_code} -ne 200 ]; then
         return 1
