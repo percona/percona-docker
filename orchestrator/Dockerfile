@@ -3,7 +3,7 @@ WORKDIR /go/src/github.com/percona/percona-server-mysql-operator/src
 
 RUN export GO111MODULE=off \
     && go get k8s.io/apimachinery/pkg/util/sets \
-    && curl -Lf -o /go/src/github.com/percona/percona-server-mysql-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-server-mysql-operator/bootstrap/cmd/peer-list/main.go \
+    && curl -Lf -o /go/src/github.com/percona/percona-server-mysql-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-server-mysql-operator/main/cmd/peer-list/main.go \
     && go build peer-list.go
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
