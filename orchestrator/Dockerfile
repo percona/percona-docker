@@ -1,3 +1,11 @@
+FROM golang:1.17 AS go_builder
+WORKDIR /go/src/github.com/percona/percona-server-mysql-operator/src
+
+RUN export GO111MODULE=off \
+    && go get k8s.io/apimachinery/pkg/util/sets \
+    && curl -Lf -o /go/src/github.com/percona/percona-server-mysql-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-server-mysql-operator/main/cmd/peer-list/main.go \
+    && go build peer-list.go
+
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
 
 LABEL name="orchestrator" \
@@ -47,6 +55,7 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-orchestrator/LICENSE /licenses/LICENSE.orchestrator
 
 COPY dockerdir /
+COPY --from=go_builder /go/src/github.com/percona/percona-server-mysql-operator/src/peer-list /usr/bin/
 
 RUN set -ex; \
     chown 1001:1001 /etc/orchestrator/orchestrator.conf.json /etc/orchestrator/orc-topology.cnf
