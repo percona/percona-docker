@@ -41,6 +41,7 @@
   "RecoverMasterClusterFilters": [
     ".*"
   ],
+  "RecoverNonWriteableMaster": true,
   "RecoveryIgnoreHostnameFilters": [],
   "RecoveryPeriodBlockSeconds": 300,
   "RemoveTextFromHostnameDisplay": ":3306",
