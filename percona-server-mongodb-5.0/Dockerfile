@@ -16,7 +16,7 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable psmdb-50 release
 
-ENV PSMDB_VERSION 5.0.2-1
+ENV PSMDB_VERSION 5.0.3-2
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
