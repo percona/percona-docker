@@ -22,14 +22,12 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
 
     { set +x; } 2>/dev/null
     PATH_TO_SECRET='/etc/orchestrator/orchestrator-users-secret'
-    if [ -f "$PATH_TO_SECRET/TOPOLOGY_PASSWORD" ]; then
-        TOPOLOGY_PASSWORD=$(/bin/cat $PATH_TO_SECRET/TOPOLOGY_PASSWORD)
-    fi
-    if [ -f "$PATH_TO_SECRET/TOPOLOGY_USER" ]; then
-        TOPOLOGY_USER=$(/bin/cat $PATH_TO_SECRET/TOPOLOGY_USER)
+    TOPOLOGY_USER=${ORC_TOPOLOGY_USER:-orchestrator}
+    if [ -f "$PATH_TO_SECRET/$TOPOLOGY_USER" ]; then
+        TOPOLOGY_PASSWORD=$(<$PATH_TO_SECRET/$TOPOLOGY_USER)
     fi
     temp=$(mktemp)
-    sed -r "s|^[#]?user=.*$|user=${TOPOLOGY_USER:-$ORC_TOPOLOGY_USER}|" "${PATH_ORC_CONF_FILE}/orc-topology.cnf" > "${temp}"
+    sed -r "s|^[#]?user=.*$|user=${TOPOLOGY_USER}|" "${PATH_ORC_CONF_FILE}/orc-topology.cnf" > "${temp}"
     sed -r "s|^[#]?password=.*$|password=${TOPOLOGY_PASSWORD:-$ORC_TOPOLOGY_PASSWORD}|" "${PATH_ORC_CONF_FILE}/orc-topology.cnf" > "${temp}"
     cat "${temp}" > "${PATH_ORC_CONF_FILE}/orc-topology.cnf"
     rm "${temp}"
