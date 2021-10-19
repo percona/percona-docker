@@ -1,15 +1,13 @@
 #!/bin/sh
 set -e
-set -o xtrace
 
 export PATH=$PATH:/usr/local/orchestrator
 
-if [ "$1" = 'orchestrator' ]; then
-    orchestrator_opt='-config /etc/orchestrator/orchestrator.conf.json http'
-fi
+PATH_ORC_CONF_FILE='/etc/orchestrator'
+TOPOLOGY_USER=${ORC_TOPOLOGY_USER:-orchestrator}
 
 if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
-    PATH_ORC_CONF_FILE='/etc/orchestrator'
+    set -o xtrace
     jq -M ". + {
                 HTTPAdvertise:\"http://$HOSTNAME.$ORC_SERVICE:80\",
                 RaftAdvertise:\"$HOSTNAME.$ORC_SERVICE\",
@@ -22,18 +20,21 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
 
     { set +x; } 2>/dev/null
     PATH_TO_SECRET='/etc/orchestrator/orchestrator-users-secret'
-    if [ -f "$PATH_TO_SECRET/TOPOLOGY_PASSWORD" ]; then
-        TOPOLOGY_PASSWORD=$(/bin/cat $PATH_TO_SECRET/TOPOLOGY_PASSWORD)
+    if [ -f "$PATH_TO_SECRET/$TOPOLOGY_USER" ]; then
+        TOPOLOGY_PASSWORD=$(<$PATH_TO_SECRET/$TOPOLOGY_USER)
     fi
-    if [ -f "$PATH_TO_SECRET/TOPOLOGY_USER" ]; then
-        TOPOLOGY_USER=$(/bin/cat $PATH_TO_SECRET/TOPOLOGY_USER)
-    fi
-    temp=$(mktemp)
-    sed -r "s|^[#]?user=.*$|user=${TOPOLOGY_USER:-$ORC_TOPOLOGY_USER}|" "${PATH_ORC_CONF_FILE}/orc-topology.cnf" > "${temp}"
-    sed -r "s|^[#]?password=.*$|password=${TOPOLOGY_PASSWORD:-$ORC_TOPOLOGY_PASSWORD}|" "${PATH_ORC_CONF_FILE}/orc-topology.cnf" > "${temp}"
-    cat "${temp}" > "${PATH_ORC_CONF_FILE}/orc-topology.cnf"
-    rm "${temp}"
-    set -x
 fi
+
+if [ "$1" = 'orchestrator' ]; then
+    orchestrator_opt='-config /etc/orchestrator/orchestrator.conf.json http'
+fi
+
+set +o xtrace
+temp=$(mktemp)
+sed -r "s|^[#]?user=.*$|user=${TOPOLOGY_USER}|" "${PATH_ORC_CONF_FILE}/orc-topology.cnf" > "${temp}"
+sed -r "s|^[#]?password=.*$|password=${TOPOLOGY_PASSWORD:-$ORC_TOPOLOGY_PASSWORD}|" "${PATH_ORC_CONF_FILE}/orc-topology.cnf" > "${temp}"
+cat "${temp}" > "${PATH_ORC_CONF_FILE}/orc-topology.cnf"
+rm "${temp}"
+set -o xtrace
 
 exec "$@" $orchestrator_opt
