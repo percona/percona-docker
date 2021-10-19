@@ -1,17 +1,13 @@
 #!/bin/sh
 set -e
-set -o xtrace
 
 export PATH=$PATH:/usr/local/orchestrator
-
-if [ "$1" = 'orchestrator' ]; then
-    orchestrator_opt='-config /etc/orchestrator/orchestrator.conf.json http'
-fi
 
 PATH_ORC_CONF_FILE='/etc/orchestrator'
 TOPOLOGY_USER=${ORC_TOPOLOGY_USER:-orchestrator}
 
 if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
+    set -o xtrace
     jq -M ". + {
                 HTTPAdvertise:\"http://$HOSTNAME.$ORC_SERVICE:80\",
                 RaftAdvertise:\"$HOSTNAME.$ORC_SERVICE\",
@@ -27,6 +23,10 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
     if [ -f "$PATH_TO_SECRET/$TOPOLOGY_USER" ]; then
         TOPOLOGY_PASSWORD=$(<$PATH_TO_SECRET/$TOPOLOGY_USER)
     fi
+fi
+
+if [ "$1" = 'orchestrator' ]; then
+    orchestrator_opt='-config /etc/orchestrator/orchestrator.conf.json http'
 fi
 
 set +o xtrace
