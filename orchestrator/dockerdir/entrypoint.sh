@@ -8,10 +8,10 @@ if [ "$1" = 'orchestrator' ]; then
     orchestrator_opt='-config /etc/orchestrator/orchestrator.conf.json http'
 fi
 
+PATH_ORC_CONF_FILE='/etc/orchestrator'
 TOPOLOGY_USER=${ORC_TOPOLOGY_USER:-orchestrator}
 
 if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
-    PATH_ORC_CONF_FILE='/etc/orchestrator'
     jq -M ". + {
                 HTTPAdvertise:\"http://$HOSTNAME.$ORC_SERVICE:80\",
                 RaftAdvertise:\"$HOSTNAME.$ORC_SERVICE\",
