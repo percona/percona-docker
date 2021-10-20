@@ -160,7 +160,6 @@ imageTests+=(
 		percona-rocksdb
 	'
 	[percona/percona-server]='
-		percona-tokudb
 		percona-rocksdb
 	'
 	[perconalab/percona-server]='
