@@ -171,7 +171,7 @@ docker_process_init_files() {
 	done
 }
 
-# Execute sql script, passed via stdin (or -f flag of pqsl)
+# Execute sql script, passed via stdin (or -f flag of psql)
 # usage: docker_process_sql [psql-cli-args]
 #    ie: docker_process_sql --dbname=mydb <<<'INSERT ...'
 #    ie: docker_process_sql -f my-file.sql
@@ -251,7 +251,7 @@ docker_temp_server_stop() {
 
 
 pg_setup_pg_stat_monitor() {
-    docker_process_sql --dbname postgres <<-'EOSQL'
+	docker_process_sql --dbname postgres <<-'EOSQL'
 		alter system set shared_preload_libraries=pg_stat_monitor ;
 	EOSQL
 }
@@ -280,14 +280,14 @@ _main() {
 		set -- postgres "$@"
 	fi
 
-    export PATH=$PATH:/usr/pgsql-13/bin
+	export PATH=$PATH:/usr/pgsql-13/bin
 
 	if [ "$1" = 'postgres' ] && ! _pg_want_help "$@"; then
 		docker_setup_env
 		# setup data directories and permissions (when run as root)
-        if [[ -z "$PGDATA" ]]; then
-            export PGDATA=/data/db
-        fi
+		if [[ -z "$PGDATA" ]]; then
+			export PGDATA=/data/db
+		fi
 		docker_create_db_directories
 		if [ "$(id -u)" = '0' ]; then
 			# then restart script as postgres user
@@ -312,7 +312,7 @@ _main() {
 			docker_setup_db
 			docker_process_init_files /docker-entrypoint-initdb.d/*
 
-            pg_setup_pg_stat_monitor
+			pg_setup_pg_stat_monitor
 
 			docker_temp_server_stop
 			unset PGPASSWORD
