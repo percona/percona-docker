@@ -1,6 +1,9 @@
-FROM centos:8
+FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
+
+RUN microdnf -y update; \
+    microdnf -y install glibc-langpack-en
 
 ENV PPG_VERSION 11.13-1
 ENV OS_VER el8
@@ -13,33 +16,56 @@ RUN set -ex; \
     gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
-    dnf install -y /tmp/percona-release.rpm; \
+    rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release setup -y ppg11; \
-    percona-release enable ppg-11.10 release
+    #percona-release setup -y ppg11; \
+    percona-release enable ppg-11.13 release
+
+RUN set -ex; \
+    microdnf -y update; \
+    microdnf -y install \
+        bind-utils \
+        gettext \
+        hostname \
+        perl \
+        tar \
+        bzip2 \
+        lz4 \
+        procps-ng; \
+    microdnf -y install  \
+        nss_wrapper \
+        shadow-utils \
+        libpq \
+        libedit; \
+    microdnf clean all
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" postgres
 
 RUN set -ex; \
-    dnf install -y \
-        nss_wrapper \
-        shadow-utils \
+    export GNUPGHOME="$(mktemp -d)"; \
+    curl -Lf -o /tmp/perl-JSON.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-JSON-2.97.001-2.el8.noarch.rpm; \
+    rpmkeys --checksig /tmp/perl-JSON.rpm; \
+    rpm -i /tmp/perl-JSON.rpm
+
+RUN set -ex; \
+    microdnf install -y \
         percona-postgresql11-server-${FULL_PERCONA_VERSION} \
         percona-postgresql11-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql-common \
         percona-pg-stat-monitor11; \
-    dnf clean all; \
+    microdnf clean all; \
     rm -rf /var/cache/dnf /data/db && mkdir -p /data/db /docker-entrypoint-initdb.d; \
     chown -R 1001:0 /data/db docker-entrypoint-initdb.d
 
 RUN set -ex; \
-	sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-11/share/postgresql.conf.sample; \
-	grep -F "listen_addresses = '*'" /usr/pgsql-11/share/postgresql.conf.sample
+    sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-11/share/postgresql.conf.sample; \
+    grep -F "listen_addresses = '*'" /usr/pgsql-11/share/postgresql.conf.sample
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-postgresql11/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
