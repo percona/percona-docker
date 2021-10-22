@@ -2,7 +2,7 @@ FROM centos:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PPG_VERSION 12.5-1
+ENV PPG_VERSION 12.8-1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
 
