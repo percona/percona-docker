@@ -1,6 +1,12 @@
-FROM centos:8
+FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
+
+RUN microdnf -y update; \
+    microdnf -y install glibc-langpack-en \
+        nss_wrapper \
+        shadow-utils; \
+    microdnf clean all
 
 RUN groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
@@ -13,22 +19,28 @@ RUN set -ex; \
     gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
-    dnf install -y /tmp/percona-release.rpm; \
+    rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release disable all; \
-    percona-release setup -y ps80
+    #percona-release setup -y ps80; \
+    #microdnf -y module disable mysql; \
+    curl -Lf -o /tmp/numactl-libs-2.0.12-11.el8.x86_64.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
+    rpm -i /tmp/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
+    rm -rf /tmp/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
+    percona-release enable ps-80 release
 
 ENV PS_VERSION 8.0.26-16.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
 RUN set -ex; \
-    dnf install -y \
+    microdnf install -y \
         percona-server-server-${FULL_PERCONA_VERSION} \
-        percona-server-tokudb-${FULL_PERCONA_VERSION} \
+        #percona-server-tokudb-${FULL_PERCONA_VERSION} \
         percona-server-devel-${FULL_PERCONA_VERSION} \
         percona-server-rocksdb-${FULL_PERCONA_VERSION} \
         jemalloc \
@@ -36,7 +48,7 @@ RUN set -ex; \
         cracklib-dicts \
         policycoreutils; \
     \
-    dnf clean all; \
+    microdnf clean all; \
     rm -rf /var/cache/dnf /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership

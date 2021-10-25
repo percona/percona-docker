@@ -1,13 +1,19 @@
 # This Dockerfile should be used for docker official repo
 #it is intentionally used another UID, to have backward compatibility with the previous image versions published on Docker Hub
 
-FROM centos:8
+FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
+RUN microdnf -y update; \
+    microdnf -y install glibc-langpack-en \
+        nss_wrapper \
+        shadow-utils; \
+    microdnf clean all
+
 RUN set -ex; \
-    groupdel input; \
-    userdel systemd-coredump; \
+    #groupdel input; \
+    #userdel systemd-coredump; \
     groupadd -g 999 mysql; \
     useradd -u 999 -r -g 999 -s /sbin/nologin \
         -c "Default Application User" mysql
@@ -19,40 +25,40 @@ RUN set -ex; \
     gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
-    dnf install -y /tmp/percona-release.rpm; \
+    rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    dnf -y module disable mysql
+    #microdnf -y module disable mysql; \
+    curl -Lf -o /tmp/numactl-libs-2.0.12-11.el8.x86_64.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
+    rpm -i /tmp/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
+    rm -rf /tmp/numactl-libs-2.0.12-11.el8.x86_64.rpm
 
 ENV PS_VERSION 5.7.35-38.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
 RUN set -ex; \
-    dnf install -y \
-        dnf-utils \
+    microdnf install -y \
         jemalloc \
+        which \
         cracklib-dicts \
-        which; \
+        policycoreutils; \
     \
-    repoquery -a --location \
-        policycoreutils \
-            | xargs curl -Lf -o /tmp/policycoreutils.rpm; \
-    repoquery -a --location \
-        selinux-policy \
-            | xargs curl -Lf -o /tmp/selinux-policy.rpm; \
-    rpm -iv /tmp/policycoreutils.rpm /tmp/selinux-policy.rpm --nodeps; \
-    rm -rf /tmp/policycoreutils.rpm /tmp/selinux-policy.rpm; \
+    #repoquery -a --location \
+    #    selinux-policy \
+    #        | xargs curl -Lf -o /tmp/selinux-policy.rpm; \
+    #rpm -iv /tmp/policycoreutils.rpm /tmp/selinux-policy.rpm --nodeps; \
+    #rm -rf /tmp/policycoreutils.rpm /tmp/selinux-policy.rpm; \
     \
-    dnf install -y \
+    microdnf install -y \
         Percona-Server-server-57-${FULL_PERCONA_VERSION} \
         Percona-Server-devel-57-${FULL_PERCONA_VERSION} \
         Percona-Server-tokudb-57-${FULL_PERCONA_VERSION} \
         Percona-Server-rocksdb-57-${FULL_PERCONA_VERSION}; \
-    dnf remove -y dnf-utils; \
-    dnf clean all; \
+    microdnf clean all; \
     rm -rf /var/cache/dnf /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership
