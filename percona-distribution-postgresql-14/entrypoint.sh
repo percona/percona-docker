@@ -251,7 +251,7 @@ docker_temp_server_stop() {
 
 
 pg_setup_pg_stat_monitor() {
-    docker_process_sql --dbname postgres <<-'EOSQL'
+	docker_process_sql --dbname postgres <<-'EOSQL'
 		alter system set shared_preload_libraries=pg_stat_monitor ;
 	EOSQL
 }
@@ -280,14 +280,14 @@ _main() {
 		set -- postgres "$@"
 	fi
 
-    export PATH=$PATH:/usr/pgsql-14/bin
+	export PATH=$PATH:/usr/pgsql-14/bin
 
 	if [ "$1" = 'postgres' ] && ! _pg_want_help "$@"; then
 		docker_setup_env
 		# setup data directories and permissions (when run as root)
-        if [[ -z "$PGDATA" ]]; then
-            export PGDATA=/data/db
-        fi
+		if [[ -z "$PGDATA" ]]; then
+			export PGDATA=/data/db
+		fi
 		docker_create_db_directories
 		if [ "$(id -u)" = '0' ]; then
 			# then restart script as postgres user
