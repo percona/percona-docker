@@ -37,11 +37,11 @@ RUN set -ex; \
         lz4 \
         procps-ng; \
     microdnf -y install  \
-        systemd \
-        libpq \
         nss_wrapper \
+        shadow-utils \
+        libpq \
         libedit; \
-    microdnf -y clean all
+    microdnf clean all
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
@@ -55,8 +55,6 @@ RUN set -ex; \
 
 RUN set -ex; \
     microdnf install -y \
-        nss_wrapper \
-        shadow-utils \
         percona-postgresql14-server-${FULL_PERCONA_VERSION} \
         percona-postgresql14-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql-common \
@@ -66,8 +64,8 @@ RUN set -ex; \
     chown -R 1001:0 /data/db docker-entrypoint-initdb.d
 
 RUN set -ex; \
-	sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-14/share/postgresql.conf.sample; \
-	grep -F "listen_addresses = '*'" /usr/pgsql-14/share/postgresql.conf.sample
+    sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-14/share/postgresql.conf.sample; \
+    grep -F "listen_addresses = '*'" /usr/pgsql-14/share/postgresql.conf.sample
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-postgresql14/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
