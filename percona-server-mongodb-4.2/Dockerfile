@@ -1,48 +1,50 @@
-FROM centos:8
+FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
-
-# check repository package signature in secure way
-RUN set -ex; \
-    export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D; \
-    gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
-    gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
-    rpmkeys --checksig /tmp/percona-release.rpm; \
-    dnf install -y /tmp/percona-release.rpm; \
-    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
-    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable psmdb-42 release
 
 ENV PSMDB_VERSION 4.2.17-17
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
 
+# check repository package signature in secure way
 RUN set -ex; \
-    dnf install -y \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
+    gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
+    gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+    microdnf install -y findutils; \
+    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+    rpmkeys --checksig /tmp/percona-release.rpm; \
+    rpm -i /tmp/percona-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    percona-release enable psmdb-42 release
+
+RUN set -ex; \
+    curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
+    rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
+    \
+    rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
+    rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
+
+RUN set -ex; \
+    microdnf install -y \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
         shadow-utils \
         curl \
         procps-ng \
-        oniguruma \
-        jq \
-        dnf-utils; \
+        policycoreutils; \
         \
-    repoquery -a --location \
-        policycoreutils \
-            | xargs curl -Lf -o /tmp/policycoreutils.rpm; \
-    repoquery -a --location \
-        percona-server-mongodb-server-${FULL_PERCONA_VERSION} \
-            | xargs curl -Lf -o /tmp/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.rpm; \
-    rpm -iv /tmp/policycoreutils.rpm /tmp/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.rpm --nodeps; \
-    \
-    rm -rf /tmp/policycoreutils.rpm /tmp/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.rpm; \
-    dnf clean all; \
-    dnf -y remove dnf-utils; \
+    curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-42/yum/release/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
+    rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
+    rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
+    microdnf clean all; \
     rm -rf /var/cache/dnf /data/db && mkdir -p /data/db; \
     chown -R 1001:0 /data/db
 
@@ -76,9 +78,9 @@ RUN set -ex; \
     \
     chmod 0755 /usr/local/bin/k8s-mongodb-initiator /usr/local/bin/mongodb-healthcheck
 
-COPY ps-entry.sh /entrypoint.sh
-
 VOLUME ["/data/db"]
+
+COPY ps-entry.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 
