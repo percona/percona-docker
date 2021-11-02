@@ -11,7 +11,7 @@ RUN microdnf -y update; \
 
 ENV LC_ALL en_US.utf-8
 ENV LANG en_US.utf-8
-ARG PG_MAJOR=13
+ARG PG_MAJOR=14
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -28,7 +28,7 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable ppg-${PG_MAJOR//.} release
+    percona-release enable ppg-14.0 testing
 
 RUN set -ex; \
     microdnf -y install \
@@ -75,9 +75,10 @@ RUN  set -ex; \
 		percona-patroni \
 		percona-pgaudit \
 		percona-pgaudit${PG_MAJOR//.}_set_user \
-		percona-pgbackrest-2.33 \
+		percona-pgbackrest \
 		percona-postgresql${PG_MAJOR//.}-contrib \
 		percona-postgresql${PG_MAJOR//.}-server \
+		percona-postgresql${PG_MAJOR//.}-libs \
 		percona-postgresql${PG_MAJOR//.}-plpython* \
 		percona-pg-stat-monitor${PG_MAJOR//.} \
 		percona-postgresql${PG_MAJOR//.}-llvmjit \
@@ -103,6 +104,8 @@ RUN set -ex; \
         /pgdata /pgwal /pgconf /recover /backrestrepo /tablespaces; \
     chmod -R g=u /opt/crunchy /var/lib/pgsql \
         /pgdata /pgwal /pgconf /recover /backrestrepo /tablespaces
+
+RUN rm -rf /var/spool/pgbackrest
 
 # open up the postgres port
 EXPOSE 5432
