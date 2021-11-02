@@ -27,8 +27,14 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/epel-release.rpm; \
     rpm -i /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/epel-release.rpm; \
-    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable ppg-14.0 testing
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+
+
+RUN if [[ "$PG_MAJOR" -le '13' ]] ; then \
+        percona-release enable ppg-${PG_MAJOR} release; \
+    else \
+       percona-release enable ppg-${PG_MAJOR}.0 testing; \
+    fi
 
 RUN set -ex; \
     microdnf -y install \
