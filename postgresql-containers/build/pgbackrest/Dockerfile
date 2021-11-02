@@ -1,4 +1,4 @@
-FROM golang:1.15 AS go_builder
+FROM golang:1.17 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-docker/postgresql-containers/src
 
 COPY . .
@@ -28,7 +28,7 @@ RUN microdnf -y update; \
 
 ENV LC_ALL en_US.utf-8
 ENV LANG en_US.utf-8
-ARG PG_MAJOR=13
+ARG PG_MAJOR=14
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -44,8 +44,13 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/epel-release.rpm; \
     rpm -i /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/epel-release.rpm; \
-    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable ppg-${PG_MAJOR} release
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+
+RUN if [[ "$PG_MAJOR" -le '13' ]] ; then \
+        percona-release enable ppg-${PG_MAJOR} release; \
+    else \
+       percona-release enable ppg-${PG_MAJOR}.0 testing; \
+    fi
 
 RUN set -ex; \
     microdnf -y update; \
@@ -63,6 +68,7 @@ RUN set -ex; \
         systemd \
         libpq \
         nss_wrapper \
+        percona-postgresql${PG_MAJOR}-libs \
         libedit; \
     microdnf -y clean all
 
@@ -78,7 +84,7 @@ RUN set -ex; \
     rpm -i /tmp/openssh.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
     rm -rf /tmp/openssh.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
     microdnf -y install  \
-        percona-pgbackrest-2.33; \
+        percona-pgbackrest; \
     microdnf -y clean all
 
 RUN set -ex; \
@@ -109,6 +115,8 @@ RUN set -ex; \
     chown -R postgres:postgres /etc/pgbackrest; \
     chmod -R g=u /etc/pgbackrest; \
     rm -f /run/nologin
+
+RUN rm -rf /var/spool/pgbackrest
 
 RUN set -ex; \
     mkdir /.ssh; \
