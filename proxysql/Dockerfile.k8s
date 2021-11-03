@@ -5,7 +5,7 @@ RUN go get k8s.io/apimachinery/pkg/util/sets \
     && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go \
     && go build peer-list.go
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
+FROM redhat/ubi8-minimal AS ubi8
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="ProxySQL" \
@@ -67,7 +67,7 @@ RUN set -ex; \
         perl-DBI \
         tar; \
     microdnf clean all; \
-    rm -rf /var/cache/yum
+    rm -rf /var/cache/dnf /var/cache/yum
 
 RUN groupadd -g 1001 proxysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
@@ -81,7 +81,7 @@ RUN set -ex; \
     rpm -iv /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm --nodeps; \
     rm -rf /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm; \
     microdnf clean all; \
-    rm -rf /var/cache/yum /etc/proxysql /var/lib/proxysql; \
+    rm -rf /var/cache/dnf /var/cache/yum /etc/proxysql /var/lib/proxysql; \
     rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf; \
     install -o 1001 -g 0 -m 775 -d /etc/proxysql /var/lib/proxysql
 

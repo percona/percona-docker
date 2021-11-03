@@ -35,7 +35,7 @@ RUN set -ex; \
         policycoreutils; \
     \
     yum clean all; \
-    rm -rf /var/cache/yum /var/lib/mysql
+    rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership
 RUN /usr/bin/install -m 0775 -o mysql -g root -d /etc/my.cnf.d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d \

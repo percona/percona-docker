@@ -6,7 +6,7 @@ RUN export GO111MODULE=off \
     && curl -Lf -o /go/src/github.com/percona/percona-server-mysql-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-server-mysql-operator/main/cmd/peer-list/main.go \
     && go build peer-list.go
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
+FROM redhat/ubi8-minimal AS ubi8
 
 LABEL name="orchestrator" \
       description="orchestrator is a MySQL high availability and replication management tool" \

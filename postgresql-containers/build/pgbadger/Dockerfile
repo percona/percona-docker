@@ -13,7 +13,7 @@ RUN mkdir -p build/_output/bin; \
         -o build/_output/bin/badgerserver ./badger; \
     cp -r build/_output/bin/badgerserver /usr/local/bin/badgerserver
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM redhat/ubi8-minimal
 
 LABEL name="Percona PostgreSQL Distribution" \
     vendor="Percona" \
