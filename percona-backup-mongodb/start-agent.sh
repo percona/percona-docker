@@ -1,8 +1,28 @@
 #!/bin/bash
 
-export PBM_MONGODB_URI="mongodb://${PBM_AGENT_MONGODB_USERNAME}:${PBM_AGENT_MONGODB_PASSWORD}@localhost:${PBM_MONGODB_PORT}/?replicaSet=${PBM_MONGODB_REPLSET}"
-
 set -o xtrace
+
+for argv
+do
+	if [[ -n "$usenext" ]]
+	then
+		export PBM_MONGODB_URI="${argv}"
+		break
+	fi
+	if [[ "$argv" == '--mongodb-uri' ]]
+	then
+		use_next='true'
+		# TODO should we check if last?
+		continue
+	elif [[ "$argv" == '--mongodb-uri='* ]]
+	then
+		export PBM_MONGODB_URI="${argv#--mongodb-uri=}"
+		break
+	fi
+done
+
+# TODO should we check if all parts are set?
+[[ -z "$PBM_MONGODB_URI" ]] && export PBM_MONGODB_URI="mongodb://${PBM_AGENT_MONGODB_USERNAME}:${PBM_AGENT_MONGODB_PASSWORD}@localhost:${PBM_MONGODB_PORT}/?replicaSet=${PBM_MONGODB_REPLSET}"
 
 if [ "${1:0:9}" = "pbm-agent" ]; then
 	OUT="$(mktemp)"
