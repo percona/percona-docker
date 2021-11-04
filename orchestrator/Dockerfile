@@ -66,4 +66,4 @@ VOLUME ["/var/lib/orchestrator"]
 
 WORKDIR /usr/local/orchestrator
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/usr/local/orchestrator/orchestrator", "-quiet", "-config", "/etc/orchestrator/orchestrator.conf.json", "http"]
+CMD ["/usr/local/orchestrator/orchestrator", "-config", "/etc/orchestrator/orchestrator.conf.json", "http"]
