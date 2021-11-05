@@ -10,8 +10,8 @@ FROM redhat/ubi8-minimal
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXB_VERSION 2.4.23-1
-ENV PXC_VERSION 5.7.34-31.51.1
-ENV PXC_REPO release
+ENV PXC_VERSION 5.7.35-31.53.1
+ENV PXC_REPO testing
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
@@ -31,7 +31,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable-only tools release; \
-    percona-release enable pxc-57 release
+    percona-release enable pxc-57 ${PXC_REPO}
 
 RUN set -ex; \
     curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
@@ -57,6 +57,7 @@ RUN set -ex; \
         libaio \
         which \
         pam \
+        procps-ng \
         qpress \
         cracklib-dicts; \
     microdnf clean all; \
