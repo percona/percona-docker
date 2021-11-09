@@ -27,6 +27,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
 	&& percona-release setup pdps-8.0
 
+# install exact version of PS for repeatability
+ENV PERCONA_VERSION 8.0.26-16.1.el8
 
 RUN set -ex; \
     microdnf install -y \
@@ -37,6 +39,7 @@ RUN set -ex; \
         openssl \
         procps-ng \
         vim-minimal \
+        percona-server-client-${PERCONA_VERSION} \
         policycoreutils; \
     \
     microdnf clean all; \

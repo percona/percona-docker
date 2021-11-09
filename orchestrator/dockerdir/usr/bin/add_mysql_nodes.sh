@@ -22,6 +22,28 @@ wait_for_leader() {
     done
 }
 
+function mysql_exec() {
+    local server="$1"
+    local port="$2"
+    local query="$3"
+
+    { set +x; } 2>/dev/null
+    ORC_PASSWORD=$(/bin/cat /etc/orchestrator/orchestrator-users-secret/orchestrator)
+    MYSQL_PWD="${ORC_PASSWORD}" timeout 600 mysql -h "${server}" -P ${port} -uorchestrator -s -NB -e "${query}"
+    set -x
+}
+
+function wait_for_mysql() {
+    local host="$1"
+    local port=$2
+
+    echo "Waiting for host $host to be online..."
+    while [ "$(mysql_exec "$host" "$port" 'select 1')" != "1" ]; do
+        echo "MySQL is not up yet... sleeping ..."
+        sleep 1
+    done
+}
+
 am_i_leader() {
     local http_code=$(curl -w httpcode=%{http_code} "${ORC_HOST}/api/leader-check" 2>/dev/null | sed -e 's/.*\httpcode=//')
 
@@ -56,6 +78,7 @@ main() {
             exit 0
         fi
 
+        wait_for_mysql "${mysql_host}" 3306
         discover "${mysql_host}" 3306
     done
 }
