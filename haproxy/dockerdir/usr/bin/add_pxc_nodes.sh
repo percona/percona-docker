@@ -55,7 +55,7 @@ function main() {
         else
             NODE_LIST=( "$firs_node" )
             NODE_LIST_ADMIN=( "$firs_node_admin" )
-            NODE_LIST_ADMIN=( "$firs_node_mysqlx" )
+            NODE_LIST_MYSQLX=( "$firs_node_mysqlx" )
         fi
     else
         if [[ "${#NODE_LIST[@]}" -ne 0 ]]; then
