@@ -62,7 +62,7 @@ COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operato
 RUN set -ex; \
     chown 1001:1001 /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy-global.cfg /usr/local/bin/check_pxc.sh
 
-USER mysql
+USER 1001
 
 VOLUME ["/etc/haproxy/pxc"]
 
