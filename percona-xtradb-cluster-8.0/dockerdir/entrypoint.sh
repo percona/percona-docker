@@ -285,8 +285,7 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		echo
 		id
 		ls --version
-		ls -l /
-		ls -ld /docker-entrypoint-initdb.d
+		ls
 		ls /docker-entrypoint-initdb.d/ > /dev/null
 		for f in /docker-entrypoint-initdb.d/*; do
 			process_init_file "$f" "${mysql[@]}"
