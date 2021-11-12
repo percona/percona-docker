@@ -7,7 +7,7 @@ function mysql_exec() {
   mysql_pass=$(cat /etc/mysql/mysql-users-secret/xtrabackup 2>/dev/null || :)
   MYSQL_PASSWORD="${mysql_pass:-$PXC_PASS}"
 
-  MYSQL_PWD=${MYSQL_PASSWORD} timeout 600 mysql -h${server} -uxtrabackup -s -NB -e "${query}"
+  MYSQL_PWD=${MYSQL_PASSWORD} timeout 600 mysql -P33062 -h${server} -uxtrabackup -s -NB -e "${query}"
   
 }
 
