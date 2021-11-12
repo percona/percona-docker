@@ -10,8 +10,8 @@ FROM redhat/ubi8-minimal
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXB_VERSION 2.4.23-1
-ENV PXC_VERSION 5.7.34-31.51.1
-ENV PXC_REPO release
+ENV PXC_VERSION 5.7.35-31.53.1
+ENV PXC_REPO testing
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
@@ -31,7 +31,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable-only tools release; \
-    percona-release enable pxc-57 release
+    percona-release enable pxc-57 ${PXC_REPO}
 
 RUN set -ex; \
     curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
@@ -39,15 +39,15 @@ RUN set -ex; \
     curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
     curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
     curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
-    rpmkeys --checksig /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
-    rpm -i /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
-    rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm
+    curl -Lf -o /tmp/socat.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/socat-1.7.3.3-2.el8.x86_64.rpm; \
+    rpmkeys --checksig /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
+    rpm -i /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
+    rm -rf /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
     microdnf --setopt=install_weak_deps=0 --best install -y \
         jemalloc \
-        socat \
         openssl \
         shadow-utils \
         hostname \
@@ -57,6 +57,7 @@ RUN set -ex; \
         libaio \
         which \
         pam \
+        procps-ng \
         qpress \
         cracklib-dicts; \
     microdnf clean all; \
