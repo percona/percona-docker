@@ -33,7 +33,7 @@ RUN set -ex; \
 RUN if [[ "$PG_MAJOR" -le '13' ]] ; then \
         percona-release enable ppg-${PG_MAJOR} release; \
     else \
-       percona-release enable ppg-${PG_MAJOR}.0 testing; \
+       percona-release enable ppg-${PG_MAJOR}.0 experimental; \
     fi
 
 RUN set -ex; \
@@ -45,6 +45,7 @@ RUN set -ex; \
         libedit \
         procps-ng; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
+    microdnf -y module disable llvm-toolset; \
     microdnf -y install \
         libpq \
         llvm \
