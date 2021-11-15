@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-set -o xtrace
 
 ORC_HOST=127.0.0.1:3000
 
@@ -11,7 +10,7 @@ wait_for_leader() {
 
     until [[ ${leader} != "" ]]; do
         if [ ${retry} -gt 60 ]; then
-            echo "Waiting for leader failed after 60 attempts"
+            echo '[WARNING] Waiting for leader. Will fail after 60 attempts'
             exit 1
         fi
 
@@ -29,6 +28,7 @@ am_i_leader() {
         return 1
     fi
 
+    echo '[INFO] I am a leader'
     return 0
 }
 
@@ -36,7 +36,23 @@ discover() {
     local host=$1
     local port=$2
 
-    curl "${ORC_HOST}/api/discover/${host}/${port}"
+    HOSTNAME=$(curl -s "${ORC_HOST}/api/instance/${host}/${port}" | jq '.InstanceAlias' | tr -d 'null')
+    if [ -n "$HOSTNAME" ]; then
+        echo "[INFO] The Mysql node ${host} is already present in orchestrator. Skipping ..."
+        return 0
+    fi
+
+    for i in {1..5}; do
+        R_CODE=$(curl -s "${ORC_HOST}/api/discover/${host}/${port}" | jq '.Code' | tr -d '"')
+        if [ "$R_CODE" == 'ERROR' ]; then
+            echo "[ERROR] Mysql node ${host} can't be discovered"
+            sleep 1
+            continue
+        else
+            echo "[INFO] Mysql node ${host} was discovered"
+            break
+        fi
+   done
 }
 
 main() {
@@ -44,15 +60,17 @@ main() {
     wait_for_leader
 
     # Exit if not master
-    if ! am_i_leader; then
-        echo "I'm not the leader. Exiting..."
+    while ! am_i_leader; do
+        echo '[INFO] I am not a leader. Sleeping ...'
+
+        sleep 1
         exit 0
-    fi
+    done
 
     # Discover
     while read mysql_host; do
         if [ -z "$mysql_host" ]; then
-            echo "Could not find PEERS ..."
+            echo '[INFO] Could not find PEERS ...'
             exit 0
         fi
 
