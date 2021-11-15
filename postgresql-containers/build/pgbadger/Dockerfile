@@ -1,7 +1,7 @@
 FROM golang:1.17 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-docker/postgresql-containers/src
 
-COPY ./badger ./badger
+COPY ./ ./
 
 ARG GOOS=linux
 ARG GOARCH=amd64
@@ -11,7 +11,9 @@ RUN mkdir -p build/_output/bin; \
     CGO_ENABLED=$CGO_ENABLED GOOS=$GOOS GOARCH=$GOARCH \
     go build \
         -o build/_output/bin/badgerserver ./badger; \
-    cp -r build/_output/bin/badgerserver /usr/local/bin/badgerserver
+    cp -r build/_output/bin/badgerserver /usr/local/bin/badgerserver; \
+    ./bin/license_aggregator.sh; \
+    cp -r ./licenses /licenses
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 
@@ -75,11 +77,11 @@ RUN set -ex; \
 RUN mkdir -p /opt/crunchy/bin /opt/crunchy/conf /report
 
 COPY --from=go_builder /usr/local/bin/badgerserver /opt/crunchy/bin/badgerserver
+COPY --from=go_builder /licenses /licenses
 
 COPY conf/pgbadger /opt/crunchy/conf
 COPY bin/common /opt/crunchy/bin
 COPY bin/pgbadger /opt/crunchy/bin
-COPY licenses /licenses
 
 RUN set -ex; \
     chown -R postgres:postgres /opt/crunchy /report /bin; \
