@@ -32,7 +32,7 @@ ENV PERCONA_VERSION 8.0.23-14.1.el8
 RUN set -ex; \
     microdnf install -y \
         shadow-utils \
-        percona-haproxy-2.3.10 \
+        percona-haproxy \
         percona-xtradb-cluster-client-${PERCONA_VERSION} \
         which \
         tar \
