@@ -32,7 +32,7 @@ RUN set -ex; \
 RUN if [[ "$PG_MAJOR" -le '13' ]] ; then \
         percona-release enable ppg-${PG_MAJOR} release; \
     else \
-       percona-release enable ppg-${PG_MAJOR}.0 experimental; \
+       percona-release enable ppg-${PG_MAJOR}.1 testing; \
     fi
 
 RUN set -ex; \
