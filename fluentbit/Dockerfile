@@ -45,11 +45,9 @@ RUN set -ex; \
     fi; \
     microdnf -y update; \
     microdnf -y install \
-        #elfutils-libs \
         logrotate \
         procps-ng \
         shadow-utils \
-        #systemd-libs \
         tar \
         vim-minimal; \
     microdnf -y install \
