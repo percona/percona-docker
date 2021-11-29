@@ -12,6 +12,7 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
                 HTTPAdvertise:\"http://$HOSTNAME.$ORC_SERVICE:80\",
                 RaftAdvertise:\"$HOSTNAME.$ORC_SERVICE\",
                 RaftBind:\"$HOSTNAME.$ORC_SERVICE\",
+                RaftEnabled: ${RAFT_ENABLED:-"true"},
                 MySQLTopologySSLPrivateKeyFile:\"/etc/orchestrator/ssl/tls.key\",
                 MySQLTopologySSLCertFile:\"/etc/orchestrator/ssl/tls.crt\",
                 MySQLTopologySSLCAFile:\"/etc/orchestrator/ssl/ca.crt\",
