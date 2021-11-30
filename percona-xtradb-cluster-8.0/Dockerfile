@@ -5,11 +5,11 @@ RUN go get k8s.io/apimachinery/pkg/util/sets; \
     curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go; \
     go build peer-list.go
 
-FROM redhat/ubi8-minimal:8.4
+FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.23-14.1
+ENV PXC_VERSION 8.0.25-15.1
 ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
@@ -31,12 +31,12 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 RUN set -ex; \
-    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
     curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
     curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
     curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
     curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/socat.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/socat-1.7.3.3-2.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/socat.rpm https://vault.centos.org/8.4.2105/AppStream/x86_64/os/Packages/socat-1.7.3.3-2.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
     rpm -i /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
     rm -rf /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm
@@ -58,7 +58,7 @@ RUN set -ex; \
         procps-ng \
         cracklib-dicts; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf
+    rm -rf /var/cache/dnf /var/cache/yum
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql; \
@@ -118,9 +118,9 @@ RUN if [[ -n $DEBUG ]] ; then \
         gdb; \
     percona-release disable pdpxc-8.0 release; \
     curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/tcpdump.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/tcpdump-4.9.3-1.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/perf.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/perf-4.18.0-305.3.1.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/strace.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/strace-5.7-2.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/tcpdump.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/tcpdump-4.9.3-2.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/perf.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/perf-4.18.0-348.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/strace.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/strace-5.7-3.el8.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/telnet.rpm /tmp/tcpdump.rpm /tmp/perf.rpm /tmp/strace.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm; \

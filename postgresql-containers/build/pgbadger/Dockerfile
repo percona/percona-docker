@@ -1,7 +1,7 @@
 FROM golang:1.17 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-docker/postgresql-containers/src
 
-COPY ./badger ./badger
+COPY ./ ./
 
 ARG GOOS=linux
 ARG GOARCH=amd64
@@ -11,7 +11,9 @@ RUN mkdir -p build/_output/bin; \
     CGO_ENABLED=$CGO_ENABLED GOOS=$GOOS GOARCH=$GOARCH \
     go build \
         -o build/_output/bin/badgerserver ./badger; \
-    cp -r build/_output/bin/badgerserver /usr/local/bin/badgerserver
+    cp -r build/_output/bin/badgerserver /usr/local/bin/badgerserver; \
+    ./bin/license_aggregator.sh; \
+    cp -r ./licenses /licenses
 
 FROM redhat/ubi8-minimal
 
@@ -42,13 +44,8 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/epel-release.rpm; \
     rpm -i /tmp/percona-release.rpm /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/epel-release.rpm; \
-    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
-
-RUN if [[ "$PG_MAJOR" -le '13' ]] ; then \
-        percona-release enable ppg-${PG_MAJOR} release; \
-    else \
-       percona-release enable ppg-${PG_MAJOR}.0 testing; \
-    fi
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    percona-release enable ppg-${PG_MAJOR} release
 
 RUN set -ex; \
     microdnf -y update; \
@@ -75,11 +72,11 @@ RUN set -ex; \
 RUN mkdir -p /opt/crunchy/bin /opt/crunchy/conf /report
 
 COPY --from=go_builder /usr/local/bin/badgerserver /opt/crunchy/bin/badgerserver
+COPY --from=go_builder /licenses /licenses
 
 COPY conf/pgbadger /opt/crunchy/conf
 COPY bin/common /opt/crunchy/bin
 COPY bin/pgbadger /opt/crunchy/bin
-COPY licenses /licenses
 
 RUN set -ex; \
     chown -R postgres:postgres /opt/crunchy /report /bin; \

@@ -9,9 +9,9 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXB_VERSION 2.4.23-1
+ENV PXB_VERSION 2.4.24-1
 ENV PXC_VERSION 5.7.35-31.53.1
-ENV PXC_REPO testing
+ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
@@ -34,12 +34,12 @@ RUN set -ex; \
     percona-release enable pxc-57 ${PXC_REPO}
 
 RUN set -ex; \
-    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
     curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
     curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
     curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
     curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/socat.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/socat-1.7.3.3-2.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/socat.rpm https://vault.centos.org/8.4.2105/AppStream/x86_64/os/Packages/socat-1.7.3.3-2.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
     rpm -i /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
     rm -rf /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm
@@ -61,7 +61,7 @@ RUN set -ex; \
         qpress \
         cracklib-dicts; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf
+    rm -rf /var/cache/dnf /var/cache/yum
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql; \
@@ -84,7 +84,7 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /tmp/percona-xtrabackup-24.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm; \
     rm -rf /usr/bin/mysqltest /usr/bin/perror /usr/bin/replace /usr/bin/resolve_stack_dump /usr/bin/resolveip; \
-    rm -rf /var/cache/dnf /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam*; \
+    rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam*; \
     rpm -ql Percona-XtraDB-Cluster-client-57 | egrep -v "mysql$|mysqldump$" | xargs rm -rf
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
@@ -122,7 +122,7 @@ RUN if [[ -n $DEBUG ]] ; then \
     rpm -i /tmp/telnet.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm --nodeps; \
     rm -rf /tmp/telnet.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf; \
+    rm -rf /var/cache/dnf /var/cache/yum; \
 fi
 
 USER 1001

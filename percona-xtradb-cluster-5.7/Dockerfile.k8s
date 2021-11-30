@@ -48,12 +48,12 @@ RUN set -ex; \
     percona-release enable pxc-57 release
 
 RUN set -ex; \
-    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
     curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
     curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
     curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
     curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/socat.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/socat-1.7.3.3-2.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/socat.rpm https://vault.centos.org/8.4.2105/AppStream/x86_64/os/Packages/socat-1.7.3.3-2.el8.x86_64.rpm; \
     curl -Lf -o /tmp/compat-openssl.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/compat-openssl10-1.0.2o-3.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm; \
     rpm -i /tmp/compat-openssl.rpm --nodeps; \
@@ -96,7 +96,7 @@ RUN set -ex; \
     curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/8/RPMS/x86_64/Percona-XtraDB-Cluster-shared-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/8/RPMS/x86_64/Percona-XtraDB-Cluster-client-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtrabackup-24.rpm https://repo.percona.com/pxb-24/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtrabackup-24-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
-    curl -Lf -o /tmp/nscd.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/nscd-2.28-151.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/nscd.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/nscd-2.28-164.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/percona-xtrabackup-24.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/nscd.rpm; \
     rpm -iv /tmp/percona-xtrabackup-24.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/nscd.rpm --nodeps; \
     microdnf clean all; \

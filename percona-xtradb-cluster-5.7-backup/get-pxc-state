@@ -3,7 +3,7 @@
 function mysql_exec() {
   local server="$1"
   local query="$2"
-  MYSQL_PWD=${PXC_PASS:-password} timeout 600 mysql -h${server} -uxtrabackup -s -NB -e "${query}"
+  MYSQL_PWD=${PXC_PASS:-password} timeout 600 mysql -P33062 -h${server} -uxtrabackup -s -NB -e "${query}"
 }
 
 function wait_for_mysql() {

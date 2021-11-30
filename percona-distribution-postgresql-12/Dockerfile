@@ -60,7 +60,7 @@ RUN set -ex; \
         percona-postgresql-common \
         percona-pg-stat-monitor12; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf /data/db && mkdir -p /data/db /docker-entrypoint-initdb.d; \
+    rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db /docker-entrypoint-initdb.d; \
     chown -R 1001:0 /data/db docker-entrypoint-initdb.d
 
 RUN set -ex; \

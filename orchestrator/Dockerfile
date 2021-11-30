@@ -27,7 +27,6 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
 	&& percona-release setup pdps-8.0
 
-
 RUN set -ex; \
     microdnf install -y \
         shadow-utils \

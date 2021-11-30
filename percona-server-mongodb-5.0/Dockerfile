@@ -2,7 +2,7 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 5.0.3-2
+ENV PSMDB_VERSION 5.0.4-3
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
@@ -27,7 +27,6 @@ RUN set -ex; \
     curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
     curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
-    \
     rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
     rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
 
@@ -45,7 +44,7 @@ RUN set -ex; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
     rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf /data/db && mkdir -p /data/db; \
+    rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db; \
     chown -R 1001:0 /data/db
 
 # the numeric UID is needed for OpenShift

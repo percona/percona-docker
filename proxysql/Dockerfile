@@ -36,9 +36,8 @@ RUN set -ex; \
     curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
     curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
-    \
     rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
-    rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/compat-openssl.rpm
+    rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
 
 RUN set -ex; \
     microdnf install -y \
@@ -51,7 +50,7 @@ RUN set -ex; \
         perl-DBI \
         tar; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf
+    rm -rf /var/cache/dnf /var/cache/yum
 
 RUN groupadd -g 1001 proxysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
@@ -59,13 +58,13 @@ RUN groupadd -g 1001 proxysql; \
 
 # we need licenses from docs
 RUN set -ex; \
-    curl -Lf -o /tmp/util-linux.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/util-linux-2.32.1-27.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/util-linux.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/util-linux-2.32.1-28.el8.x86_64.rpm; \
     curl -Lf -o /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm http://repo.percona.com/proxysql/yum/release/8/RPMS/x86_64/proxysql2-${FULL_PROXYSQL_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm; \
     rpm -iv /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm --nodeps; \
     rm -rf /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf /etc/proxysql /var/lib/proxysql; \
+    rm -rf /var/cache/dnf /var/cache/yum /etc/proxysql /var/lib/proxysql; \
     rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf; \
     install -o 1001 -g 0 -m 775 -d /etc/proxysql /var/lib/proxysql
 

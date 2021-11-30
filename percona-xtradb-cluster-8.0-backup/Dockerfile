@@ -33,9 +33,9 @@ helps enterprises avoid downtime and outages and meet expected customer experien
 LABEL org.opencontainers.image.license="GPL"
 
 # do not use PXB 8.0.14-1 (PXB-2279)
-ENV PXB_VERSION 8.0.23-16.1
-ENV PS_VERSION 8.0.23-14.1
-ENV PXC_VERSION 8.0.23-14.1
+ENV PXB_VERSION 8.0.25-17.1
+ENV PS_VERSION 8.0.25-15.1
+ENV PXC_VERSION 8.0.25-15.1
 ENV PXC_REPO release
 ENV KUBECTL_VERSION=v1.19.12
 ENV KUBECTL_SHA256SUM=9a9123b58e3287fdca20db45ab003426d30e7a77ec57605fa25947bc68f6cabf
@@ -62,7 +62,7 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 RUN set -ex; \
-	curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
+	curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \

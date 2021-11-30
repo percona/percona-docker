@@ -2,7 +2,7 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 4.4.9-10
+ENV PSMDB_VERSION 4.4.10-11
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
@@ -45,7 +45,7 @@ RUN set -ex; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
     rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf /data/db && mkdir -p /data/db; \
+    rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db; \
     chown -R 1001:0 /data/db
 
 # the numeric UID is needed for OpenShift
