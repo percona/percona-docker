@@ -54,6 +54,7 @@ RUN set -ex; \
         gettext \
         hostname \
         perl \
+        tar \
         shadow-utils \
         nss_wrapper \
         procps-ng; \
