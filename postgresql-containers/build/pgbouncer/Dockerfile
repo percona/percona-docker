@@ -41,6 +41,7 @@ RUN set -ex; \
         gettext \
         hostname \
         perl \
+        tar \
         procps-ng \
         nss_wrapper \
         percona-pgbouncer; \

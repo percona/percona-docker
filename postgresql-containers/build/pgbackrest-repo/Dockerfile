@@ -54,6 +54,7 @@ RUN set -ex; \
         gettext \
         hostname \
         perl \
+        tar \
         procps-ng; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
     microdnf -y install  \
