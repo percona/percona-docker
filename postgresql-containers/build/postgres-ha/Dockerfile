@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM redhat/ubi8-minimal
 
 LABEL name="Percona PostgreSQL Distribution" \
     vendor="Percona" \

@@ -15,7 +15,7 @@ RUN mkdir -p build/_output/bin; \
     ./bin/license_aggregator.sh; \
     cp -r ./licenses /licenses
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM redhat/ubi8-minimal
 
 LABEL name="Percona PostgreSQL Distribution" \
     vendor="Percona" \

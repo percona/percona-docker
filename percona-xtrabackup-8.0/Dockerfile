@@ -41,7 +41,7 @@ RUN set -ex; \
         qpress; \
     \
     microdnf clean all; \
-    rm -rf /var/cache/dnf
+    rm -rf /var/cache/dnf /var/cache/yum
 
 VOLUME [ "/backup" ]
 

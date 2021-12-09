@@ -45,7 +45,7 @@ RUN set -ex; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
     rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf /data/db && mkdir -p /data/db; \
+    rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db; \
     chown -R 1001:0 /data/db
 
 # the numeric UID is needed for OpenShift
