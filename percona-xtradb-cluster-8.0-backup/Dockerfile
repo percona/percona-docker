@@ -16,7 +16,7 @@ RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/arch
     && curl -o /go/bin/LICENSE.mc \
         https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
+FROM redhat/ubi8-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona XtraBackup" \
@@ -66,7 +66,7 @@ RUN set -ex; \
 	curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
-	curl -Lf -o /tmp/pv.rpm https://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
+	curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/socat.rpm http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/socat-1.7.4.1-1.el8.x86_64.rpm; \
 	rpmkeys --checksig /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
 	rpm -i /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
@@ -82,7 +82,7 @@ RUN set -ex; \
 		cracklib-dicts \
 		findutils; \
 	microdnf clean all; \
-	rm -rf /var/cache/yum
+	rm -rf /var/cache/dnf /var/cache/yum
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql; \
@@ -102,7 +102,7 @@ RUN set -ex; \
 	rm -rf /tmp/procps-ng.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm; \
 	rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqlbinlog$" | xargs rm -rf; \
 	microdnf clean all; \
-	rm -rf /var/cache/yum /var/lib/mysql
+	rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-xtrabackup-80/LICENSE /licenses/LICENSE.xtrabackup; \

@@ -8,9 +8,10 @@ RUN microdnf -y update; \
         shadow-utils; \
     microdnf clean all
 
-RUN groupadd -g 1001 mysql; \
+RUN set -ex; \
+    groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
-		-c "Default Application User" mysql
+        -c "Default Application User" mysql
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -28,9 +29,10 @@ RUN set -ex; \
     percona-release disable all; \
     #percona-release setup -y ps80; \
     #microdnf -y module disable mysql; \
-    curl -Lf -o /tmp/numactl-libs-2.0.12-11.el8.x86_64.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
-    rpm -i /tmp/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
-    rm -rf /tmp/numactl-libs-2.0.12-11.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
+    rpmkeys --checksig /tmp/numactl-libs.rpm; \
+    rpm -i /tmp/numactl-libs.rpm; \
+    rm -rf /tmp/numactl-libs.rpm; \
     percona-release enable ps-80 release
 
 ENV PS_VERSION 8.0.26-16.1
@@ -38,7 +40,9 @@ ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
 RUN set -ex; \
+    rpm -e --nodeps tzdata; \
     microdnf install -y \
+        tzdata \
         percona-server-server-${FULL_PERCONA_VERSION} \
         #percona-server-tokudb-${FULL_PERCONA_VERSION} \
         percona-server-devel-${FULL_PERCONA_VERSION} \
@@ -49,7 +53,7 @@ RUN set -ex; \
         policycoreutils; \
     \
     microdnf clean all; \
-    rm -rf /var/cache/dnf /var/lib/mysql
+    rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership
 RUN set -ex; \

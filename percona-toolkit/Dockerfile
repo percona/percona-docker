@@ -40,7 +40,7 @@ RUN set -ex; \
         percona-toolkit-${PT_VERSION}; \
     \
     microdnf clean all; \
-    rm -rf /var/cache/dnf
+    rm -rf /var/cache/dnf /var/cache/yum
 
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" perconatoolkit
