@@ -47,5 +47,7 @@
   "RemoveTextFromHostnameDisplay": ":3306",
   "SQLite3DataFile": "/var/lib/orchestrator/orc.db",
   "UnseenInstanceForgetHours": 1,
-  "StatusEndpoint": "/api/status"
+  "StatusEndpoint": "/api/status",
+  "DetectSemiSyncEnforcedQuery": "select 1",
+  "EnforceExactSemiSyncReplicas": true
 }
