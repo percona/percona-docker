@@ -9,12 +9,8 @@ LIB_PATH='/usr/lib/pxc'
 SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
 SST_INFO_NAME=sst_info
 
-if [[ -z $VERIFY_TLS ]]; then
-    VERIFY_TLS=1
-fi
-
 INSECURE_ARG=""
-if (( $VERIFY_TLS == 0 )); then
+if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
   INSECURE_ARG="--insecure"
 fi
 

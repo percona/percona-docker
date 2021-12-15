@@ -7,13 +7,9 @@ LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/check-version.sh
 . ${LIB_PATH}/vault.sh
 
-if [[ -z $VERIFY_TLS ]]; then
-	VERIFY_TLS=1
-fi
-
 INSECURE_ARG=""
-if (($VERIFY_TLS == 0)); then
-	INSECURE_ARG="--insecure"
+if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
+  INSECURE_ARG="--insecure"
 fi
 
 { set +x; } 2>/dev/null
