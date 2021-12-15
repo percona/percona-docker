@@ -7,16 +7,21 @@ LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/check-version.sh
 . ${LIB_PATH}/vault.sh
 
+INSECURE_ARG=""
+if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
+  INSECURE_ARG="--insecure"
+fi
+
 { set +x; } 2>/dev/null
-echo "+ mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
-mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
+echo "+ mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
+mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
 set -x
-mc -C /tmp/mc ls "dest/${S3_BUCKET_URL}"
+mc -C /tmp/mc ${INSECURE_ARG} ls "dest/${S3_BUCKET_URL}"
 
 rm -rf /datadir/*
 tmp=$(mktemp --directory /datadir/pxc_sst_XXXX)
-xbcloud get "s3://${S3_BUCKET_URL}.sst_info" --parallel=10 | xbstream -x -C $tmp --parallel=$(grep -c processor /proc/cpuinfo)
-xbcloud get "s3://${S3_BUCKET_URL}" --parallel=10 | xbstream -x -C $tmp --parallel=$(grep -c processor /proc/cpuinfo)
+xbcloud get "s3://${S3_BUCKET_URL}.sst_info" --parallel=10 ${INSECURE_ARG} | xbstream -x -C $tmp --parallel=$(grep -c processor /proc/cpuinfo)
+xbcloud get "s3://${S3_BUCKET_URL}" --parallel=10 ${INSECURE_ARG} | xbstream -x -C $tmp --parallel=$(grep -c processor /proc/cpuinfo)
 
 set +o xtrace
 transition_key=$(vault_get $tmp/sst_info)
