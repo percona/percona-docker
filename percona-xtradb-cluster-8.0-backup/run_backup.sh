@@ -9,6 +9,11 @@ LIB_PATH='/usr/lib/pxc'
 SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
 SST_INFO_NAME=sst_info
 
+INSECURE_ARG=""
+if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
+  INSECURE_ARG="--insecure"
+fi
+
 function check_ssl() {
     CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
     if [ -f /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt ]; then
@@ -101,7 +106,7 @@ is_object_exist() {
     local bucket="$1"
     local object="$2"
 
-    if [[ -n "$(mc -C /tmp/mc --json ls  "dest/$bucket/$object" | jq '.status')" ]]; then
+    if [[ -n "$(mc -C /tmp/mc ${INSECURE_ARG} --json ls  "dest/$bucket/$object" | jq '.status')" ]]; then
         return 1
     fi
 }
@@ -111,13 +116,13 @@ function backup_s3() {
 
     echo "Backup to s3://$S3_BUCKET/$S3_BUCKET_PATH started"
     { set +x; } 2>/dev/null
-    echo "+ mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
-    mc -C /tmp/mc config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
+    echo "+ mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY "
+    mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
     set -x
 
 
-    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
-    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
+    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 
     socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp &
     wait $!
@@ -131,20 +136,20 @@ function backup_s3() {
     vault_store /tmp/${SST_INFO_NAME}
 
     xbstream -C /tmp -c ${SST_INFO_NAME} \
-        | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
+        | xbcloud put ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
         | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
     if (( $SST_FAILED == 0 )); then
          FIRST_RECEIVED=0
          socat -u "$SOCAT_OPTS" stdio  \
-            | xbcloud put --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
+            | xbcloud put ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
             | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
          FIRST_RECEIVED=1
          echo "Backup finished"
     fi
 
-    mc -C /tmp/mc stat "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
-    md5_size=$(mc -C /tmp/mc stat --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
+    mc -C /tmp/mc stat ${INSECURE_ARG} "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
+    md5_size=$(mc -C /tmp/mc stat ${INSECURE_ARG} --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
     if [[ $md5_size =~ "Object does not exist" ]] || (($md5_size < 23000)); then
         echo empty backup
          exit 1
