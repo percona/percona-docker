@@ -2,13 +2,13 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-RUN microdnf -y update; \
+RUN set -ex; \
+    # shadow-utils are needed for user/group manipulation on UBI-based images
+    microdnf -y update; \
     microdnf -y install glibc-langpack-en \
         nss_wrapper \
         shadow-utils; \
-    microdnf clean all
-
-RUN set -ex; \
+    microdnf clean all; \
     groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -c "Default Application User" mysql
@@ -38,7 +38,7 @@ ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
-    microdnf install -y \
+    microdnf -y install \
         tzdata \
         jemalloc \
         which \
@@ -48,10 +48,10 @@ RUN set -ex; \
     #repoquery -a --location \
     #    selinux-policy \
     #        | xargs curl -Lf -o /tmp/selinux-policy.rpm; \
-    #rpm -iv /tmp/policycoreutils.rpm /tmp/selinux-policy.rpm --nodeps; \
-    #rm -rf /tmp/policycoreutils.rpm /tmp/selinux-policy.rpm; \
+    #rpm -iv /tmp/selinux-policy.rpm --nodeps; \
+    #rm -rf /tmp/selinux-policy.rpm; \
     \
-    microdnf install -y \
+    microdnf -y install \
         Percona-Server-server-57-${FULL_PERCONA_VERSION} \
         Percona-Server-devel-57-${FULL_PERCONA_VERSION} \
         Percona-Server-tokudb-57-${FULL_PERCONA_VERSION} \
