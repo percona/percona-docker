@@ -17,6 +17,10 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     yum install -y /tmp/percona-release.rpm; \
     \
+    curl -Lf -o /tmp/nss.rpm http://mirror.centos.org/centos/7/updates/x86_64/Packages/nss-3.67.0-4.el7_9.x86_64.rpm; \
+    rpmkeys --checksig /tmp/nss.rpm; \
+    yum install -y /tmp/nss.rpm; \
+    \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     \
