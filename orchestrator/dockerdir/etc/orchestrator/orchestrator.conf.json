@@ -43,7 +43,7 @@
   ],
   "RecoverNonWriteableMaster": true,
   "RecoveryIgnoreHostnameFilters": [],
-  "RecoveryPeriodBlockSeconds": 300,
+  "RecoveryPeriodBlockSeconds": 5,
   "RemoveTextFromHostnameDisplay": ":3306",
   "SQLite3DataFile": "/var/lib/orchestrator/orc.db",
   "UnseenInstanceForgetHours": 1,
