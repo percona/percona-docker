@@ -37,6 +37,7 @@ RUN set -ex; \
         openssl \
         procps-ng \
         vim-minimal \
+        bind-utils \
         policycoreutils; \
     \
     microdnf clean all; \
@@ -50,7 +51,7 @@ STOPSIGNAL SIGUSR1
 
 RUN set -ex; \
     mkdir -p /etc/orchestrator /var/lib/orchestrator ; \
-    chown -R 1001:1001 /etc/orchestrator /var/lib/orchestrator 
+    chown -R 1001:1001 /etc/orchestrator /var/lib/orchestrator
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-orchestrator/LICENSE /licenses/LICENSE.orchestrator
 
