@@ -28,7 +28,7 @@ RUN set -ex; \
     curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
     rpm -i /tmp/telnet.rpm; \
     rm -f /tmp/telnet.rpm; \
-    microdnf install -y \
+    dnf install -y \
         net-tools \
         gdb \
         nc \
@@ -38,7 +38,7 @@ RUN set -ex; \
         percona-server-mongodb-mongos-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-debugsource-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION}; \
-    microdnf clean all; \
+    dnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
 VOLUME ["/data/db"]
