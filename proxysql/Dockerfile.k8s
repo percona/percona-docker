@@ -24,7 +24,7 @@ All the while getting the unlimited freedom that comes with a GPL license."
 LABEL org.opencontainers.image.license="GPL+"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.25-15.1
+ENV PXC_VERSION 8.0.26-16.1
 ENV PROXYSQL_VERSION 2.3.2-1.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
