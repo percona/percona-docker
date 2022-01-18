@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi7/ubi-minimal AS ubi7
+FROM registry.access.redhat.com/ubi8/ubi-minimal AS ubi8
 
 LABEL name="Fluent Bit" \
       description="Fluent Bit docker image" \
@@ -17,6 +17,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && gpg --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
     && gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
     && rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona \
+    && microdnf install -y findutils \
     && curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
     && rpmkeys --checksig /tmp/percona-release.rpm \
     && rpm -i /tmp/percona-release.rpm \
@@ -25,24 +26,19 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && percona-release setup pdpxc-8.0.25
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.25-15.1.el7
+ENV PERCONA_VERSION 8.0.25-15.1.el8
 
+# fluentbit does not have el8 repo and the doc suggests installing el7 rpm
 RUN set -ex; \
-    microdnf install -y postgresql-libs shadow-utils yum-utils logrotate \
+    microdnf install -y postgresql-libs shadow-utils yum-utils logrotate make libpq compat-openssl10 \
     percona-xtradb-cluster-client-${PERCONA_VERSION} tar vim-minimal; \
     curl -Lf -o /tmp/procps-ng.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/procps-ng-3.3.15-6.el8.x86_64.rpm; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
-    repoquery -a --archlist=x86_64 --location \
-        systemd-libs \
-        | xargs curl -Lf -o /tmp/systemd-libs.rpm; \
-    repoquery -a --archlist=x86_64 --location \
-        elfutils-libs \
-            | xargs curl -Lf -o /tmp/elfutils-libs.rpm; \
-    curl -Lf https://packages.fluentbit.io/centos/7/x86_64/td-agent-bit-1.8.6-1.x86_64.rpm -o /tmp/td-agent-bit.rpm; \
-    rpmkeys --checksig /tmp/procps-ng.rpm /tmp/td-agent-bit.rpm /tmp/elfutils-libs.rpm /tmp/systemd-libs.rpm; \
-    rpm -i /tmp/td-agent-bit.rpm /tmp/systemd-libs.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm --nodeps; \
-    rm -f /tmp/td-agent-bit.rpm /tmp/systemd-libs.rpm /tmp/elfutils-libs.rpm /tmp/procps-ng.rpm; \
+    curl -Lf https://packages.fluentbit.io/centos/7/x86_64/td-agent-bit-1.8.11-1.x86_64.rpm -o /tmp/td-agent-bit.rpm; \
+    rpmkeys --checksig /tmp/procps-ng.rpm /tmp/td-agent-bit.rpm; \
+    rpm -i /tmp/td-agent-bit.rpm /tmp/procps-ng.rpm --nodeps; \
+    rm -f /tmp/td-agent-bit.rpm /tmp/procps-ng.rpm; \
     rm -rf /var/cache 
 
 
