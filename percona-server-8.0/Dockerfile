@@ -32,7 +32,7 @@ RUN set -ex; \
     percona-release disable all; \
     percona-release enable ps-80 release
 
-ENV PS_VERSION 8.0.26-16.1
+ENV PS_VERSION 8.0.26-17.2
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
