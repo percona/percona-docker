@@ -31,7 +31,7 @@ RUN set -ex; \
     percona-release enable tools testing
 
 RUN set -ex; \
-    curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/libev.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
     rpm -i /tmp/libev.rpm; \
     rm -rf /tmp/libev.rpm; \
     #dnf --setopt=install_weak_deps=False --best install -y \
