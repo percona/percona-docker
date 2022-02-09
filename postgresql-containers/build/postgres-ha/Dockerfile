@@ -1,3 +1,13 @@
+FROM golang:1.17 as yq_builder
+
+WORKDIR /go/src/mikefarah/yq
+
+RUN git clone -b 3.3.2 https://github.com/mikefarah/yq.git /go/src/mikefarah/yq
+
+RUN ./scripts/devtools.sh
+RUN sed -i -e 's^dev: test ^dev: ^' ./Makefile
+RUN CGO_ENABLED=0 GOARCH=amd64 GOOS=linux make local build
+
 FROM redhat/ubi8-minimal
 
 LABEL name="Percona PostgreSQL Distribution" \
@@ -50,16 +60,16 @@ RUN set -ex; \
 ENV PGROOT="/usr/pgsql-${PG_MAJOR}" PGVERSION="${PG_MAJOR}"
 
 RUN set -ex; \
-    curl -Lf -o /tmp/openssh.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-8.0p1-10.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/openssh-server.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-server-8.0p1-10.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/openssh-clients.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-clients-8.0p1-10.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/perl-libxml-perl.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-libxml-perl-0.08-33.el8.noarch.rpm; \
-    curl -Lf -o /tmp/perl-DBD-Pg.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBD-Pg-3.7.4-4.module_el8.3.0+426+0b4e9c0a.x86_64.rpm; \
-    curl -Lf -o /tmp/perl-XML-Parser.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-XML-Parser-2.44-11.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/perl-DBI.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBI-1.641-3.module_el8.3.0+413+9be2aeb5.x86_64.rpm; \
-    curl -Lf -o /tmp/python3-psutil.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-psutil-5.4.3-11.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/python3-prettytable.rpm  http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-prettytable-0.7.2-14.el8.noarch.rpm; \
-    curl -Lf -o /tmp/python3-click.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-click-6.7-8.el8.noarch.rpm; \
+    curl -Lf -o /tmp/openssh.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-8.0p1-10.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/openssh-server.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-server-8.0p1-10.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/openssh-clients.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/openssh-clients-8.0p1-10.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/perl-libxml-perl.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-libxml-perl-0.08-33.el8.noarch.rpm; \
+    curl -Lf -o /tmp/perl-DBD-Pg.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBD-Pg-3.7.4-4.module_el8.3.0+426+0b4e9c0a.x86_64.rpm; \
+    curl -Lf -o /tmp/perl-XML-Parser.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-XML-Parser-2.44-11.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/perl-DBI.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBI-1.641-3.module_el8.3.0+413+9be2aeb5.x86_64.rpm; \
+    curl -Lf -o /tmp/python3-psutil.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-psutil-5.4.3-11.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/python3-prettytable.rpm  http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-prettytable-0.7.2-14.el8.noarch.rpm; \
+    curl -Lf -o /tmp/python3-click.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-click-6.7-8.el8.noarch.rpm; \
     rpmkeys --checksig /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm /tmp/openssh-server.rpm \
                        /tmp/openssh.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm; \
     rpm -i /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
@@ -119,13 +129,8 @@ COPY licenses /licenses
 COPY bin/postgres-ha /opt/crunchy/bin/postgres-ha
 COPY conf/postgres-ha /opt/crunchy/conf/postgres-ha
 
-ENV YQ_SHA256SUM=0b0700cfee1d642a0a19f8f9261b2f0a11b7174ef8bcd39e9ed334d9519f0125
-RUN set -ex; \
-    curl -Lf -o /opt/crunchy/bin/yq  https://github.com/mikefarah/yq/releases/download/3.3.2/yq_linux_amd64; \
-    chmod +x /opt/crunchy/bin/yq; \
-    echo "${YQ_SHA256SUM} /opt/crunchy/bin/yq" | sha256sum -c -; \
-    curl -o /licenses/LICENSE.yq \
-        https://raw.githubusercontent.com/mikefarah/yq/master/LICENSE
+COPY --from=yq_builder /go/src/mikefarah/yq/yq /opt/crunchy/bin/yq
+COPY --from=yq_builder /go/src/mikefarah/yq/LICENSE /licenses/LICENSE.yq
 
 RUN set -ex; \
     mkdir /.ssh; \
