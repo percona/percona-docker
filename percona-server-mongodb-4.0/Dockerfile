@@ -1,11 +1,6 @@
-FROM centos:8
+FROM oraclelinux:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
-
-ENV PSMDB_VERSION 4.0.27-22
-ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
-ENV K8S_TOOLS_VERSION "0.5.0"
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -22,19 +17,18 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable psmdb-40 release
 
-RUN set -ex; \
-    curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
-    rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
-    \
-    rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
-    rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
+ENV PSMDB_VERSION 4.0.28-23
+ENV OS_VER el8
+ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
+ENV K8S_TOOLS_VERSION "0.5.0"
 
 RUN set -ex; \
     dnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
         procps-ng \
+        jq \
+        oniguruma \
         policycoreutils; \
         \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-40/yum/release/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
