@@ -3,7 +3,7 @@
 # https://github.com/docker-library/official-images:
 # No official images can be derived from, or depend on, non-official images
 # with the following notable exceptions...
-FROM centos:8
+FROM oraclelinux:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
@@ -32,7 +32,7 @@ RUN set -ex; \
     percona-release disable all; \
     percona-release enable ps-80 release
 
-ENV PS_VERSION 8.0.26-17.2
+ENV PS_VERSION 8.0.27-18.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
