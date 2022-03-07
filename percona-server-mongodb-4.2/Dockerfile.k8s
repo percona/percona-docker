@@ -42,8 +42,8 @@ RUN set -ex; \
     percona-release enable psmdb-42 release
 
 RUN set -ex; \
-    curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/jq.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/oniguruma.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
     \
     rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
@@ -55,6 +55,7 @@ RUN set -ex; \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
         shadow-utils \
         curl \
+        tar \
         procps-ng \
         policycoreutils; \
         \
@@ -104,7 +105,7 @@ ARG DEBUG
 RUN if [[ -n $DEBUG ]] ; then \
         set -ex; \
         sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh; \
-		curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
+		curl -Lf -o /tmp/telnet.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
 		rpm -i /tmp/telnet.rpm; \
 		rm -f /tmp/telnet.rpm; \
 

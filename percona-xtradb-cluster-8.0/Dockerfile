@@ -32,10 +32,10 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 RUN set -ex; \
-    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/jq.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/oniguruma.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/numactl-libs.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/libev.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/jq.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/oniguruma.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
     curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
     curl -Lf -o /tmp/socat.rpm https://vault.centos.org/8.4.2105/AppStream/x86_64/os/Packages/socat-1.7.3.3-2.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
@@ -69,7 +69,7 @@ RUN groupadd -g 1001 mysql; \
 # we need licenses from docs
 RUN set -ex; \
     # systemd is required for nss-pam-ldap
-    curl -Lf -o /tmp/nss-pam-ldapd.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/nss-pam-ldapd-0.9.9-3.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/nss-pam-ldapd.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/nss-pam-ldapd-0.9.9-3.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/nss-pam-ldapd.rpm; \
     rpm -iv /tmp/nss-pam-ldapd.rpm --nodeps; \
     rm -rf /tmp/nss-pam-ldapd.rpm; \
@@ -118,10 +118,10 @@ RUN if [[ -n $DEBUG ]] ; then \
         percona-toolkit \
         gdb; \
     percona-release disable pdpxc-8.0 release; \
-    curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/tcpdump.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/tcpdump-4.9.3-2.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/perf.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/perf-4.18.0-348.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/strace.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/strace-5.7-3.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/telnet.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/tcpdump.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/tcpdump-4.9.3-2.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/perf.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/perf-4.18.0-348.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/strace.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/strace-5.7-3.el8.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/telnet.rpm /tmp/tcpdump.rpm /tmp/perf.rpm /tmp/strace.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm; \
