@@ -1,4 +1,4 @@
-FROM centos:8
+FROM oraclelinux:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
@@ -35,6 +35,7 @@ RUN set -ex; \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
         procps-ng \
+        tar \
         policycoreutils; \
         \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-44/yum/release/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \

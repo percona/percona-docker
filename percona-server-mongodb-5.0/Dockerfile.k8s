@@ -55,6 +55,7 @@ RUN set -ex; \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
         shadow-utils \
         curl \
+        tar \
         procps-ng \
         policycoreutils; \
         \

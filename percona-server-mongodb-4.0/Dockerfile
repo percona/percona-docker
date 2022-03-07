@@ -28,6 +28,7 @@ RUN set -ex; \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
         procps-ng \
         jq \
+        tar \
         oniguruma \
         policycoreutils; \
         \
