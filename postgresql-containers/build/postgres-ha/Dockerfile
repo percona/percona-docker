@@ -1,3 +1,19 @@
+FROM golang:1.17 AS go_builder
+WORKDIR /go/src/github.com/mikefarah/yq
+
+ARG GOOS=linux
+ARG GOARCH=amd64
+ARG CGO_ENABLED=0
+
+ENV YQ_VERSION 3.3.0
+RUN git clone -b $YQ_VERSION https://github.com/mikefarah/yq.git .; \
+    mkdir -p build/_output/bin; \
+    CGO_ENABLED=$CGO_ENABLED GOOS=$GOOS GOARCH=$GOARCH \
+    go build \
+        -o build/_output/bin/yq ./cmd/; \
+    cp -r build/_output/bin/yq /usr/local/bin/yq; \
+    chmod +x /usr/local/bin/yq
+
 FROM redhat/ubi8-minimal
 
 LABEL name="Percona PostgreSQL Distribution" \
@@ -10,7 +26,7 @@ LABEL name="Percona PostgreSQL Distribution" \
 # python3-pip-wheel is required by platform-python
 RUN set -ex; \
     microdnf -y update; \
-    microdnf -y install glibc-langpack-en; \
+    microdnf -y install glibc-langpack-en platform-python; \
     /usr/libexec/platform-python -m pip install pip --upgrade; \
     microdnf -y remove platform-python-pip; \
     microdnf clean all; \
@@ -159,13 +175,11 @@ COPY licenses /licenses
 COPY bin/postgres-ha /opt/crunchy/bin/postgres-ha
 COPY conf/postgres-ha /opt/crunchy/conf/postgres-ha
 
-ENV YQ_SHA256SUM=0b0700cfee1d642a0a19f8f9261b2f0a11b7174ef8bcd39e9ed334d9519f0125
 RUN set -ex; \
-    curl -Lf -o /opt/crunchy/bin/yq  https://github.com/mikefarah/yq/releases/download/3.3.2/yq_linux_amd64; \
-    chmod +x /opt/crunchy/bin/yq; \
-    echo "${YQ_SHA256SUM} /opt/crunchy/bin/yq" | sha256sum -c -; \
     curl -o /licenses/LICENSE.yq \
         https://raw.githubusercontent.com/mikefarah/yq/master/LICENSE
+
+COPY --from=go_builder /usr/local/bin/yq /opt/crunchy/bin/
 
 RUN set -ex; \
     mkdir /.ssh; \
