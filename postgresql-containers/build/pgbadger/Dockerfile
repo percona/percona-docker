@@ -27,7 +27,8 @@ LABEL name="Percona PostgreSQL Distribution" \
 # python3-pip-wheel is required by platform-python
 RUN set -ex; \
     microdnf -y update; \
-    microdnf -y install glibc-langpack-en; \
+    microdnf -y install glibc-langpack-en platform-python; \
+    /usr/libexec/platform-python -m pip install pip --upgrade; \
     microdnf -y remove platform-python-pip; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
