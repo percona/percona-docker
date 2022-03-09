@@ -32,7 +32,7 @@ ENV PERCONA_VERSION 8.0.26-16.1.el8
 RUN set -ex; \
     microdnf install -y postgresql-libs shadow-utils yum-utils logrotate make libpq compat-openssl10 \
     percona-xtradb-cluster-client-${PERCONA_VERSION} tar vim-minimal; \
-    curl -Lf -o /tmp/procps-ng.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/procps-ng-3.3.15-6.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/procps-ng.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/procps-ng-3.3.15-6.el8.x86_64.rpm; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
     curl -Lf https://packages.fluentbit.io/centos/7/x86_64/td-agent-bit-1.8.11-1.x86_64.rpm -o /tmp/td-agent-bit.rpm; \
