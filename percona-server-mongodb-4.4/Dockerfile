@@ -2,7 +2,7 @@ FROM oraclelinux:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 4.4.10-11
+ENV PSMDB_VERSION 4.4.12-12
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
@@ -29,6 +29,10 @@ RUN set -ex; \
     \
     rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
     rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
+
+RUN set -ex; \
+    sed -i 's|mirrorlist|#mirrorlist|g' /etc/yum.repos.d/CentOS-Linux-*; \
+    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Linux-*
 
 RUN set -ex; \
     dnf -y install \
