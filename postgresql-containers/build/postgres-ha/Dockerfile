@@ -5,14 +5,13 @@ ARG GOOS=linux
 ARG GOARCH=amd64
 ARG CGO_ENABLED=0
 
-ENV YQ_VERSION 3.3.0
+ENV YQ_VERSION 3.4.1
 RUN git clone -b $YQ_VERSION https://github.com/mikefarah/yq.git .; \
     mkdir -p build/_output/bin; \
+    ./scripts/devtools.sh; \
+    sed -i -e 's^dev: test ^dev: ^' ./Makefile; \
     CGO_ENABLED=$CGO_ENABLED GOOS=$GOOS GOARCH=$GOARCH \
-    go build \
-        -o build/_output/bin/yq ./cmd/; \
-    cp -r build/_output/bin/yq /usr/local/bin/yq; \
-    chmod +x /usr/local/bin/yq
+    make local build
 
 FROM redhat/ubi8-minimal
 
@@ -175,11 +174,8 @@ COPY licenses /licenses
 COPY bin/postgres-ha /opt/crunchy/bin/postgres-ha
 COPY conf/postgres-ha /opt/crunchy/conf/postgres-ha
 
-RUN set -ex; \
-    curl -o /licenses/LICENSE.yq \
-        https://raw.githubusercontent.com/mikefarah/yq/master/LICENSE
-
-COPY --from=go_builder /usr/local/bin/yq /opt/crunchy/bin/
+COPY --from=go_builder /go/src/github.com/mikefarah/yq/LICENSE /licenses/LICENSE.yq
+COPY --from=go_builder /go/src/github.com/mikefarah/yq/yq /opt/crunchy/bin/
 
 RUN set -ex; \
     mkdir /.ssh; \
