@@ -5,7 +5,7 @@ ARG GOOS=linux
 ARG GOARCH=amd64
 ARG CGO_ENABLED=0
 
-ENV YQ_VERSION 3.4.1
+ENV YQ_VERSION 3.3.4
 RUN git clone -b $YQ_VERSION https://github.com/mikefarah/yq.git .; \
     mkdir -p build/_output/bin; \
     ./scripts/devtools.sh; \
