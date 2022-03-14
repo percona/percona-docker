@@ -49,7 +49,7 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
-    curl -Lf -o /tmp/perl-JSON.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-JSON-2.97.001-2.el8.noarch.rpm; \
+    curl -Lf -o /tmp/perl-JSON.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-JSON-2.97.001-2.el8.noarch.rpm; \
     rpmkeys --checksig /tmp/perl-JSON.rpm; \
     rpm -i /tmp/perl-JSON.rpm
 
