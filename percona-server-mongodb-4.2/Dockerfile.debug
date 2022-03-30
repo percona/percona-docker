@@ -25,13 +25,11 @@ USER 0
 
 RUN set -ex; \
     sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh; \
-    curl -Lf -o /tmp/telnet.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
-    rpm -i /tmp/telnet.rpm; \
-    rm -f /tmp/telnet.rpm; \
     dnf install -y \
         net-tools \
         gdb \
         nc \
+        telnet \
         percona-server-mongodb-server-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION} \
