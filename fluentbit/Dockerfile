@@ -7,8 +7,8 @@ LABEL name="Fluent Bit" \
       org.opencontainers.image.authors="info@percona.com"
 
 RUN export GNUPGHOME="$(mktemp -d)" \
-    && gpg --keyserver https://packages.fluentbit.io/fluentbit.key --recv-keys F209D8762A60CD49E680633B4FF8368B6EA0722A \
-    && gpg --export --armor F209D8762A60CD49E680633B4FF8368B6EA0722A > ${GNUPGHOME}/RPM-GPG-KEY-Fluent \
+    && gpg --keyserver https://packages.fluentbit.io/fluentbit.key --recv-keys C3C0A28534B9293EAF51FABD9F9DDC083888C1CD \
+    && gpg --export --armor C3C0A28534B9293EAF51FABD9F9DDC083888C1CD > ${GNUPGHOME}/RPM-GPG-KEY-Fluent \
     && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 567E347AD0044ADE55BA8A5F199E2F91FD431D51 \
     && gpg --batch --export --armor 567E347AD0044ADE55BA8A5F199E2F91FD431D51 > ${GNUPGHOME}/RPM-GPG-KEY-redhat-release \
     && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 99DB70FAE1D7CE227FB6488205B555B38483C65D \
@@ -35,7 +35,7 @@ RUN set -ex; \
     curl -Lf -o /tmp/procps-ng.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/procps-ng-3.3.15-6.el8.x86_64.rpm; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
-    curl -Lf https://packages.fluentbit.io/centos/7/x86_64/td-agent-bit-1.8.11-1.x86_64.rpm -o /tmp/td-agent-bit.rpm; \
+    curl -Lf https://packages.fluentbit.io/centos/8/x86_64/td-agent-bit-1.9.1-1.x86_64.rpm -o /tmp/td-agent-bit.rpm; \
     rpmkeys --checksig /tmp/procps-ng.rpm /tmp/td-agent-bit.rpm; \
     rpm -i /tmp/td-agent-bit.rpm /tmp/procps-ng.rpm --nodeps; \
     rm -f /tmp/td-agent-bit.rpm /tmp/procps-ng.rpm; \
