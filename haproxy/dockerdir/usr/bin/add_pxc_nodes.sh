@@ -20,9 +20,6 @@ function main() {
     path_to_haproxy_cfg='/etc/haproxy/pxc'
     if [[ "${IS_PROXY_PROTOCOL}" = "yes" ]]; then
         send_proxy='send-proxy-v2'
-        touch $path_to_haproxy_cfg/PROXY_PROTOCOL_ENABLED
-    else
-        rm -f $path_to_haproxy_cfg/PROXY_PROTOCOL_ENABLED
     fi
 
     while read pxc_host; do

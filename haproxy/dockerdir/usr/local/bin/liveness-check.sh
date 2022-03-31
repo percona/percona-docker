@@ -1,9 +1,6 @@
 #!/bin/bash
 
-PXC_SERVER_PORT='3306'
-if [[ "${IS_PROXY_PROTOCOL}" = "yes" ]]; then
-    PXC_SERVER_PORT='33062'
-fi
+PXC_SERVER_PORT='33062'
 
 MONITOR_USER='monitor'
 TIMEOUT=${LIVENESS_CHECK_TIMEOUT:-10}

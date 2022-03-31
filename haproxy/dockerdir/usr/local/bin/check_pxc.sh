@@ -2,11 +2,8 @@
 
 PXC_SERVER_IP=$3
 
-PXC_SERVER_PORT='3306'
+PXC_SERVER_PORT='33062'
 path_to_haproxy_cfg='/etc/haproxy/pxc'
-if [ -f "$path_to_haproxy_cfg/PROXY_PROTOCOL_ENABLED" ]; then
-    PXC_SERVER_PORT='33062'
-fi
 
 MONITOR_USER='monitor'
 MONITOR_PASSWORD=$(/bin/cat /etc/mysql/mysql-users-secret/monitor)
