@@ -33,9 +33,9 @@ helps enterprises avoid downtime and outages and meet expected customer experien
 LABEL org.opencontainers.image.license="GPL"
 
 # do not use PXB 8.0.14-1 (PXB-2279)
-ENV PXB_VERSION 8.0.26-18.1
-ENV PS_VERSION 8.0.26-16.1
-ENV PXC_VERSION 8.0.26-16.1
+ENV PXB_VERSION 8.0.27-19.1
+ENV PS_VERSION 8.0.27-18.1
+ENV PXC_VERSION 8.0.27-18.1
 ENV PXC_REPO release
 ENV KUBECTL_VERSION=v1.19.12
 ENV KUBECTL_SHA256SUM=9a9123b58e3287fdca20db45ab003426d30e7a77ec57605fa25947bc68f6cabf
@@ -100,7 +100,7 @@ RUN set -ex; \
 	rpmkeys --checksig /tmp/procps-ng.rpm /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm; \
 	rpm -iv /tmp/procps-ng.rpm /tmp/iputils.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm --nodeps; \
 	rm -rf /tmp/procps-ng.rpm /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm; \
-	rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqlbinlog$|mysqlbinlog$" | xargs rm -rf; \
+	rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqlbinlog$" | xargs rm -rf; \
 	microdnf clean all; \
 	rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
