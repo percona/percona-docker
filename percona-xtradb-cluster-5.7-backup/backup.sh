@@ -100,6 +100,9 @@ function request_streaming() {
     if grep 'INFO: Shifting CLOSED -> DESTROYED (TO: -1)' /tmp/garbd.log; then
         exit 1
     fi
+    if grep 'INFO: Received NON-PRIMARY' /tmp/garbd.log; then
+        exit 1
+    fi
     if ! grep 'INFO: Sending state transfer request' /tmp/garbd.log; then
         exit 1
     fi
