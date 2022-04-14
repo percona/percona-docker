@@ -62,6 +62,7 @@ function main() {
         --cluster-hostname="$first_host" \
         --enable \
         --update-cluster \
+        --force \
         --remove-all-servers \
         --disable-updates \
         --force \
