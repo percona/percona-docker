@@ -70,4 +70,6 @@ if [ -f "${SSL_DIR}/ca.crt" ]; then
     cp "${SSL_DIR}/ca.crt" /var/lib/proxysql/proxysql-ca.pem
 fi
 
+test -e /opt/hookscript/hook.sh && source /opt/hookscript/hook.sh
+
 exec "$@"
