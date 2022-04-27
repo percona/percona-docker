@@ -39,6 +39,8 @@ RUN set -ex; \
         percona-xtrabackup-80-${FULL_PERCONA_XTRABACKUP_VERSION} \
         percona-server-shared-${FULL_PERCONA_VERSION} \
         percona-server-client-${FULL_PERCONA_VERSION} \
+        socat \
+        procps \
         qpress; \
     \
     microdnf clean all; \
