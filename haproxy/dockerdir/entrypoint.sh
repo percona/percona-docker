@@ -23,4 +23,7 @@ if [ "$1" = 'haproxy' ]; then
     fi
     haproxy_opt+='-f /etc/haproxy/pxc/haproxy.cfg -p /etc/haproxy/pxc/haproxy.pid -S /etc/haproxy/pxc/haproxy-main.sock '
 fi
+
+test -e /opt/percona/hookscript/hook.sh && source /opt/percona/hookscript/hook.sh
+
 exec "$@" $haproxy_opt
