@@ -5,8 +5,8 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV XTRABACKUP_VERSION 8.0.26-18.1
-ENV PS_VERSION 8.0.26-16.1
+ENV XTRABACKUP_VERSION 8.0.28-20.1
+ENV PS_VERSION 8.0.27-18.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
@@ -39,6 +39,8 @@ RUN set -ex; \
         percona-xtrabackup-80-${FULL_PERCONA_XTRABACKUP_VERSION} \
         percona-server-shared-${FULL_PERCONA_VERSION} \
         percona-server-client-${FULL_PERCONA_VERSION} \
+        socat \
+        procps \
         qpress; \
     \
     microdnf clean all; \

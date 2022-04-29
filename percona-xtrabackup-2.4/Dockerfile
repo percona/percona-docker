@@ -5,8 +5,8 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV XTRABACKUP_VERSION 2.4.24-1
-ENV PS_VERSION 5.7.35-38.1
+ENV XTRABACKUP_VERSION 2.4.25-1
+ENV PS_VERSION 5.7.37-40.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
@@ -28,7 +28,7 @@ RUN set -ex; \
     percona-release enable tools testing
 
 RUN set -ex; \
-    curl -Lf -o /tmp/libev.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/libev.rpm https://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
     rpm -i /tmp/libev.rpm; \
     rm -rf /tmp/libev.rpm; \
     #dnf --setopt=install_weak_deps=False install -y \

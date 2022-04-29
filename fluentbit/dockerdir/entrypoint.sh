@@ -17,6 +17,7 @@ else
         fluentbit_opt+='-c /etc/fluentbit/fluentbit.conf'
     fi
 
+    test -e /opt/percona/hookscript/hook.sh && source /opt/percona/hookscript/hook.sh
     exec "$@" $fluentbit_opt
 fi
 
