@@ -4,13 +4,22 @@ set -e
 
 ORC_HOST=127.0.0.1:3000
 
+log() {
+	local level=$1
+	local message=$2
+	local now=$(date +%Y-%m-%dT%H:%M:%S%z)
+
+	echo "${now} [${level}] ${message}"
+}
+
 wait_for_leader() {
 	local retry=0
 	local leader=""
 
+	log WARNING "Waiting for leader. Will fail after 60 attempts"
+
 	until [[ ${leader} != "" ]]; do
 		if [ ${retry} -gt 60 ]; then
-			echo '[WARNING] Waiting for leader. Will fail after 60 attempts'
 			exit 1
 		fi
 
@@ -28,7 +37,7 @@ am_i_leader() {
 		return 1
 	fi
 
-	echo '[INFO] I am the leader'
+	log INFO "I am the leader"
 	return 0
 }
 
@@ -38,38 +47,47 @@ discover() {
 
 	HOSTNAME=$(curl -s "${ORC_HOST}/api/instance/${host}/${port}" | jq '.InstanceAlias' | tr -d 'null')
 	if [ -n "$HOSTNAME" ]; then
-		echo "[INFO] The Mysql node ${host} is already present in orchestrator. Skipping ..."
+		log INFO "The MySQL node ${host} is already discovered by orchestrator. Skipping..."
 		return 0
 	fi
 
 	for i in {1..5}; do
 		R_CODE=$(curl -s "${ORC_HOST}/api/discover/${host}/${port}" | jq '.Code' | tr -d '"')
 		if [ "$R_CODE" == 'ERROR' ]; then
-			echo "[ERROR] Mysql node ${host} can't be discovered"
+			log ERROR "MySQL node ${host} can't be discovered"
 			sleep 1
 			continue
 		else
-			echo "[INFO] Mysql node ${host} was discovered"
+			log INFO "MySQL node ${host} is discovered"
 			break
 		fi
 	done
 }
 
 main() {
+	log INFO "Starting to discover MySQL nodes."
+
 	# Wait for the leader election
 	wait_for_leader
 
-	# Exit if not master
-	while ! am_i_leader; do
-		echo '[INFO] I am not the leader. Sleeping ...'
+	log INFO "Orchestrator cluster selected a leader."
 
+	local retry=0
+	# Exit if not leader
+	while ! am_i_leader; do
+		if [ ${retry} -gt 30 ]; then
+			log INFO "I am not the leader. Exiting..."
+			exit 0
+		fi
+
+		retry=$((retry + 1))
 		sleep 1
 	done
 
 	# Discover
 	while read mysql_host; do
 		if [ -z "$mysql_host" ]; then
-			echo '[INFO] Could not find PEERS ...'
+			log INFO "Could not find PEERS..."
 			exit 0
 		fi
 
