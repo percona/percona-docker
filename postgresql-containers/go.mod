@@ -1,6 +1,6 @@
 module github.com/percona/percona-docker
 
-go 1.17
+go 1.18
 
 require (
 	github.com/sirupsen/logrus v1.7.0
