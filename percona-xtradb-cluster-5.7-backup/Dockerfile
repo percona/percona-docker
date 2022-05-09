@@ -8,8 +8,8 @@ RUN go build
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
 RUN go build
 
-ENV MC_VERSION=RELEASE.2021-01-05T05-03-58Z
-ENV MC_SHA256SUM=cd63e436e45feff6e2fa035e4ade9a87d94bd0d1cc9b8616ec0c04d647c3cdb3
+ENV MC_VERSION=RELEASE.2022-05-04T06-07-55Z
+ENV MC_SHA256SUM=f207b7fdf8ff126caf4c26603de752c918e3b8441040830dd62d749b22895d2d
 RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
     && chmod +x /go/bin/mc \
     && echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
