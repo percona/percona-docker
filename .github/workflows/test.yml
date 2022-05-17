@@ -1,0 +1,35 @@
+name: GitHub CI
+
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  pull_request:
+    branches: [ main ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: PR test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: percona/percona-docker repo checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install docker-ce docker-ce-cli containerd.io
+
+      - name: Disable Transparent Huge Pages (THP)
+        run: |
+          echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled >/dev/null
+          echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag >/dev/null
+
+      - name: Run tests
+        run: ./test/detect-images.sh origin/${{ github.base_ref }} ${{ github.event.pull_request.head.sha }}
+
