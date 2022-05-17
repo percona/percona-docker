@@ -113,6 +113,7 @@ is_object_exist() {
 
 function backup_s3() {
     S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
+    CURL_RET_ERRORS_ARG='--curl-retriable-errors=7'
 
     echo "Backup to s3://$S3_BUCKET/$S3_BUCKET_PATH started"
     { set +x; } 2>/dev/null
@@ -121,8 +122,8 @@ function backup_s3() {
     set -x
 
 
-    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
-    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
+    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 
     socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp &
     wait $!
@@ -136,13 +137,13 @@ function backup_s3() {
     vault_store /tmp/${SST_INFO_NAME}
 
     xbstream -C /tmp -c ${SST_INFO_NAME} \
-        | xbcloud put ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
+        | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
         | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
     if (( $SST_FAILED == 0 )); then
          FIRST_RECEIVED=0
          socat -u "$SOCAT_OPTS" stdio  \
-            | xbcloud put ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
+            | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
             | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
          FIRST_RECEIVED=1
          echo "Backup finished"
