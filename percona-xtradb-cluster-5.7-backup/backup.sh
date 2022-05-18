@@ -113,34 +113,35 @@ function backup_volume() {
     mkdir -p "$BACKUP_DIR"
     cd "$BACKUP_DIR" || exit
 
-    echo "Backup to $BACKUP_DIR started"
+    echo "[INFO] Backup to $BACKUP_DIR was started"
     request_streaming
 
-    echo "Socat to started"
+    echo '[INFO] Socat was started'
 
     socat -u "$SOCAT_OPTS" stdio | xbstream -x
     if [[ $? -ne 0 ]]; then
-        echo "socat(1) failed"
+        echo '[ERROR] Socat(1) failed'
         exit 1
     fi
-    echo "socat(1) returned $?"
+    echo "[INFO] Socat(1) returned $?"
     vault_store $BACKUP_DIR/${SST_INFO_NAME}
 
     socat -u "$SOCAT_OPTS" stdio >xtrabackup.stream
     if [[ $? -ne 0 ]]; then
-        echo "socat(2) failed"
+        echo '[ERROR] Socat(2) failed'
         exit 1
     fi
-    echo "socat(2) returned $?"
-
-    echo "Backup finished"
+    echo "[INFO] Socat(2) returned $?"
 
     stat xtrabackup.stream
     if (( $(stat -c%s xtrabackup.stream) < 5000000 )); then
-        echo empty backup
+        echo '[ERROR] Backup was finished unsuccessfully'
+        echo '[ERROR] Backup is empty'
         exit 1
     fi
     md5sum xtrabackup.stream | tee md5sum.txt
+
+    echo '[INFO] Backup was finished successfully'
 }
 
 is_object_exist() {
@@ -155,7 +156,7 @@ is_object_exist() {
 function backup_s3() {
     S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
 
-    echo "Backup to s3://$S3_BUCKET/$S3_BUCKET_PATH started"
+    echo "[INFO] Backup to s3://$S3_BUCKET/$S3_BUCKET_PATH started"
     { set +x; } 2> /dev/null
     echo "+ mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
     mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
@@ -166,26 +167,27 @@ function backup_s3() {
 
     socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp
     if [[ $? -ne 0 ]]; then
-        echo "socat(1) failed"
+        echo '[ERROR] Socat(1) failed'
         exit 1
     fi
     vault_store /tmp/${SST_INFO_NAME}
     xbstream -C /tmp -c ${SST_INFO_NAME} \
         | xbcloud put ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 |
         (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
-        
+
     socat -u "$SOCAT_OPTS" stdio |
         xbcloud put ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 |
         (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
-    echo "Backup finished"
 
     mc -C /tmp/mc ${INSECURE_ARG} stat "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
     md5_size=$(mc -C /tmp/mc ${INSECURE_ARG} stat --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
     if [[ $md5_size =~ "Object does not exist" ]] || (( $md5_size < 23000 )); then
-        echo empty backup
+        echo '[ERROR] Backup is empty'
+        echo '[ERROR] Backup was finished unsuccessfully'
         exit 1
     fi
+    echo '[INFO] Backup was finished successfully'
 }
 
 check_ssl
