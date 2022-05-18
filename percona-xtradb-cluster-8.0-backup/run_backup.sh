@@ -46,12 +46,12 @@ function handle_sigint() {
     if (( $FIRST_RECEIVED == 0 )); then
         pid_s=$(ps -C socat -o pid= || true)
         if [ -n "${pid_s}" ]; then
-            echo "SST request failed"
+            echo '[ERROR] SST request failed'
             SST_FAILED=1
             kill $pid_s
             exit 1
         else
-            echo "SST request was finished"
+            echo '[INFO] SST request was finished'
         fi
     fi
 }
@@ -66,19 +66,20 @@ function backup_volume() {
     mkdir -p "$BACKUP_DIR"
     cd "$BACKUP_DIR" || exit
 
-    echo "Backup to $BACKUP_DIR was started"
+    echo "[INFO] Backup to $BACKUP_DIR was started"
 
     socat -u "$SOCAT_OPTS" stdio | xbstream -x &
     wait $!
 
-    echo "Socat was started"
+    echo "[INFO] Socat was started"
 
     FIRST_RECEIVED=1
     if [[ $? -ne 0 ]]; then
-        echo "socat(1) failed"
+        echo '[ERROR] Socat(1) failed'
+        echo '[ERROR] Backup was finished unsuccessfully'
         exit 1
     fi
-    echo "socat(1) returned $?"
+    echo "[IINFO] Socat(1) returned $?"
     vault_store $BACKUP_DIR/${SST_INFO_NAME}
 
     if (( $SST_FAILED == 0 )); then
@@ -86,17 +87,17 @@ function backup_volume() {
         socat -u "$SOCAT_OPTS" stdio >xtrabackup.stream
         FIRST_RECEIVED=1
         if [[ $? -ne 0 ]]; then
-            echo "socat(2) failed"
+            echo '[ERROR] Socat(2) failed'
+            echo '[ERROR] Backup was finished unsuccessfully'
             exit 1
         fi
-        echo "socat(2) returned $?"
+        echo "[INFO] Socat(2) returned $?"
     fi
-
-    echo "Backup finished"
 
     stat xtrabackup.stream
     if (($(stat -c%s xtrabackup.stream) < 5000000)); then
-        echo empty backup
+        echo '[ERROR] Backup is empty'
+        echo '[ERROR] Backup was finished unsuccessfully'
         exit 1
     fi
     md5sum xtrabackup.stream | tee md5sum.txt
@@ -115,7 +116,7 @@ function backup_s3() {
     S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
     CURL_RET_ERRORS_ARG='--curl-retriable-errors=7'
 
-    echo "Backup to s3://$S3_BUCKET/$S3_BUCKET_PATH started"
+    echo "[INFO] Backup to s3://$S3_BUCKET/$S3_BUCKET_PATH started"
     { set +x; } 2>/dev/null
     echo "+ mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY "
     mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
@@ -127,11 +128,12 @@ function backup_s3() {
 
     socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp &
     wait $!
-    echo "Socat was started"
+    echo '[INFO] Socat was started'
 
     FIRST_RECEIVED=1
     if [[ $? -ne 0 ]]; then
-        echo "socat(1) failed"
+        echo '[ERROR] Socat(1) failed'
+        echo '[ERROR] Backup was finished unsuccessfully'
         exit 1
     fi
     vault_store /tmp/${SST_INFO_NAME}
@@ -146,13 +148,13 @@ function backup_s3() {
             | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
             | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
          FIRST_RECEIVED=1
-         echo "Backup finished"
     fi
 
     mc -C /tmp/mc stat ${INSECURE_ARG} "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
     md5_size=$(mc -C /tmp/mc stat ${INSECURE_ARG} --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
     if [[ $md5_size =~ "Object does not exist" ]] || (($md5_size < 23000)); then
-        echo empty backup
+         echo '[ERROR] Backup is empty'
+         echo '[ERROR] Backup was finished unsuccessfully'
          exit 1
     fi
 }

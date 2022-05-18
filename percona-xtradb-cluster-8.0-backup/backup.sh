@@ -64,12 +64,13 @@ function request_streaming() {
 
     if [ -z "$NODE_NAME" ]; then
         peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE
-        echo "[ERROR] Cannot find node for backup"
+        echo '[ERROR] Cannot find node for backup'
+        echo '[ERROR] Backup was finished unsuccessfull'
         exit 1
     fi
 
     set +o errexit
-    echo '[INFO] garbd was started'
+    echo '[INFO] Garbd was started'
         garbd \
             --address "gcomm://$NODE_NAME.$PXC_SERVICE?gmcast.listen_addr=tcp://0.0.0.0:4567" \
             --donor "$NODE_NAME" \
@@ -79,11 +80,13 @@ function request_streaming() {
             --recv-script="/usr/bin/run_backup.sh"
         EXID_CODE=$?
 
-    echo '[INFO] garbd was finished'
-
     if [ -f '/tmp/backup-is-completed' ]; then
+        echo '[INFO] Backup was finished successfully'
         exit 0
     fi
+
+    echo '[ERROR] Backup was finished unsuccessfull'
+
     exit $EXID_CODE
 }
 
