@@ -1,6 +1,6 @@
 FROM golang:1.18 AS go_builder
 
-RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
+RUN git clone --branch=v1.10.0 https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
 
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
 RUN go build
