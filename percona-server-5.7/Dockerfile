@@ -27,12 +27,12 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #microdnf -y module disable mysql; \
-    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/numactl-libs.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/numactl-libs.rpm; \
     rpm -i /tmp/numactl-libs.rpm; \
     rm -rf /tmp/numactl-libs.rpm
 
-ENV PS_VERSION 5.7.36-39.1
+ENV PS_VERSION 5.7.38-41.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
