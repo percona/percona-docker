@@ -39,6 +39,7 @@ ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
     dnf -y install \
+        hostname \
         tzdata \
         jemalloc \
         which \
