@@ -6,8 +6,10 @@ set -o xtrace
 function proxysql_admin_exec() {
   local server="$1"
   local query="$2"
+  set +o xtrace
   MYSQL_PWD="${PROXY_ADMIN_PASSWORD:-admin}" timeout 600 \
       mysql -h "${server}" -P "${PROXY_ADMIN_PORT:-6032}" -u "${PROXY_ADMIN_USER:-admin}" -s -NB -e "${query}"
+  set -o xtrace
 }
 
 function wait_for_proxysql() {
