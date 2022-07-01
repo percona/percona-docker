@@ -183,13 +183,13 @@ function backup_azure() {
     vault_store /tmp/${SST_INFO_NAME}
 
     xbstream -C /tmp -c ${SST_INFO_NAME} \
-        | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure --parallel=10 --md5 "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
+        | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure --parallel=10 "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
         | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
     if (( $SST_FAILED == 0 )); then
          FIRST_RECEIVED=0
          socat -u "$SOCAT_OPTS" stdio  \
-            | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure --parallel=10 --md5 "$BACKUP_PATH" 2>&1 \
+            | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure --parallel=10 "$BACKUP_PATH" 2>&1 \
             | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
          FIRST_RECEIVED=1
     fi
