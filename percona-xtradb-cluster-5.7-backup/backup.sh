@@ -30,7 +30,7 @@ function get_backup_source() {
         | cut -d . -f 1)
 
     SKIP_FIRST_POD='|'
-    if (( $CLUSTER_SIZE > 1 )); then
+    if (( ${CLUSTER_SIZE:-0} > 1 )); then
         SKIP_FIRST_POD="$FIRST_NODE"
     fi
     peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 \
