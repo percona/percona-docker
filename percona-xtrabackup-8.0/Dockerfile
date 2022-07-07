@@ -31,6 +31,15 @@ RUN set -ex; \
     percona-release enable tools testing
 
 RUN set -ex; \
+    microdnf -y install \
+        shadow-utils
+
+# create mysql user/group before mysql installation
+RUN groupadd -g 1001 mysql; \
+    useradd -u 1001 -r -g 1001 -s /sbin/nologin \
+        -c "Default Application User" mysql
+
+RUN set -ex; \
     curl -Lf -o /tmp/libev.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
     rpm -i /tmp/libev.rpm; \
     rm -rf /tmp/libev.rpm; \
@@ -46,6 +55,9 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
+RUN install -d -o 1001 -g 0 -m 0775 /backup
+
 VOLUME [ "/backup" ]
+USER 1001
 
 CMD ["/usr/bin/xtrabackup"]
