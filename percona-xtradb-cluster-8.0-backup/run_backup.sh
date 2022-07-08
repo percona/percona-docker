@@ -42,7 +42,7 @@ function check_ssl() {
 
 FIRST_RECEIVED=0
 SST_FAILED=0
-function handle_sigint() {
+function handle_sigterm() {
     if (( $FIRST_RECEIVED == 0 )); then
         pid_s=$(ps -C socat -o pid= || true)
         if [ -n "${pid_s}" ]; then
@@ -161,7 +161,7 @@ function backup_s3() {
 
 check_ssl
 
-trap 'handle_sigint' 2
+trap 'handle_sigterm' 15
 
 if [ -n "$S3_BUCKET" ]; then
     backup_s3
