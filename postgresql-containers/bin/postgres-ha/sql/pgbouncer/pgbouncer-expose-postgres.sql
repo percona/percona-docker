@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 - 2021 Crunchy Data Solutions, Inc.
+ * Copyright 2016 - 2021 Percona, LLC
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,12 +32,16 @@ $$
   SELECT rolname::TEXT, rolpassword::TEXT
   FROM pg_authid
   WHERE
-    NOT pg_authid.rolreplication AND
-    pg_authid.rolcanlogin AND
-    pg_authid.rolname <> 'pgbouncer' AND (
-      pg_authid.rolvaliduntil IS NULL OR
-      pg_authid.rolvaliduntil >= CURRENT_TIMESTAMP
-    ) AND
-    pg_authid.rolname = $1;
+    (pg_authid.rolname = $1 AND pg_authid.rolname = 'postgres') OR
+    (
+        NOT pg_authid.rolsuper AND
+        NOT pg_authid.rolreplication AND
+        pg_authid.rolcanlogin AND
+        pg_authid.rolname <> 'pgbouncer' AND (
+            pg_authid.rolvaliduntil IS NULL OR
+            pg_authid.rolvaliduntil >= CURRENT_TIMESTAMP
+        ) AND
+        pg_authid.rolname = $1
+    );
 $$
 LANGUAGE SQL STABLE SECURITY DEFINER;
