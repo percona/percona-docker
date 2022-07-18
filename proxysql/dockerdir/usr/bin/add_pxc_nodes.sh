@@ -6,7 +6,9 @@ set -o xtrace
 function mysql_root_exec() {
   local server="$1"
   local query="$2"
+  set +o xtrace
   MYSQL_PWD="${OPERATOR_PASSWORD:-operator}" timeout 600 mysql -h "${server}" -uoperator -s -NB -e "${query}"
+  set -o xtrace
 }
 
 function wait_for_mysql() {
@@ -22,7 +24,9 @@ function wait_for_mysql() {
 function proxysql_admin_exec() {
   local server="$1"
   local query="$2"
+  set +o xtrace
   MYSQL_PWD="${PROXY_ADMIN_PASSWORD:-admin}" timeout 600 mysql -h "${server}" -P6032 -u "${PROXY_ADMIN_USER:-admin}" -s -NB -e "${query}"
+  set -o xtrace
 }
 
 function wait_for_proxy() {
@@ -66,7 +70,6 @@ function main() {
         --remove-all-servers \
         --disable-updates \
         --force \
-        --debug \
         $SSL_ARG
 
     proxysql-admin \
@@ -75,8 +78,7 @@ function main() {
         --sync-multi-cluster-users \
         --add-query-rule \
         --disable-updates \
-        --force \
-        --debug
+        --force 
 
     proxysql-admin \
         --config-file=/etc/proxysql-admin.cnf \
