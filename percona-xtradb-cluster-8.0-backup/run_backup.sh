@@ -54,7 +54,6 @@ function handle_sigterm() {
 
 function backup_volume() {
     BACKUP_DIR=${BACKUP_DIR:-/backup/$PXC_SERVICE-$(date +%F-%H-%M)}
-     ls /tmp/
     if [ -d "$BACKUP_DIR" ]; then
         rm -rf $BACKUP_DIR/{xtrabackup.*,sst_info}
     fi
@@ -115,13 +114,13 @@ function backup_s3() {
     vault_store /tmp/${SST_INFO_NAME}
 
     xbstream -C /tmp -c ${SST_INFO_NAME} \
-        | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --verbose --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
+        | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
         | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
     if (( $SST_FAILED == 0 )); then
          FIRST_RECEIVED=0
          socat -u "$SOCAT_OPTS" stdio  \
-            | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --verbose  --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
+            | xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
             | (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
          FIRST_RECEIVED=1
     fi

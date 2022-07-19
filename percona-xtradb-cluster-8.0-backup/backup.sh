@@ -98,9 +98,6 @@ function request_streaming() {
     exit $EXID_CODE
 }
 
-touch /tmp/fff
-ls /backup/
-
 check_ssl
 if [ -n "${S3_BUCKET}" ]; then
    clean_backup_s3
