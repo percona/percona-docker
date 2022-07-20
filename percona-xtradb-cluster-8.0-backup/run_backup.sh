@@ -2,17 +2,13 @@
 
 set -o errexit
 set -o xtrace
+set -m
 
 LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/vault.sh
+. ${LIB_PATH}/backup.sh
 
 SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
-SST_INFO_NAME=sst_info
-
-INSECURE_ARG=""
-if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
-  INSECURE_ARG="--insecure"
-fi
 
 function check_ssl() {
     CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
@@ -42,41 +38,40 @@ function check_ssl() {
 
 FIRST_RECEIVED=0
 SST_FAILED=0
-function handle_sigint() {
+function handle_sigterm() {
     if (( $FIRST_RECEIVED == 0 )); then
         pid_s=$(ps -C socat -o pid= || true)
         if [ -n "${pid_s}" ]; then
-            echo '[ERROR] SST request failed'
+            log 'ERROR' 'SST request failed'
             SST_FAILED=1
             kill $pid_s
             exit 1
         else
-            echo '[INFO] SST request was finished'
+            log 'INFO' 'SST request was finished'
         fi
     fi
 }
 
 function backup_volume() {
     BACKUP_DIR=${BACKUP_DIR:-/backup/$PXC_SERVICE-$(date +%F-%H-%M)}
-
-    if [ -d "$BACKUP_DIR" ]; then   
+    if [ -d "$BACKUP_DIR" ]; then
         rm -rf $BACKUP_DIR/{xtrabackup.*,sst_info}
     fi
 
     mkdir -p "$BACKUP_DIR"
     cd "$BACKUP_DIR" || exit
 
-    echo "[INFO] Backup to $BACKUP_DIR was started"
+    log 'INFO' "Backup to $BACKUP_DIR was started"
 
     socat -u "$SOCAT_OPTS" stdio | xbstream -x &
     wait $!
 
-    echo "[INFO] Socat was started"
+    log 'INFO' 'Socat was started'
 
     FIRST_RECEIVED=1
     if [[ $? -ne 0 ]]; then
-        echo '[ERROR] Socat(1) failed'
-        echo '[ERROR] Backup was finished unsuccessfully'
+        log 'ERROR' 'Socat(1) failed'
+        log 'ERROR' 'Backup was finished unsuccessfully'
         exit 1
     fi
     echo "[IINFO] Socat(1) returned $?"
@@ -87,53 +82,33 @@ function backup_volume() {
         socat -u "$SOCAT_OPTS" stdio >xtrabackup.stream
         FIRST_RECEIVED=1
         if [[ $? -ne 0 ]]; then
-            echo '[ERROR] Socat(2) failed'
-            echo '[ERROR] Backup was finished unsuccessfully'
+            log 'ERROR' 'Socat(2) failed'
+            log 'ERROR' 'Backup was finished unsuccessfully'
             exit 1
         fi
-        echo "[INFO] Socat(2) returned $?"
+        log 'INFO' "Socat(2) returned $?"
     fi
 
     stat xtrabackup.stream
     if (($(stat -c%s xtrabackup.stream) < 5000000)); then
-        echo '[ERROR] Backup is empty'
-        echo '[ERROR] Backup was finished unsuccessfully'
+        log 'ERROR' 'Backup is empty'
+        log 'ERROR' 'Backup was finished unsuccessfully'
         exit 1
     fi
     md5sum xtrabackup.stream | tee md5sum.txt
 }
 
-is_object_exist() {
-    local bucket="$1"
-    local object="$2"
-
-    if [[ -n "$(mc -C /tmp/mc ${INSECURE_ARG} --json ls  "dest/$bucket/$object" | jq '.status')" ]]; then
-        return 1
-    fi
-}
-
 function backup_s3() {
-    S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
-    CURL_RET_ERRORS_ARG='--curl-retriable-errors=7'
-
-    echo "[INFO] Backup to s3://$S3_BUCKET/$S3_BUCKET_PATH started"
-    { set +x; } 2>/dev/null
-    echo "+ mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY "
-    mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
-    set -x
-
-
-    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
-    is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+    mc_add_bucket_dest
 
     socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp &
     wait $!
-    echo '[INFO] Socat was started'
+    log 'INFO' 'Socat was started'
 
     FIRST_RECEIVED=1
     if [[ $? -ne 0 ]]; then
-        echo '[ERROR] Socat(1) failed'
-        echo '[ERROR] Backup was finished unsuccessfully'
+        log 'ERROR' 'Socat(1) failed'
+        log 'ERROR' 'Backup was finished unsuccessfully'
         exit 1
     fi
     vault_store /tmp/${SST_INFO_NAME}
@@ -153,15 +128,15 @@ function backup_s3() {
     mc -C /tmp/mc stat ${INSECURE_ARG} "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
     md5_size=$(mc -C /tmp/mc stat ${INSECURE_ARG} --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
     if [[ $md5_size =~ "Object does not exist" ]] || (($md5_size < 23000)); then
-         echo '[ERROR] Backup is empty'
-         echo '[ERROR] Backup was finished unsuccessfully'
+         log 'ERROR' 'Backup is empty'
+         log 'ERROR' 'Backup was finished unsuccessfull'
          exit 1
     fi
 }
 
 check_ssl
 
-trap 'handle_sigint' 2
+trap 'handle_sigterm' 15
 
 if [ -n "$S3_BUCKET" ]; then
     backup_s3

@@ -3,6 +3,9 @@
 set -o errexit
 set -o xtrace
 
+LIB_PATH='/usr/lib/pxc'
+. ${LIB_PATH}/backup.sh
+
 GARBD_OPTS=""
 
 function get_backup_source() {
@@ -11,6 +14,11 @@ function get_backup_source() {
         | sort \
         | tail -1 \
         | cut -d : -f 12)
+
+    if [ -z "${CLUSTER_SIZE}" ]; then
+        log 'ERROR' 'Cannot get cluster size'
+        exit 1
+    fi
 
     FIRST_NODE=$(peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 \
         | grep wsrep_ready:ON:wsrep_connected:ON:wsrep_local_state_comment:Synced:wsrep_cluster_status:Primary \
@@ -54,7 +62,7 @@ function check_ssl() {
     fi
 
     if [ -f "$CA" -a -f "$KEY" -a -f "$CERT" ]; then
-        GARBD_OPTS="socket.ssl_ca=${CA};socket.ssl_cert=${CERT};socket.ssl_key=${KEY};socket.ssl_cipher=;pc.weight=0;socket.ssl=YES;${GARBD_OPTS}"
+         GARBD_OPTS="socket.ssl_ca=${CA};socket.ssl_cert=${CERT};socket.ssl_key=${KEY};socket.ssl_cipher=;pc.weight=0;${GARBD_OPTS}"
     fi
 }
 
@@ -64,13 +72,13 @@ function request_streaming() {
 
     if [ -z "$NODE_NAME" ]; then
         peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE
-        echo '[ERROR] Cannot find node for backup'
-        echo '[ERROR] Backup was finished unsuccessfull'
+        log 'ERROR' 'Cannot find node for backup'
+        log 'ERROR' 'Backup was finished unsuccessfull'
         exit 1
     fi
 
     set +o errexit
-    echo '[INFO] Garbd was started'
+    log 'INFO' 'Garbd was started'
         garbd \
             --address "gcomm://$NODE_NAME.$PXC_SERVICE?gmcast.listen_addr=tcp://0.0.0.0:4567" \
             --donor "$NODE_NAME" \
@@ -81,16 +89,19 @@ function request_streaming() {
         EXID_CODE=$?
 
     if [ -f '/tmp/backup-is-completed' ]; then
-        echo '[INFO] Backup was finished successfully'
+        log 'INFO' 'Backup was finished successfully'
         exit 0
     fi
 
-    echo '[ERROR] Backup was finished unsuccessfull'
+    log 'ERROR' 'Backup was finished unsuccessfull'
 
     exit $EXID_CODE
 }
 
 check_ssl
+if [ -n "${S3_BUCKET}" ]; then
+   clean_backup_s3
+fi
 request_streaming
 
 exit 0
