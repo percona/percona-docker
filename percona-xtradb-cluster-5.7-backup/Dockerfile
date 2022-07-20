@@ -81,7 +81,7 @@ RUN set -ex; \
 		procps-ng \
 		qpress \
 		tar \
-                cracklib-dicts \
+		cracklib-dicts \
 		libaio; \
 	microdnf clean all; \
 	rm -rf /var/cache/dnf /var/cache/yum

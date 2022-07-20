@@ -58,7 +58,8 @@ RUN set -ex; \
         which \
         pam \
         procps-ng \
-        cracklib-dicts; \
+        cracklib-dicts \
+        tar; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
