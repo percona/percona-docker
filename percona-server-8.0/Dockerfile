@@ -44,6 +44,7 @@ RUN set -ex; \
         jemalloc \
         which \
         cracklib-dicts \
+        tar \
         policycoreutils; \
     \
     dnf -y install \

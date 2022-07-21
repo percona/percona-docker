@@ -32,6 +32,7 @@ RUN set -ex; \
 
 RUN set -ex; \
     microdnf -y install \
+        tar \
         shadow-utils
 
 # create mysql user/group before mysql installation
