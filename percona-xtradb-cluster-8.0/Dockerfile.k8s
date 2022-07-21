@@ -128,7 +128,7 @@ RUN if [[ -n $DEBUG ]] ; then \
     percona-release disable pdpxc-8.0 release; \
     curl -Lf -o /tmp/telnet.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
     curl -Lf -o /tmp/tcpdump.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/tcpdump-4.9.3-2.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/perf.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/perf-4.18.0-372.9.1.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/perf.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/perf-4.18.0-372.16.1.0.1.el8_6.x86_64.rpm; \
     curl -Lf -o /tmp/bzip2.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/bzip2-1.0.6-26.el8.x86_64.rpm; \
     curl -Lf -o /tmp/slang.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/slang-2.3.2-3.el8.x86_64.rpm; \
     curl -Lf -o /tmp/strace.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/strace-5.7-3.el8.x86_64.rpm; \
