@@ -114,7 +114,7 @@ RUN set -ex; \
         percona-postgresql${PG_MAJOR//.}-server \
         percona-postgresql${PG_MAJOR//.}-libs \
         percona-postgresql${PG_MAJOR//.}-plpython* \
-        percona-pg-stat-monitor${PG_MAJOR//.} \
+        percona-pg_stat_monitor${PG_MAJOR//.} \
         percona-postgresql${PG_MAJOR//.}-llvmjit \
         psmisc \
         rsync \
