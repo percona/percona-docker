@@ -15,7 +15,7 @@ function proxysql_admin_exec() {
 function wait_for_proxysql() {
     local server="$1"
     echo "Waiting for host $server to be online..."
-    while [ "$(proxysql_admin_exec "$server" 'SELECT MAX(active) FROM runtime_mysql_galera_hostgroups')" != "1" ]
+    while [ "$(proxysql_admin_exec "$server" 'SELECT MAX(active) FROM runtime_scheduler')" != "1" ]
     do
         echo "ProxySQL is not up yet... sleeping ..."
         sleep 1
