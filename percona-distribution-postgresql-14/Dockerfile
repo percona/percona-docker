@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 14.0-1
+ENV PPG_VERSION 14.3-3
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
 
@@ -23,7 +23,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #percona-release setup -y ppg14; \
-    percona-release enable ppg-14.0 testing; 
+    percona-release enable ppg-14.3 release; 
 
 RUN set -ex; \
     microdnf -y update; \
@@ -49,7 +49,7 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
-    curl -Lf -o /tmp/perl-JSON.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-JSON-2.97.001-2.el8.noarch.rpm; \
+    curl -Lf -o /tmp/perl-JSON.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-JSON-2.97.001-2.el8.noarch.rpm; \
     rpmkeys --checksig /tmp/perl-JSON.rpm; \
     rpm -i /tmp/perl-JSON.rpm
 
@@ -58,7 +58,11 @@ RUN set -ex; \
         percona-postgresql14-server-${FULL_PERCONA_VERSION} \
         percona-postgresql14-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql-common \
-        percona-pg-stat-monitor14; \
+        percona-pg_stat_monitor14 \
+        percona-pg_repack14 \
+        percona-pgaudit \
+        percona-pgaudit14_set_user \
+        percona-wal2json14; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db /docker-entrypoint-initdb.d; \
     chown -R 1001:0 /data/db docker-entrypoint-initdb.d
