@@ -41,8 +41,10 @@ RUN set -ex; \
     chown -R 1001:0 /data/db
 
 # the numeric UID is needed for OpenShift
-RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
+RUN useradd -u 1001 -r -g mongod -s /sbin/nologin \
             -c "Default Application User" mongodb
+# allow access to /var/log/mongo for mongodb user
+RUN chmod g+rwx /var/log/mongo
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-server-mongodb-server/LICENSE-Community.txt /licenses/LICENSE.Percona-Server-for-MongoDB
