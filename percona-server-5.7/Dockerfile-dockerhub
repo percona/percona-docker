@@ -3,7 +3,7 @@
 # https://github.com/docker-library/official-images:
 # No official images can be derived from, or depend on, non-official images
 # with the following notable exceptions...
-FROM centos:8
+FROM oraclelinux:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
@@ -18,8 +18,8 @@ RUN set -ex; \
     #dnf clean all; \
     groupdel input; \
     userdel systemd-coredump; \
-    groupadd -g 999 mysql; \
-    useradd -u 999 -r -g 999 -s /sbin/nologin \
+    groupadd -g 1001 mysql; \
+    useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -c "Default Application User" mysql
 
 # check repository package signature in secure way
@@ -35,13 +35,13 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    dnf -y module disable mysql; \
+    dnf -y module disable mysql;
     #curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
     #rpmkeys --checksig /tmp/numactl-libs.rpm; \
     #rpm -i /tmp/numactl-libs.rpm; \
     #rm -rf /tmp/numactl-libs.rpm
 
-ENV PS_VERSION 5.7.38-41.1
+ENV PS_VERSION 5.7.39-42.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
