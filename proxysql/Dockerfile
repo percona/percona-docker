@@ -49,6 +49,7 @@ RUN set -ex; \
         procps-ng \
         perl-DBD-MySQL \
         perl-DBI \
+        cpio \
         tar; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
@@ -61,13 +62,16 @@ RUN groupadd -g 1001 proxysql; \
 RUN set -ex; \
     curl -Lf -o /tmp/util-linux.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/util-linux-2.32.1-28.el8.x86_64.rpm; \
     curl -Lf -o /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm http://repo.percona.com/proxysql/yum/release/8/RPMS/x86_64/proxysql2-${FULL_PROXYSQL_VERSION}.x86_64.rpm; \
-    rpmkeys --checksig /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-server-${FULL_PERCONA_VERSION}.rpm http://repo.percona.com/pxc-80/yum/release/8.0/RPMS/x86_64/percona-xtradb-cluster-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    rpmkeys --checksig /tmp/percona-xtradb-cluster-server-${FULL_PERCONA_VERSION}.rpm /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm; \
     rpm -iv /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm --nodeps; \
     rm -rf /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /etc/proxysql /var/lib/proxysql; \
     rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$" | xargs rm -rf; \
-    install -o 1001 -g 0 -m 775 -d /etc/proxysql /var/lib/proxysql
+    install -o 1001 -g 0 -m 775 -d /etc/proxysql /var/lib/proxysql; \
+    rpm2cpio /tmp/percona-xtradb-cluster-server-${FULL_PERCONA_VERSION}.rpm | cpio -idv ./usr/bin/my_print_defaults; \
+    rm -rf /tmp/percona-xtradb-cluster-server-${FULL_PERCONA_VERSION}.rpm
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/proxysql2/LICENSE /licenses/LICENSE.proxysql
