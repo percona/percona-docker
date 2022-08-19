@@ -1,0 +1,78 @@
+name: Scan Container for Security Issues
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  generate-tests:
+    name: Container Vulnerability Scan
+    runs-on: ubuntu-latest
+    outputs:
+       strategy: ${{ steps.get-changes.outputs.strategy }}
+       length: ${{ steps.get-changes.outputs.length }}
+    steps:
+      - name: Checkout percona/percona-docker repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Generate Jobs
+        id: get-changes
+        run: |
+          set -o xtrace
+          strategy='{"fail-fast":false,"matrix":{"include":[]}}'
+          files=$(git --no-pager diff --name-only origin/${{ github.base_ref }} ${{ github.sha }})
+
+          for file in ${files}; do
+              product_name=$(echo ${file} |  cut -d '/' -f 1)
+              if [ -d "${product_name}" ] && [ -f "${product_name}/Dockerfile" ]; then
+                  docker_tag="percona/${product_name}:${{ github.sha }}"
+                  docker_build="docker build --no-cache -t ${docker_tag} ${product_name}"
+                  strategy=$(echo ${strategy} | \
+                             jq -c \
+                               --arg product_name "${product_name}" \
+                               --arg docker_build "${docker_build}" \
+                               --arg docker_tag "${docker_tag}" \
+                                 '.matrix.include += [
+                                  .include
+                                 | .name=$product_name
+                                 | .runs.build=$docker_build
+                                 | .runs.test=$docker_tag
+                                 ]'
+                             )
+              fi
+          done
+
+          jq . <<<"$strategy" # sanity check / debugging aid
+          echo "::set-output name=strategy::$strategy"
+          length="$(jq <<<"$strategy" -r '.matrix.include | length')"
+          echo "::set-output name=length::$length"
+          
+          if [ ${length} -eq 0 ]; then
+              echo "No checks are needed"
+          fi
+
+  test:
+    needs: generate-tests
+    runs-on: ubuntu-latest
+    strategy: ${{ fromJSON(needs.generate-tests.outputs.strategy) }}
+    if: needs.generate-tests.outputs.length > 0
+    name: ${{ matrix.name }}
+    steps:
+      - name: Checkout percona/percona-docker repository
+        uses: actions/checkout@v3
+      - run: ${{ matrix.runs.build }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ matrix.runs.test }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
