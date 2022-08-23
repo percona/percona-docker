@@ -25,10 +25,9 @@ jobs:
         run: |
           set -o xtrace
           strategy='{"fail-fast":false,"matrix":{"include":[]}}'
-          files=$(git --no-pager diff --name-only origin/${{ github.base_ref }} ${{ github.sha }})
+          products=$( git --no-pager diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | cut -d '/' -f 1 | uniq )
 
-          for file in ${files}; do
-              product_name=$(echo ${file} |  cut -d '/' -f 1)
+          for product_name in ${products}; do
               if [ -d "${product_name}" ] && [ -f "${product_name}/Dockerfile" ]; then
                   docker_tag="percona/${product_name}:${{ github.sha }}"
                   docker_build="docker build --no-cache -t ${docker_tag} ${product_name}"
