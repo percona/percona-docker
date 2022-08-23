@@ -57,33 +57,61 @@ function main() {
     SSL_ARG=""
     temp=$(mktemp)
     if [ "$(proxysql_admin_exec "127.0.0.1" 'SELECT variable_value FROM global_variables WHERE variable_name="mysql-have_ssl"')" = "true" ]; then
-        sed "s/^useSSL.*=.*$/useSSL=1/" /etc/config.toml > ${temp} && cp ${temp} /etc/config.toml
+        if [ "${SCHEDULER}" == "percona" ]; then
+            sed "s/^useSSL.*=.*$/useSSL=1/" /etc/config.toml > ${temp} && cp ${temp} /etc/config.toml
+        else
+            SSL_ARG="--use-ssl=yes"
+        fi
     fi
 
-    sed "s/^clusterHost.*=.*\"$/clusterHost=\"$first_host\"/" /etc/config.toml > ${temp} && cp ${temp} /etc/config.toml
-    rm ${temp}
+    if [ "${SCHEDULER}" == "percona" ]; then
+        sed "s/^clusterHost.*=.*\"$/clusterHost=\"$first_host\"/" /etc/config.toml > ${temp} && cp ${temp} /etc/config.toml
+        rm ${temp}
 
-    percona-scheduler-admin \
-        --config-file=/etc/config.toml \
-        --write-node="$pod_zero.$service:3306" \
-        --enable \
-        --update-cluster \
-        --remove-all-servers \
-        --disable-updates \
-        --force \
-        $SSL_ARG
+        percona-scheduler-admin \
+            --config-file=/etc/config.toml \
+            --write-node="$pod_zero.$service:3306" \
+            --enable \
+            --update-cluster \
+            --remove-all-servers \
+            --disable-updates \
+            --force
 
-    percona-scheduler-admin \
-        --config-file=/etc/config.toml \
-        --write-node="$pod_zero.$service:3306" \
-        --sync-multi-cluster-users \
-        --add-query-rule \
-        --disable-updates \
-        --force 
+        percona-scheduler-admin \
+            --config-file=/etc/config.toml \
+            --write-node="$pod_zero.$service:3306" \
+            --sync-multi-cluster-users \
+            --add-query-rule \
+            --disable-updates \
+            --force
 
-    percona-scheduler-admin \
-        --config-file=/etc/config.toml \
-        --update-mysql-version
+        percona-scheduler-admin \
+            --config-file=/etc/config.toml \
+            --update-mysql-version
+    else
+        proxysql-admin \
+            --config-file=/etc/proxysql-admin.cnf \
+            --cluster-hostname="$first_host" \
+            --enable \
+            --update-cluster \
+            --force \
+            --remove-all-servers \
+            --disable-updates \
+            $SSL_ARG
+
+        proxysql-admin \
+            --config-file=/etc/proxysql-admin.cnf \
+            --cluster-hostname="$first_host" \
+            --sync-multi-cluster-users \
+            --add-query-rule \
+            --disable-updates \
+            --force
+
+        proxysql-admin \
+            --config-file=/etc/proxysql-admin.cnf \
+            --cluster-hostname="$first_host" \
+            --update-mysql-version
+    fi
 
     echo "All done!"
 }
