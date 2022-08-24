@@ -14,7 +14,10 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
 	mysqlrouter --force \
 		--bootstrap ${OPERATOR_USER}:${OPERATOR_PASS}@${MYSQL_SERVICE_NAME}-0.${MYSQL_SERVICE_NAME}.${NAMESPACE}.svc.cluster.local \
 		--conf-bind-address 0.0.0.0 \
-		--conf-set-option=http_server.bind_address=0.0.0.0 \
+		--conf-set-option=routing.bind_port=3306 \
+		--conf-set-option=routing.bind_address=0.0.0.0 \
+		--conf-set-option=routing.routing_strategy=first-available \
+		--conf-set-option=routing.destinations=metadata-cache://${MYSQL_SERVICE_NAME%'-mysql'}/?role=PRIMARY \
 		--directory ${ROUTER_DIR}
 
 	sed -i 's/logging_folder=.*/logging_folder=/g' ${ROUTER_DIR}/mysqlrouter.conf
