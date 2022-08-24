@@ -133,15 +133,10 @@ RUN set -ex; \
         python3-psycopg2 \
         python3-ydiff \
         ydiff; \
-#    pip install click; \
-#    pip install prettytable; \
-#    pip install psutil; \
     pip install python-dateutil; \
-#    pip install psycopg2; \
     pip install pyyaml; \
     pip install six; \
     pip install urllib3; \
-#    pip install ydiff; \
     curl -Lf -o /tmp/percona-patroni.rpm https://repo.percona.com/ppg-${PG_MAJOR//.}/yum/release/8/RPMS/x86_64/percona-patroni-${PATRONI_VERSION}.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/percona-patroni.rpm; \
     rpm -i --nodeps /tmp/percona-patroni.rpm; \
@@ -154,11 +149,11 @@ RUN set -ex; \
 ENV PATH="${PGROOT}/bin:${PATH}"
 
 RUN set -ex; \
-    mkdir -p /opt/crunchy/bin /opt/crunchy/conf /pgdata /pgwal /pgconf /recover /backrestrepo /tablespaces; \
+    mkdir -p /opt/crunchy/bin /opt/crunchy/conf /pgdata /pgwal /pgconf /backrestrepo /tablespaces; \
     chown -R postgres:postgres /opt/crunchy /var/lib/pgsql \
-        /pgdata /pgwal /pgconf /recover /backrestrepo /tablespaces; \
+        /pgdata /pgwal /pgconf /backrestrepo /tablespaces; \
     chmod -R g=u /opt/crunchy /var/lib/pgsql \
-        /pgdata /pgwal /pgconf /recover /backrestrepo /tablespaces
+        /pgdata /pgwal /pgconf /backrestrepo /tablespaces
 
 RUN rm -rf /var/spool/pgbackrest
 
@@ -169,8 +164,6 @@ COPY bin/postgres_common /opt/crunchy/bin
 COPY bin/common /opt/crunchy/bin
 COPY conf/postgres_common /opt/crunchy/conf
 COPY licenses /licenses
-COPY bin/postgres-ha /opt/crunchy/bin/postgres-ha
-COPY conf/postgres-ha /opt/crunchy/conf/postgres-ha
 
 COPY --from=go_builder /go/src/github.com/mikefarah/yq/LICENSE /licenses/LICENSE.yq
 COPY --from=go_builder /go/src/github.com/mikefarah/yq/yq /opt/crunchy/bin/
@@ -181,14 +174,17 @@ RUN set -ex; \
     chmod g+rwx /.ssh; \
     rm -f /run/nologin
 
+# remove the default spool directory so that pgBackRest does not attempt to look there when
+# performing a restore (pgBackRest will not have permissions to access to this dir in all envs)
+RUN rm -rf /var/spool/pgbackrest
+
 # add volumes to allow override of pg_hba.conf and postgresql.conf
 # add volumes to offer a restore feature
 # add volumes to allow storage of postgres WAL segment files
-# add volumes to locate WAL files to recover with
 # add volumes for pgbackrest to write to
 # The VOLUME directive must appear after all RUN directives to ensure the proper
 # volume permissions are applied when building the image
-VOLUME ["/sshd", "/pgconf", "/pgdata", "/pgwal", "/recover", "/backrestrepo"]
+VOLUME ["/sshd", "/pgconf", "/pgdata", "/pgwal", "/backrestrepo"]
 
 # Defines a unique directory name that will be utilized by the nss_wrapper in the UID script
 ENV NSS_WRAPPER_SUBDIR="postgres"

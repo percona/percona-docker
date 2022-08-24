@@ -129,14 +129,20 @@ RUN set -ex; \
     mkdir -p /etc/pgbackrest; \
     chown -R postgres:postgres /etc/pgbackrest; \
     chmod -R g=u /etc/pgbackrest; \
-    rm -f /run/nologin
+    rm -f /run/nologin \
+          /etc/pgbackrest.conf
 
-RUN rm -rf /var/spool/pgbackrest
+COPY conf/pgbackrest-repo/pgbackrest.conf /etc/pgbackrest.conf
+
 
 RUN set -ex; \
     mkdir /.ssh; \
     chown postgres:postgres /.ssh; \
     chmod o+rwx /.ssh
+
+# remove the default spool directory so that pgBackRest does not attempt to look there when
+# performing a restore (pgBackRest will not have permissions to access to this dir in all envs)
+RUN rm -rf /var/spool/pgbackrest
 
 VOLUME ["/sshd", "/pgdata", "/backrestrepo"]
 
