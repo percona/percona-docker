@@ -54,12 +54,6 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-RUN set -ex; \
-    curl -Lf -o /tmp/server.rpm https://repo.percona.com/pxc-80/yum/release/8.0/RPMS/x86_64/percona-xtradb-cluster-server-8.0.28-19.1.el8.x86_64.rpm; \
-    rpmkeys --checksig /tmp/server.rpm; \
-    rpm2cpio /tmp/server.rpm | cpio -idmv; \
-    rm -rf /tmp/server.rpm
-
 RUN groupadd -g 1001 proxysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -c "Default Application User" proxysql
