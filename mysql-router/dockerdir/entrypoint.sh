@@ -18,6 +18,10 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
 		--conf-set-option=routing.bind_address=0.0.0.0 \
 		--conf-set-option=routing.routing_strategy=first-available \
 		--conf-set-option=routing.destinations=metadata-cache://${MYSQL_SERVICE_NAME%'-mysql'}/?role=PRIMARY \
+		--conf-set-option=routing:admin_rw.bind_port=33062 \
+		--conf-set-option=routing:admin_rw.bind_address=0.0.0.0 \
+		--conf-set-option=routing:admin_rw.routing_strategy=first-available \
+		--conf-set-option=routing:admin_rw.destinations=metadata-cache://${MYSQL_SERVICE_NAME%'-mysql'}/?role=PRIMARY \
 		--directory ${ROUTER_DIR}
 
 	sed -i 's/logging_folder=.*/logging_folder=/g' ${ROUTER_DIR}/mysqlrouter.conf
