@@ -52,7 +52,8 @@ RUN set -ex; \
         percona-server-server-${FULL_PERCONA_VERSION} \
         #percona-server-tokudb-${FULL_PERCONA_VERSION} \
         percona-server-devel-${FULL_PERCONA_VERSION} \
-        percona-server-rocksdb-${FULL_PERCONA_VERSION}; \
+        percona-server-rocksdb-${FULL_PERCONA_VERSION} \
+        percona-icu-data-files-${FULL_PERCONA_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
