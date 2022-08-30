@@ -62,6 +62,7 @@ RUN set -ex; \
         qpress \
         cracklib-dicts \
         tar; \
+    microdnf update systemd-libs; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
