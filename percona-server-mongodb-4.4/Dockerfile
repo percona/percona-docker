@@ -1,6 +1,29 @@
-FROM oraclelinux:8
+FROM redhat/ubi8-minimal
 
+# Please don't remove old-style LABEL since it's needed for RedHat certification
+LABEL name="Percona Server for MongoDB" \
+	release="4.4" \
+	vendor="Percona" \
+	summary="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition" \
+	description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
+	maintainer="Percona Development <info@percona.com>"
+LABEL org.label-schema.license="SSPLv1"
+
+LABEL org.opencontainers.image.title="Percona Server for MongoDB"
+LABEL org.opencontainers.image.vendor="Percona"
+LABEL org.opencontainers.image.description="Percona Server for MongoDB is our free and \
+open-source drop-in replacement for MongoDB Community Edition. \
+It offers all the features and benefits of MongoDB Community Edition, \
+plus additional enterprise-grade functionality."
+LABEL org.opencontainers.image.license="SSPLv1"
 LABEL org.opencontainers.image.authors="info@percona.com"
+
+ENV PSMDB_VERSION 4.4.16-16
+ENV OS_VER el8
+ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
+ENV K8S_TOOLS_VERSION "0.5.0"
+LABEL org.label-schema.schema-version=${PSMDB_VERSION}
+LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -10,35 +33,37 @@ RUN set -ex; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
     rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+    microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable psmdb-44 release; \
-    yum-config-manager --enable ol8_u4_security_validation; \
-    yum -y update
-
-ENV PSMDB_VERSION 4.4.16-16
-ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
-ENV K8S_TOOLS_VERSION "0.5.0"
+    percona-release enable psmdb-44 release
 
 RUN set -ex; \
-    dnf -y install \
+    curl -Lf -o /tmp/jq.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/oniguruma.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
+    rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
+    \
+    rpm -i /tmp/jq.rpm /tmp/oniguruma.rpm; \
+    rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
+
+RUN set -ex; \
+    microdnf install -y \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
-        procps-ng \
-        jq \
+        shadow-utils \
+        curl \
         tar \
-        oniguruma \
+        procps-ng \
         policycoreutils; \
         \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-44/yum/release/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
     rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
-    dnf clean all; \
+    microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db; \
     chown -R 1001:0 /data/db
 
@@ -81,6 +106,29 @@ RUN set -ex; \
     echo "45dc3dd03dc07a06705a2c2989b8c7f709013f04bd5386e3279d4e447f07ebd7  /js-yaml.js" | sha256sum -c -
 
 COPY ps-entry.sh /entrypoint.sh
+
+ARG DEBUG
+RUN if [[ -n $DEBUG ]] ; then \
+        set -ex; \
+        sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh; \
+		curl -Lf -o /tmp/telnet.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
+		rpm -i /tmp/telnet.rpm; \
+		rm -f /tmp/telnet.rpm; \
+
+        microdnf install -y \
+		    net-tools \
+		    sudo \
+		    gdb \
+		    nc \
+		    percona-server-mongodb-server-debuginfo-${FULL_PERCONA_VERSION} \
+		    percona-server-mongodb-shell-debuginfo-${FULL_PERCONA_VERSION} \
+		    percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION} \
+		    percona-server-mongodb-mongos-debuginfo-${FULL_PERCONA_VERSION} \
+		    percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
+		    percona-server-mongodb-debugsource-${FULL_PERCONA_VERSION}; \
+        microdnf clean all; \
+        rm -rf /var/cache/dnf /var/cache/yum; \
+    fi
 
 ENTRYPOINT ["/entrypoint.sh"]
 
