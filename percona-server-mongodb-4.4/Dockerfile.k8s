@@ -39,7 +39,9 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable psmdb-44 release
+    percona-release enable psmdb-44 release; \
+    yum-config-manager --enable ol8_u4_security_validation; \
+    yum -y update
 
 RUN set -ex; \
     curl -Lf -o /tmp/jq.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
