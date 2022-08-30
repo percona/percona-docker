@@ -58,6 +58,7 @@ RUN set -ex; \
         tar \
         procps-ng \
         policycoreutils; \
+    microdnf update systemd-libs; \
         \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-44/yum/release/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
