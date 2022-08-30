@@ -16,6 +16,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable psmdb-44 release
+    yum -y update
 
 ENV PSMDB_VERSION 4.4.16-16
 ENV OS_VER el8
