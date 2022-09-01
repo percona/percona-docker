@@ -102,7 +102,7 @@ RUN set -ex; \
     rm -rf /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
            /tmp/openssh.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm
 
-ENV PATRONI_VERSION='2.1.1-1'
+ENV PATRONI_VERSION='2.1.3-2'
 
 RUN set -ex; \
     microdnf -y install \

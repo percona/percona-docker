@@ -102,7 +102,7 @@ RUN set -ex; \
     rm -rf /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
            /tmp/openssh.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm
 
-ENV PATRONI_VERSION='2.1.1-1'
+ENV PATRONI_VERSION='2.1.3-2'
 
 RUN set -ex; \
     microdnf -y install \
@@ -133,15 +133,10 @@ RUN set -ex; \
         python3-psycopg2 \
         python3-ydiff \
         ydiff; \
-#    pip install click; \
-#    pip install prettytable; \
-#    pip install psutil; \
     pip install python-dateutil; \
-#    pip install psycopg2; \
     pip install pyyaml; \
     pip install six; \
     pip install urllib3; \
-#    pip install ydiff; \
     curl -Lf -o /tmp/percona-patroni.rpm https://repo.percona.com/ppg-${PG_MAJOR//.}/yum/release/8/RPMS/x86_64/percona-patroni-${PATRONI_VERSION}.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/percona-patroni.rpm; \
     rpm -i --nodeps /tmp/percona-patroni.rpm; \
