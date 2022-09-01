@@ -15,14 +15,16 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    yum-config-manager --enable ol8_u4_security_validation; \
     percona-release enable psmdb-50 release
 
-ENV PSMDB_VERSION 5.0.10-9
+ENV PSMDB_VERSION 5.0.11-10
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
 
 RUN set -ex; \
+    dnf -y update; \
     dnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
