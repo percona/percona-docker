@@ -10,8 +10,8 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXB_VERSION 2.4.26-1
-ENV PXC_VERSION 5.7.39-31.61.1
+ENV PXB_VERSION 2.4.24-1
+ENV PXC_VERSION 5.7.35-31.53.1
 ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
@@ -25,7 +25,12 @@ RUN set -ex; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
     rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
-    microdnf install -y findutils; \
+    microdnf -y update; \
+    microdnf -y install crypto-policies-scripts; \
+    fips-mode-setup --enable; \
+    microdnf -y install findutils; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     rpm -i /tmp/percona-release.rpm; \
@@ -47,7 +52,7 @@ RUN set -ex; \
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
-    microdnf --setopt=install_weak_deps=0 --best install -y \
+    microdnf --setopt=install_weak_deps=0 --best -y install \
         jemalloc \
         openssl \
         shadow-utils \
