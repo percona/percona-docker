@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 12.8-1
+ENV PPG_VERSION 12.12-3
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
 
@@ -23,7 +23,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #percona-release setup -y ppg12; \
-    percona-release enable ppg-12.8 release
+    percona-release enable ppg-12.12 testing;
 
 RUN set -ex; \
     microdnf -y update; \
@@ -49,7 +49,7 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
-    curl -Lf -o /tmp/perl-JSON.rpm http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-JSON-2.97.001-2.el8.noarch.rpm; \
+    curl -Lf -o /tmp/perl-JSON.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-JSON-2.97.001-2.el8.noarch.rpm; \
     rpmkeys --checksig /tmp/perl-JSON.rpm; \
     rpm -i /tmp/perl-JSON.rpm
 
@@ -58,7 +58,11 @@ RUN set -ex; \
         percona-postgresql12-server-${FULL_PERCONA_VERSION} \
         percona-postgresql12-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql-common \
-        percona-pg-stat-monitor12; \
+        percona-pg_stat_monitor12 \
+        percona-pg_repack12 \
+        percona-pgaudit \
+        percona-pgaudit12_set_user \
+        percona-wal2json12; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db /docker-entrypoint-initdb.d; \
     chown -R 1001:0 /data/db docker-entrypoint-initdb.d

@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 14.3-3
+ENV PPG_VERSION 14.5-3
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
 
@@ -23,7 +23,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #percona-release setup -y ppg14; \
-    percona-release enable ppg-14.3 release; 
+    percona-release enable ppg-14.5 testing; 
 
 RUN set -ex; \
     microdnf -y update; \
