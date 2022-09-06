@@ -2,7 +2,7 @@ FROM oraclelinux:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 4.2.21-21
+ENV PSMDB_VERSION 4.2.22-22
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
@@ -23,6 +23,8 @@ RUN set -ex; \
     percona-release enable psmdb-42 release
 
 RUN set -ex; \
+    dnf config-manager --enable ol8_u4_security_validation; \
+    dnf -y update; \
     dnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
