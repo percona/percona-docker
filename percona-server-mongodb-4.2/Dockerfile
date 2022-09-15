@@ -28,6 +28,7 @@ RUN set -ex; \
     dnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
+        percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
         jq \
         procps-ng \
         oniguruma \
