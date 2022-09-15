@@ -15,6 +15,8 @@ if [ -n ${PROXYSQL_SERVICE} ]; then
     CLUSTER_PORT='33062'
     if [ "${SCHEDULER}" == "percona" ]; then
         sed "s/^writerIsAlsoReader.*=.*$/writerIsAlsoReader = 1/" ${PROXY_SCHEDULER_CFG} | \
+        sed "s/^hgW.*=.*$/hgW = 11/" | \
+        sed "s/^hgR.*=.*$/hgR = 10/" | \
         sed "s/^clustered.*=.*false$/clustered = true/" > ${temp_proxy_scheduler_cfg}
         cp ${temp_proxy_scheduler_cfg} ${PROXY_SCHEDULER_CFG}
     else
