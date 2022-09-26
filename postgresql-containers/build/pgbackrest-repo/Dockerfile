@@ -140,6 +140,10 @@ RUN set -ex; \
 
 COPY bin/pgbackrest-repo/uid_pgbackrest.sh /opt/crunchy/bin
 
+# remove the default spool directory so that pgBackRest does not attempt to look there when
+# performing a restore (pgBackRest will not have permissions to access to this dir in all envs)
+RUN rm -rf /var/spool/pgbackrest
+
 VOLUME ["/sshd", "/pgdata", "/backrestrepo"]
 
 USER 2000
