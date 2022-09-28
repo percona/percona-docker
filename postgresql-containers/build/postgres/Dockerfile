@@ -172,7 +172,10 @@ RUN set -ex; \
     mkdir /.ssh; \
     chown 26:0 /.ssh; \
     chmod g+rwx /.ssh; \
-    rm -f /run/nologin
+    rm -f /run/nologin \
+        /etc/pgbackrest.conf
+
+COPY conf/pgbackrest-repo/pgbackrest.conf /etc/pgbackrest.conf
 
 # remove the default spool directory so that pgBackRest does not attempt to look there when
 # performing a restore (pgBackRest will not have permissions to access to this dir in all envs)
