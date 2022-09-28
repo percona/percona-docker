@@ -27,7 +27,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable ps-80 release; \
-    percona-release enable tools testing
+    percona-release enable tools release
 
 RUN set -ex; \
     microdnf -y update; \
