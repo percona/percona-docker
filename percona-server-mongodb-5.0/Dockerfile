@@ -18,7 +18,7 @@ RUN set -ex; \
     yum-config-manager --enable ol8_u4_security_validation; \
     percona-release enable psmdb-50 release
 
-ENV PSMDB_VERSION 5.0.11-10
+ENV PSMDB_VERSION 5.0.13-11
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
