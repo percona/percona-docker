@@ -80,6 +80,8 @@ RUN set -ex; \
 		iproute \
 		tar \
 		cracklib-dicts \
+		openssl \
+		util-linux \
 		findutils; \
 	microdnf clean all; \
 	rm -rf /var/cache/dnf /var/cache/yum

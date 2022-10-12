@@ -137,11 +137,11 @@ function backup_s3() {
 azure_auth_header() {
 	params="$1"
 	request_date="$2"
-	hex_key="$(echo -n $AZURE_ACCESS_KEY | base64 -d -w0 | xxd -p -c256)"
+	hex_key="$(echo -n "$AZURE_ACCESS_KEY" | base64 -d -w0 | hexdump -ve '1/1 "%02x"')"
 	headers="x-ms-date:$request_date\nx-ms-version:2021-06-08"
 	resource="/$AZURE_STORAGE_ACCOUNT/$AZURE_CONTAINER_NAME"
 	string_to_sign="GET\n\n\n\n\n\n\n\n\n\n\n\n${headers}\n${resource}\n${params}"
-	signature=$(printf "$string_to_sign" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:$hex_key" -binary | base64 -w0)
+	signature=$(printf '%s' "$string_to_sign" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:$hex_key" -binary | base64 -w0)
 	echo "Authorization: SharedKey $AZURE_STORAGE_ACCOUNT:$signature"
 }
 
