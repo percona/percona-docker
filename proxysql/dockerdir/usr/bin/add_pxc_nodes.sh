@@ -68,6 +68,8 @@ function main() {
         sed "s/^clusterHost.*=.*\"$/clusterHost=\"$first_host\"/" /etc/config.toml > ${temp} && cp ${temp} /etc/config.toml
         rm ${temp}
 
+        proxysql-admin --config-file=/etc/proxysql-admin.cnf --disable || true
+
         percona-scheduler-admin \
             --config-file=/etc/config.toml \
             --write-node="$pod_zero.$service:3306" \
@@ -89,6 +91,8 @@ function main() {
             --config-file=/etc/config.toml \
             --update-mysql-version
     else
+        percona-scheduler-admin --config-file=/etc/config.toml --disable || true
+
         proxysql-admin \
             --config-file=/etc/proxysql-admin.cnf \
             --cluster-hostname="$first_host" \
