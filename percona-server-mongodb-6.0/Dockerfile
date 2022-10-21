@@ -20,7 +20,7 @@ ENV PSMDB_VERSION 6.0.2-1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
-ENV PSMDB_REPO release
+ENV PSMDB_REPO testing
 
 RUN set -ex; \
     percona-release enable psmdb-60 ${PSMDB_REPO}; \
