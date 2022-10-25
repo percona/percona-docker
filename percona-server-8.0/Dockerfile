@@ -7,6 +7,11 @@ FROM oraclelinux:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
+ENV PS_VERSION 8.0.30-22.1
+ENV OS_VER el8
+ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV PS_REPO testing
+
 # It is intentionally used another UID, to have backward compatibility with
 # the previous image versions published on Docker Hub
 RUN set -ex; \
@@ -30,11 +35,7 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     dnf -y module disable mysql; \
     percona-release disable all; \
-    percona-release enable ps-80 release
-
-ENV PS_VERSION 8.0.29-21.1
-ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+    percona-release enable ps-80 ${PS_REPO}
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
