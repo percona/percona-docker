@@ -7,8 +7,8 @@ LABEL name="Fluent Bit" \
       org.opencontainers.image.authors="info@percona.com"
 
 RUN export GNUPGHOME="$(mktemp -d)" \
-    && gpg --keyserver https://packages.fluentbit.io/fluentbit-legacy.key  --recv-keys F209D8762A60CD49E680633B4FF8368B6EA0722A \
-    && gpg --export --armor F209D8762A60CD49E680633B4FF8368B6EA0722A > ${GNUPGHOME}/RPM-GPG-KEY-Fluent \
+    && gpg --keyserver https://packages.fluentbit.io/fluentbit.key --recv-keys C3C0A28534B9293EAF51FABD9F9DDC083888C1CD \
+    && gpg --export --armor C3C0A28534B9293EAF51FABD9F9DDC083888C1CD > ${GNUPGHOME}/RPM-GPG-KEY-Fluent \
     && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 567E347AD0044ADE55BA8A5F199E2F91FD431D51 \
     && gpg --batch --export --armor 567E347AD0044ADE55BA8A5F199E2F91FD431D51 > ${GNUPGHOME}/RPM-GPG-KEY-redhat-release \
     && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 99DB70FAE1D7CE227FB6488205B555B38483C65D \
@@ -23,10 +23,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && rpm -i /tmp/percona-release.rpm \
     && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
     && rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-    && percona-release setup pdpxc-8.0.27
+    && percona-release setup pdpxc-8.0.29
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.27-18.1.el8
+ENV PERCONA_VERSION 8.0.29-21.1.el8
 
 # fluentbit does not have el8 repo and the doc suggests installing el7 rpm
 RUN set -ex; \
@@ -35,10 +35,10 @@ RUN set -ex; \
     curl -Lf -o /tmp/procps-ng.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/procps-ng-3.3.15-6.el8.x86_64.rpm; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
-    curl -Lf https://packages.fluentbit.io/centos/7/x86_64/td-agent-bit-1.8.11-1.x86_64.rpm -o /tmp/td-agent-bit.rpm; \
-    rpmkeys --checksig /tmp/procps-ng.rpm /tmp/td-agent-bit.rpm; \
-    rpm -i /tmp/td-agent-bit.rpm /tmp/procps-ng.rpm --nodeps; \
-    rm -f /tmp/td-agent-bit.rpm /tmp/procps-ng.rpm; \
+    curl -Lf https://packages.fluentbit.io/centos/8/x86_64/fluent-bit-2.0.1-1.x86_64.rpm -o /tmp/fluent-bit.rpm; \
+    rpmkeys --checksig /tmp/procps-ng.rpm /tmp/fluent-bit.rpm; \
+    rpm -i /tmp/fluent-bit.rpm /tmp/procps-ng.rpm --nodeps; \
+    rm -f /tmp/fluent-bit.rpm /tmp/procps-ng.rpm; \
     rm -rf /var/cache 
 
 
@@ -49,7 +49,6 @@ RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
 COPY dockerdir /
 
 RUN set -ex; \
-    ln -s /opt/td-agent-bit/bin/td-agent-bit /opt/td-agent-bit/bin/fluent-bit; \
     mkdir -p /etc/fluentbit; \
     chown -R 1001:1001 /etc/fluentbit /opt/percona /usr/local/bin; \
     chmod 664 /etc/passwd; \
