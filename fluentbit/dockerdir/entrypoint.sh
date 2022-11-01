@@ -2,7 +2,7 @@
 set -e
 set -o xtrace
 
-export PATH=$PATH:/opt/td-agent-bit/bin
+export PATH=$PATH:/opt/fluent-bit/bin
 
 if [  "$1" = 'logrotate' ]; then
     if [[ $EUID != 1001 ]]; then
