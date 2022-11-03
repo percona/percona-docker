@@ -187,9 +187,70 @@ function backup_s3() {
     echo '[INFO] Backup was finished successfully'
 }
 
+azure_auth_header_file() {
+	hex_tmp=$(mktemp)
+	signature_tmp=$(mktemp)
+	auth_header_tmp=$(mktemp)
+
+	params="$1"
+	request_date="$2"
+
+	echo -n "$AZURE_ACCESS_KEY" | base64 -d -w0 | hexdump -ve '1/1 "%02x"' >"$hex_tmp"
+	headers="x-ms-date:$request_date\nx-ms-version:2021-06-08"
+	resource="/$AZURE_STORAGE_ACCOUNT/$AZURE_CONTAINER_NAME"
+	string_to_sign="GET\n\n\n\n\n\n\n\n\n\n\n\n${headers}\n${resource}\n${params}"
+	printf '%s' "$string_to_sign" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:$(cat "$hex_tmp")" -binary | base64 -w0 >"$signature_tmp"
+	echo -n "Authorization: SharedKey $AZURE_STORAGE_ACCOUNT:$(cat "$signature_tmp")" >"$auth_header_tmp"
+	echo "$auth_header_tmp"
+}
+
+is_object_exist_azure() {
+	object="$1"
+	connection_string="$ENDPOINT/$AZURE_CONTAINER_NAME?comp=list&restype=container"
+	request_date=$(LC_ALL=en_US.utf8 TZ=GMT date "+%a, %d %h %Y %H:%M:%S %Z")
+	header_version="x-ms-version: 2021-06-08"
+	header_date="x-ms-date: $request_date"
+	header_auth_file=$(azure_auth_header_file "comp:list\nrestype:container" "$request_date")
+
+	res=$(curl -s -H "$header_version" -H "$header_date" -H "@$header_auth_file" ${connection_string} | grep $object)
+
+	if [[ ${#res} -ne 0 ]]; then
+		return 1
+	fi
+}
+
+function backup_azure() {
+	S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
+	CURL_RET_ERRORS_ARG='--curl-retriable-errors=7'
+	ENDPOINT=${AZURE_ENDPOINT:-"https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net"}
+
+	echo "[INFO] Backup to $ENDPOINT/$AZURE_CONTAINER_NAME/$BACKUP_PATH"
+
+	is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
+	is_object_exist_azure "$BACKUP_PATH/" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure "$BACKUP_PATH"
+
+	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp
+	if [[ $? -ne 0 ]]; then
+		echo '[ERROR] Socat(1) failed'
+		exit 1
+	fi
+	vault_store /tmp/${SST_INFO_NAME}
+
+	xbstream -C /tmp -c ${SST_INFO_NAME} \
+		| xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure --parallel=10 "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
+		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
+
+	socat -u "$SOCAT_OPTS" stdio \
+		| xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure --parallel=10 "$BACKUP_PATH" 2>&1 \
+		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
+	echo '[INFO] Backup was finished successfully'
+}
+
 check_ssl
 if [ -n "$S3_BUCKET" ]; then
-    backup_s3
+	backup_s3
+elif [ -n "$AZURE_CONTAINER_NAME" ]; then
+	backup_azure
 else
-    backup_volume
+	backup_volume
 fi

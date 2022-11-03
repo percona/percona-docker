@@ -77,6 +77,8 @@ RUN set -ex; \
 		hostname \
 		findutils \
 		diffutils \
+		openssl \
+		util-linux \
 		procps-ng \
 		qpress \
 		tar \
