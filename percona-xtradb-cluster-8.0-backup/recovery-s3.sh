@@ -29,12 +29,6 @@ xbcloud get ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} "s3://${S3_BUCKET_URL}" --par
 set +o xtrace
 transition_key=$(vault_get $tmp/sst_info)
 if [[ -n $transition_key && $transition_key != null ]]; then
-    MYSQL_VERSION=$(parse_ini 'mysql-version' "$tmp/sst_info")
-    if compare_versions "$MYSQL_VERSION" '<' '5.7.29' &&
-        [[ $MYSQL_VERSION != '5.7.28-31-57.2' ]]; then
-         transition_key="\$transition_key"
-    fi
-
     transition_option="--transition-key=$transition_key"
     master_key_options="--generate-new-master-key"
     echo transition-key exists
