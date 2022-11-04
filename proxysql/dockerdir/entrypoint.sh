@@ -65,13 +65,13 @@ SSL_DIR=${SSL_DIR:-/etc/proxysql/ssl}
 if [ -f "${SSL_DIR}/ca.crt" ]; then
     CA=${SSL_DIR}/ca.crt
 	sed "s:^sslCertificatePath.*= .*\"$:sslCertificatePath = \"${SSL_DIR}\":" ${PERCONA_SCHEDULER_CFG} > ${temp_proxy_scheduler_cfg}
-	cp ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
+	cp -f ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
 fi
 SSL_INTERNAL_DIR=${SSL_INTERNAL_DIR:-/etc/proxysql/ssl-internal}
 if [ -f "${SSL_INTERNAL_DIR}/ca.crt" ]; then
     CA=${SSL_INTERNAL_DIR}/ca.crt
 	sed "s:^sslCertificatePath.*= .*\"$:sslCertificatePath = \"${SSL_INTERNAL_DIR}\":" ${PERCONA_SCHEDULER_CFG} > ${temp_proxy_scheduler_cfg}
-	cp ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
+	cp -f ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
 fi
 
 KEY=${SSL_DIR}/tls.key
@@ -91,8 +91,7 @@ if [ -f "$CA" ] && [ -f "$KEY" ] && [ -f "$CERT" ] && [ -n "$PXC_SERVICE" ]; the
 	sed "s:^sslCa.*=.*\"$:sslCa = \"${CA##*/}\":" ${PERCONA_SCHEDULER_CFG} | \
 	sed "s:^sslKey.*=.*\"$:sslKey = \"${KEY##*/}\":" | \
 	sed "s:^sslClient.*=.*\"$:sslClient = \"${CERT##*/}\":" > ${temp_proxy_scheduler_cfg}
-	cp ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
-	rm ${temp_proxy_scheduler_cfg}
+	mv ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
 fi
 
 if [ -f "${SSL_DIR}/tls.key" ] && [ -f "${SSL_DIR}/tls.crt" ]; then
