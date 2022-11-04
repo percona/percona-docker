@@ -58,14 +58,14 @@ function main() {
     temp=$(mktemp)
     if [ "$(proxysql_admin_exec "127.0.0.1" 'SELECT variable_value FROM global_variables WHERE variable_name="mysql-have_ssl"')" = "true" ]; then
         if [ "${SCHEDULER}" == "percona" ]; then
-            sed "s/^useSSL.*=.*$/useSSL=1/" /etc/config.toml > ${temp} && cp ${temp} /etc/config.toml
+            sed "s/^useSSL.*=.*$/useSSL=1/" /etc/config.toml > ${temp} && cp -f ${temp} /etc/config.toml
         else
             SSL_ARG="--use-ssl=yes"
         fi
     fi
 
     if [ "${SCHEDULER}" == "percona" ]; then
-        sed "s/^clusterHost.*=.*\"$/clusterHost=\"$first_host\"/" /etc/config.toml > ${temp} && cp ${temp} /etc/config.toml
+        sed "s/^clusterHost.*=.*\"$/clusterHost=\"$first_host\"/" /etc/config.toml > ${temp} && cp -f ${temp} /etc/config.toml
         rm ${temp}
 
         proxysql-admin --config-file=/etc/proxysql-admin.cnf --disable || true

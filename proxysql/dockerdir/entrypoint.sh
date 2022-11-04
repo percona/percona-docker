@@ -5,7 +5,7 @@ set -o xtrace
 PROXY_CFG=/etc/proxysql/proxysql.cnf
 # Percona scheduler
 PERCONA_SCHEDULER_CFG=/etc/config.toml
-temp_proxy_scheduler_cfg=$(mktemp)
+TEMP_PROXY_SCHEDULER_CFG=$(mktemp)
 # proxysql-admin scheduler
 PROXY_SCHEDULER_CFG=/etc/proxysql-admin.cnf
 
@@ -16,8 +16,8 @@ if [ -n ${PROXYSQL_SERVICE} ]; then
 	sed "s/^writerIsAlsoReader.*=.*$/writerIsAlsoReader = 1/" ${PERCONA_SCHEDULER_CFG} | \
 	sed "s/^hgW.*=.*$/hgW = 11/" | \
 	sed "s/^hgR.*=.*$/hgR = 10/" | \
-	sed "s/^clustered.*=.*false$/clustered = true/" > ${temp_proxy_scheduler_cfg}
-	cp ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
+	sed "s/^clustered.*=.*false$/clustered = true/" > ${TEMP_PROXY_SCHEDULER_CFG}
+	cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
 	# proxysql-admin scheduler
 	sed "s/#export WRITERS_ARE_READERS=.*$/export WRITERS_ARE_READERS='yes'/g" ${PROXY_SCHEDULER_CFG} 1<> ${PROXY_SCHEDULER_CFG}
 fi
@@ -43,8 +43,8 @@ sed "s/^clusterUserPassword.*=.*\"$/clusterUserPassword='${OPERATOR_PASSWORD_ESC
 sed "s/^clusterUser.*=.*\"$/clusterUser = 'operator'/" | \
 sed "s/^clusterPort.*=.*\"$/clusterPort='${CLUSTER_PORT:-3306}'/" | \
 sed "s/^monitorUserPassword.*=.*\"$/monitorUserPassword='${MONITOR_PASSWORD_ESCAPED:-monitor}'/" | \
-sed "s/^monitorUser.*=.*\"$/monitorUser='monitor'/" > ${temp_proxy_scheduler_cfg}
-cp ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
+sed "s/^monitorUser.*=.*\"$/monitorUser='monitor'/" > ${TEMP_PROXY_SCHEDULER_CFG}
+cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
 # proxysql-admin scheduler
 sed "s/PROXYSQL_USERNAME='admin'/PROXYSQL_USERNAME='${PROXY_ADMIN_USER:-admin}'/g"             ${PROXY_SCHEDULER_CFG} 1<> ${PROXY_SCHEDULER_CFG}
 sed "s/PROXYSQL_PASSWORD='admin'/PROXYSQL_PASSWORD='${PROXY_ADMIN_PASSWORD_ESCAPED:-admin}'/g" ${PROXY_SCHEDULER_CFG} 1<> ${PROXY_SCHEDULER_CFG}
@@ -64,14 +64,14 @@ fi
 SSL_DIR=${SSL_DIR:-/etc/proxysql/ssl}
 if [ -f "${SSL_DIR}/ca.crt" ]; then
     CA=${SSL_DIR}/ca.crt
-	sed "s:^sslCertificatePath.*= .*\"$:sslCertificatePath = \"${SSL_DIR}\":" ${PERCONA_SCHEDULER_CFG} > ${temp_proxy_scheduler_cfg}
-	cp ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
+	sed "s:^sslCertificatePath.*= .*\"$:sslCertificatePath = \"${SSL_DIR}\":" ${PERCONA_SCHEDULER_CFG} > ${TEMP_PROXY_SCHEDULER_CFG}
+	cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
 fi
 SSL_INTERNAL_DIR=${SSL_INTERNAL_DIR:-/etc/proxysql/ssl-internal}
 if [ -f "${SSL_INTERNAL_DIR}/ca.crt" ]; then
     CA=${SSL_INTERNAL_DIR}/ca.crt
-	sed "s:^sslCertificatePath.*= .*\"$:sslCertificatePath = \"${SSL_INTERNAL_DIR}\":" ${PERCONA_SCHEDULER_CFG} > ${temp_proxy_scheduler_cfg}
-	cp ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
+	sed "s:^sslCertificatePath.*= .*\"$:sslCertificatePath = \"${SSL_INTERNAL_DIR}\":" ${PERCONA_SCHEDULER_CFG} > ${TEMP_PROXY_SCHEDULER_CFG}
+	cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
 fi
 
 KEY=${SSL_DIR}/tls.key
@@ -90,9 +90,9 @@ if [ -f "$CA" ] && [ -f "$KEY" ] && [ -f "$CERT" ] && [ -n "$PXC_SERVICE" ]; the
 	# Percona scheduler
 	sed "s:^sslCa.*=.*\"$:sslCa = \"${CA##*/}\":" ${PERCONA_SCHEDULER_CFG} | \
 	sed "s:^sslKey.*=.*\"$:sslKey = \"${KEY##*/}\":" | \
-	sed "s:^sslClient.*=.*\"$:sslClient = \"${CERT##*/}\":" > ${temp_proxy_scheduler_cfg}
-	cp ${temp_proxy_scheduler_cfg} ${PERCONA_SCHEDULER_CFG}
-	rm ${temp_proxy_scheduler_cfg}
+	sed "s:^sslClient.*=.*\"$:sslClient = \"${CERT##*/}\":" > ${TEMP_PROXY_SCHEDULER_CFG}
+	cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
+	rm ${TEMP_PROXY_SCHEDULER_CFG}
 fi
 
 if [ -f "${SSL_DIR}/tls.key" ] && [ -f "${SSL_DIR}/tls.crt" ]; then
