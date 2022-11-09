@@ -10,7 +10,7 @@ LIB_PATH='/usr/lib/pxc'
 
 SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
 
-function check_ssl() {
+check_ssl() {
 	CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 	if [ -f /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt ]; then
 		CA=/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
@@ -38,7 +38,7 @@ function check_ssl() {
 
 FIRST_RECEIVED=0
 SST_FAILED=0
-function handle_sigterm() {
+handle_sigterm() {
 	if ((FIRST_RECEIVED == 0)); then
 		pid_s=$(ps -C socat -o pid= || true)
 		if [ -n "${pid_s}" ]; then
@@ -52,7 +52,7 @@ function handle_sigterm() {
 	fi
 }
 
-function backup_volume() {
+backup_volume() {
 	BACKUP_DIR=${BACKUP_DIR:-/backup/$PXC_SERVICE-$(date +%F-%H-%M)}
 	if [ -d "$BACKUP_DIR" ]; then
 		rm -rf $BACKUP_DIR/{xtrabackup.*,sst_info}
@@ -98,7 +98,7 @@ function backup_volume() {
 	md5sum xtrabackup.stream | tee md5sum.txt
 }
 
-function backup_s3() {
+backup_s3() {
 	mc_add_bucket_dest
 
 	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp &
@@ -134,39 +134,7 @@ function backup_s3() {
 	fi
 }
 
-azure_auth_header_file() {
-	hex_tmp=$(mktemp)
-	signature_tmp=$(mktemp)
-	auth_header_tmp=$(mktemp)
-
-	params="$1"
-	request_date="$2"
-
-	echo -n "$AZURE_ACCESS_KEY" | base64 -d -w0 | hexdump -ve '1/1 "%02x"' >"$hex_tmp"
-	headers="x-ms-date:$request_date\nx-ms-version:2021-06-08"
-	resource="/$AZURE_STORAGE_ACCOUNT/$AZURE_CONTAINER_NAME"
-	string_to_sign="GET\n\n\n\n\n\n\n\n\n\n\n\n${headers}\n${resource}\n${params}"
-	printf '%s' "$string_to_sign" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:$(cat "$hex_tmp")" -binary | base64 -w0 >"$signature_tmp"
-	echo -n "Authorization: SharedKey $AZURE_STORAGE_ACCOUNT:$(cat "$signature_tmp")" >"$auth_header_tmp"
-	echo "$auth_header_tmp"
-}
-
-is_object_exist_azure() {
-	object="$1"
-	connection_string="$ENDPOINT/$AZURE_CONTAINER_NAME?comp=list&restype=container"
-	request_date=$(LC_ALL=en_US.utf8 TZ=GMT date "+%a, %d %h %Y %H:%M:%S %Z")
-	header_version="x-ms-version: 2021-06-08"
-	header_date="x-ms-date: $request_date"
-	header_auth_file=$(azure_auth_header_file "comp:list\nrestype:container" "$request_date")
-
-	res=$(curl -s -H "$header_version" -H "$header_date" -H "@$header_auth_file" ${connection_string} | grep $object)
-
-	if [[ ${#res} -ne 0 ]]; then
-		return 1
-	fi
-}
-
-function backup_azure() {
+backup_azure() {
 	S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
 	CURL_RET_ERRORS_ARG='--curl-retriable-errors=7'
 	ENDPOINT=${AZURE_ENDPOINT:-"https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net"}
