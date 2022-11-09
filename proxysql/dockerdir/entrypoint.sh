@@ -16,7 +16,8 @@ if [ -n ${PROXYSQL_SERVICE} ]; then
     sed "s/^writerIsAlsoReader.*=.*$/writerIsAlsoReader = 1/" ${PERCONA_SCHEDULER_CFG} | \
     sed "s/^hgW.*=.*$/hgW = 11/" | \
     sed "s/^hgR.*=.*$/hgR = 10/" | \
-    sed "s/^clustered.*=.*false$/clustered = true/" > ${TEMP_PROXY_SCHEDULER_CFG}
+    sed "s/^clustered.*=.*false$/clustered = true/" | \
+    sed "s/^failBack.*=.*false$/failBack = true/" > ${TEMP_PROXY_SCHEDULER_CFG}
     cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
     # proxysql-admin scheduler
     sed "s/#export WRITERS_ARE_READERS=.*$/export WRITERS_ARE_READERS='yes'/g" ${PROXY_SCHEDULER_CFG} 1<> ${PROXY_SCHEDULER_CFG}
