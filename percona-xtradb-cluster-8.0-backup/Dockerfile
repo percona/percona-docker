@@ -1,4 +1,4 @@
-FROM golang:1.18 AS go_builder
+FROM golang:1.19 AS go_builder
 
 RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
 
@@ -8,10 +8,9 @@ RUN go build
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
 RUN go build
 
-ENV MC_VERSION=RELEASE.2022-07-15T09-20-55Z
-ENV MC_SHA256SUM=971683c7a81c2cdd3d7016f928988f244a314702ed230d3348243afc21e06734
-RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
-    && chmod +x /go/bin/mc \
+ENV MC_VERSION=RELEASE.2022-10-29T10-09-23Z 
+ENV MC_SHA256SUM=4e8fd9d12d1149711d86fb652fae270245c306c556de0dcc4e1cd14518198fe2
+RUN go install "github.com/minio/mc@${MC_VERSION}" \
     && echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
     && curl -o /go/bin/LICENSE.mc \
         https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
@@ -80,6 +79,8 @@ RUN set -ex; \
 		iproute \
 		tar \
 		cracklib-dicts \
+		openssl \
+		util-linux \
 		findutils; \
 	microdnf clean all; \
 	rm -rf /var/cache/dnf /var/cache/yum
