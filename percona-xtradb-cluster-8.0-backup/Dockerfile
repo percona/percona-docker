@@ -9,26 +9,27 @@ WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
 RUN go build
 
 ENV MC_VERSION=RELEASE.2022-10-29T10-09-23Z 
-ENV MC_SHA256SUM=4e8fd9d12d1149711d86fb652fae270245c306c556de0dcc4e1cd14518198fe2
-RUN go install "github.com/minio/mc@${MC_VERSION}" \
-    && echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
-    && curl -o /go/bin/LICENSE.mc \
-        https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
+ENV MC_SHA256SUM=0753e5edd0de0ce82fac495af59b2c2e34ba1ce41fd0ef5ef32f568f3379616b
+RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
+	&& chmod +x /go/bin/mc \
+	&& echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
+	&& curl -o /go/bin/LICENSE.mc \
+	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
 
 FROM redhat/ubi8-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona XtraBackup" \
-      release="8.0" \
-      vendor="Percona" \
-      summary="Percona XtraBackup is an open-source hot backup utility for MySQL - based servers that doesn’t lock your database during the backup" \
-      description="Percona XtraBackup works with MySQL, MariaDB, and Percona Server. It supports completely non-blocking backups of InnoDB, XtraDB, and HailDB storage engines. In addition, it can back up the following storage engines by briefly pausing writes at the end of the backup: MyISAM, Merge, and Archive, including partitioned tables, triggers, and database options." \
-      maintainer="Percona Development <info@percona.com>"
+	release="8.0" \
+	vendor="Percona" \
+	summary="Percona XtraBackup is an open-source hot backup utility for MySQL - based servers that doesn’t lock your database during the backup" \
+	description="Percona XtraBackup works with MySQL, MariaDB, and Percona Server. It supports completely non-blocking backups of InnoDB, XtraDB, and HailDB storage engines. In addition, it can back up the following storage engines by briefly pausing writes at the end of the backup: MyISAM, Merge, and Archive, including partitioned tables, triggers, and database options." \
+	maintainer="Percona Development <info@percona.com>"
 
 LABEL org.opencontainers.image.title="Percona XtraDB Cluster"
 LABEL org.opencontainers.image.vendor="Percona"
 LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high availability solution that \
-helps enterprises avoid downtime and outages and meet expected customer experience."
+	helps enterprises avoid downtime and outages and meet expected customer experience."
 LABEL org.opencontainers.image.license="GPL"
 
 ENV PXB_VERSION 8.0.29-22.1
@@ -47,18 +48,18 @@ LABEL org.opencontainers.image.version=${PXC_VERSION}
 
 # check repository package signature in secure way
 RUN set -ex; \
-    export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
-    gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
-    gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
-    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
-    microdnf install -y findutils; \
-    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
-    rpmkeys --checksig /tmp/percona-release.rpm; \
-    rpm -i /tmp/percona-release.rpm; \
-    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
-    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+	export GNUPGHOME="$(mktemp -d)"; \
+	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
+	gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
+	gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+	gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+	rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+	microdnf install -y findutils; \
+	curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+	rpmkeys --checksig /tmp/percona-release.rpm; \
+	rpm -i /tmp/percona-release.rpm; \
+	rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
+	rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 RUN set -ex; \
 	curl -Lf -o /tmp/numactl-libs.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
@@ -73,22 +74,22 @@ RUN set -ex; \
 
 RUN set -ex; \
 	microdnf install -y \
-		shadow-utils \
-		hostname \
-		libaio \
-		iproute \
-		tar \
-		cracklib-dicts \
-		openssl \
-		util-linux \
-		findutils; \
+	shadow-utils \
+	hostname \
+	libaio \
+	iproute \
+	tar \
+	cracklib-dicts \
+	openssl \
+	util-linux \
+	findutils; \
 	microdnf clean all; \
 	rm -rf /var/cache/dnf /var/cache/yum
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql; \
-    useradd -u 1001 -r -g 1001 -s /sbin/nologin \
-        -c "Default Application User" mysql
+	useradd -u 1001 -r -g 1001 -s /sbin/nologin \
+	-c "Default Application User" mysql
 
 # we need licenses from docs
 RUN set -ex; \
@@ -107,17 +108,17 @@ RUN set -ex; \
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-xtrabackup-80/LICENSE /licenses/LICENSE.xtrabackup; \
-    cp /usr/share/doc/percona-xtradb-cluster-garbd-3/COPYING /licenses/LICENSE.garbd
+	cp /usr/share/doc/percona-xtradb-cluster-garbd-3/COPYING /licenses/LICENSE.garbd
 
 RUN curl -o /usr/bin/kubectl \
-        https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl; \
-    chmod +x /usr/bin/kubectl; \
-    echo "${KUBECTL_SHA256SUM} /usr/bin/kubectl" | sha256sum -c -; \
-    curl -o /licenses/LICENSE.kubectl \
-        https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
+	https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl; \
+	chmod +x /usr/bin/kubectl; \
+	echo "${KUBECTL_SHA256SUM} /usr/bin/kubectl" | sha256sum -c -; \
+	curl -o /licenses/LICENSE.kubectl \
+	https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
 
 RUN install -d -o 1001 -g 0 -m 0775 /backup; \
-    mkdir /usr/lib/pxc
+	mkdir /usr/lib/pxc
 
 COPY lib/pxc /usr/lib/pxc
 COPY recovery-*.sh run_backup.sh backup.sh get-pxc-state /usr/bin/
