@@ -19,7 +19,7 @@ RUN set -ex; \
     yum-config-manager --enable ol8_u4_security_validation; \
     yum -y update
 
-ENV PSMDB_VERSION 4.4.16-16
+ENV PSMDB_VERSION 4.4.17-17
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
