@@ -20,9 +20,9 @@ fi
 if [ -n "$S3_BUCKET_URL" ]; then
 	{ set +x; } 2>/dev/null
 	echo "+ mc ${MC_ARGS} config host add dest ${ENDPOINT:-https://s3.amazonaws.com} ACCESS_KEY_ID SECRET_ACCESS_KEY"
-	mc "${MC_ARGS}" config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
+	mc ${MC_ARGS} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
 	set -x
-	mc "${MC_ARGS}" ls "dest/${S3_BUCKET_URL}"
+	mc ${MC_ARGS} ls "dest/${S3_BUCKET_URL}"
 elif [ -n "${AZURE_CONTAINER_NAME}" ]; then
 	XBCLOUD_ARGS="${XBCLOUD_ARGS} --storage=azure"
 fi
@@ -38,8 +38,8 @@ destination() {
 	fi
 }
 
-xbcloud get "${XBCLOUD_ARGS}" "$(destination).sst_info" --parallel=10 | xbstream -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)"
-xbcloud get "${XBCLOUD_ARGS}" "$(destination)" --parallel=10 | xbstream --decompress -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)"
+xbcloud get ${XBCLOUD_ARGS} "$(destination).sst_info" --parallel=10 | xbstream -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)"
+xbcloud get ${XBCLOUD_ARGS} "$(destination)" --parallel=10 | xbstream --decompress -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)"
 
 set +o xtrace
 transition_key=$(vault_get "$tmp/sst_info")
