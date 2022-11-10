@@ -68,7 +68,12 @@ function main() {
         sed "s/^clusterHost.*=.*\"$/clusterHost=\"$first_host\"/" /etc/config.toml > ${temp} && cp -f ${temp} /etc/config.toml
         rm ${temp}
 
-        proxysql-admin --config-file=/etc/proxysql-admin.cnf --disable || true
+        set +o errexit
+        if proxysql-admin --config-file=/etc/proxysql-admin.cnf --is-enabled >/dev/null 2>&1; then
+            echo "Cleaning setup from proxysql-admin..."
+            proxysql-admin --config-file=/etc/proxysql-admin.cnf --disable
+        fi
+        set -o errexit
 
         percona-scheduler-admin \
             --config-file=/etc/config.toml \
@@ -91,7 +96,12 @@ function main() {
             --config-file=/etc/config.toml \
             --update-mysql-version
     else
-        percona-scheduler-admin --config-file=/etc/config.toml --disable || true
+        set +o errexit
+        if percona-scheduler-admin --config-file=/etc/config.toml --is-enabled >/dev/null 2>&1; then
+            echo "Cleaning setup from percona-scheduler-admin..."
+            percona-scheduler-admin --config-file=/etc/config.toml --disable
+        fi
+        set -o errexit
 
         proxysql-admin \
             --config-file=/etc/proxysql-admin.cnf \
