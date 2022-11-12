@@ -7,13 +7,11 @@ LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/check-version.sh
 . ${LIB_PATH}/vault.sh
 
-# temporary fix for PXB-2784
-XBCLOUD_ARGS='--curl-retriable-errors=7'
-
 MC_ARGS='-C /tmp/mc'
+XBCLOUD_ARGS=""
 
 if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
-	XBCLOUD_ARGS="${XBCLOUD_ARGS} --insecure"
+	XBCLOUD_ARGS="--insecure"
 	MC_ARGS="${MC_ARGS} --insecure"
 fi
 
@@ -39,7 +37,7 @@ destination() {
 }
 
 xbcloud get ${XBCLOUD_ARGS} "$(destination).sst_info" --parallel=10 | xbstream -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)"
-xbcloud get ${XBCLOUD_ARGS} "$(destination)" --parallel=10 | xbstream --decompress -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)"
+xbcloud get ${XBCLOUD_ARGS} "$(destination)" --parallel=10 | xbstream -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)"
 
 set +o xtrace
 transition_key=$(vault_get "$tmp/sst_info")
