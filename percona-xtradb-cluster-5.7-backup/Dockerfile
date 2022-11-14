@@ -1,4 +1,4 @@
-FROM golang:1.18 AS go_builder
+FROM golang:1.19 AS go_builder
 
 RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
 
@@ -8,13 +8,13 @@ RUN go build
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
 RUN go build
 
-ENV MC_VERSION=RELEASE.2022-07-15T09-20-55Z
-ENV MC_SHA256SUM=971683c7a81c2cdd3d7016f928988f244a314702ed230d3348243afc21e06734
+ENV MC_VERSION=RELEASE.2022-10-29T10-09-23Z 
+ENV MC_SHA256SUM=0753e5edd0de0ce82fac495af59b2c2e34ba1ce41fd0ef5ef32f568f3379616b
 RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
-    && chmod +x /go/bin/mc \
-    && echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
-    && curl -o /go/bin/LICENSE.mc \
-        https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
+	&& chmod +x /go/bin/mc \
+	&& echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
+	&& curl -o /go/bin/LICENSE.mc \
+	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
 
 FROM redhat/ubi8-minimal
 
@@ -29,7 +29,7 @@ LABEL name="Percona XtraBackup" \
 LABEL org.opencontainers.image.title="Percona XtraDB Cluster"
 LABEL org.opencontainers.image.vendor="Percona"
 LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high availability solution that \
-helps enterprises avoid downtime and outages and meet expected customer experience."
+	helps enterprises avoid downtime and outages and meet expected customer experience."
 LABEL org.opencontainers.image.license="GPL"
 
 ENV PXB_VERSION 2.4.26-1
@@ -44,20 +44,20 @@ LABEL org.opencontainers.image.version=${PXC_VERSION}
 
 # check repository package signature in secure way
 RUN set -ex; \
-    export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
-    gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
-    gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
-    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
-    microdnf install -y findutils; \
-    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
-    rpmkeys --checksig /tmp/percona-release.rpm; \
-    rpm -i /tmp/percona-release.rpm; \
-    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
-    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable-only tools release; \
-    percona-release enable pxc-57 release
+	export GNUPGHOME="$(mktemp -d)"; \
+	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
+	gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
+	gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+	gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+	rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+	microdnf install -y findutils; \
+	curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+	rpmkeys --checksig /tmp/percona-release.rpm; \
+	rpm -i /tmp/percona-release.rpm; \
+	rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
+	rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+	percona-release enable-only tools release; \
+	percona-release enable pxc-57 release
 
 RUN set -ex; \
 	curl -Lf -o /tmp/numactl-libs.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
@@ -74,22 +74,24 @@ RUN set -ex; \
 
 RUN set -ex; \
 	microdnf install -y \
-		shadow-utils \
-		hostname \
-		findutils \
-		diffutils \
-		procps-ng \
-		qpress \
-		tar \
-		cracklib-dicts \
-		libaio; \
+	shadow-utils \
+	hostname \
+	findutils \
+	diffutils \
+	openssl \
+	util-linux \
+	procps-ng \
+	qpress \
+	tar \
+	cracklib-dicts \
+	libaio; \
 	microdnf clean all; \
 	rm -rf /var/cache/dnf /var/cache/yum
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql; \
 	useradd -u 1001 -r -g 1001 -s /sbin/nologin \
-		-c "Default Application User" mysql
+	-c "Default Application User" mysql
 
 # we need licenses from docs
 RUN set -ex; \
@@ -109,11 +111,11 @@ RUN cp /usr/share/doc/percona-xtrabackup-24/COPYING /licenses/LICENSE.xtrabackup
 	cp /usr/share/doc/percona-xtradb-cluster-garbd-3/COPYING /licenses/LICENSE.garbd
 
 RUN curl -o /usr/bin/kubectl \
-        https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl; \
-    chmod +x /usr/bin/kubectl; \
-    echo "${KUBECTL_SHA256SUM} /usr/bin/kubectl" | sha256sum -c -; \
-    curl -o /licenses/LICENSE.kubectl \
-        https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
+	https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl; \
+	chmod +x /usr/bin/kubectl; \
+	echo "${KUBECTL_SHA256SUM} /usr/bin/kubectl" | sha256sum -c -; \
+	curl -o /licenses/LICENSE.kubectl \
+	https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
 
 RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 	mkdir /usr/lib/pxc
