@@ -14,16 +14,17 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
-    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    yum-config-manager --enable ol8_u4_security_validation; \
-    percona-release enable psmdb-50 release
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 ENV PSMDB_VERSION 5.0.13-11
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
+ENV PSMDB_REPO release
 
 RUN set -ex; \
+    percona-release enable psmdb-50 ${PSMDB_REPO}; \
+    dnf config-manager --enable ol8_u4_security_validation; \
     dnf -y update; \
     dnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
@@ -35,7 +36,7 @@ RUN set -ex; \
         oniguruma \
         policycoreutils; \
         \
-    curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-50/yum/release/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-50/yum/${PSMDB_REPO}/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
     rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
