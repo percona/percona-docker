@@ -6,7 +6,7 @@ PROXY_CFG=/etc/proxysql/proxysql.cnf
 # Percona scheduler
 PERCONA_SCHEDULER_CFG=/etc/config.toml
 TEMP_PROXY_SCHEDULER_CFG=$(mktemp)
-# proxysql-admin scheduler
+# internal scheduler
 PROXY_SCHEDULER_CFG=/etc/proxysql-admin.cnf
 
 if [ -n ${PROXYSQL_SERVICE} ]; then
@@ -19,7 +19,7 @@ if [ -n ${PROXYSQL_SERVICE} ]; then
     sed "s/^clustered.*=.*false$/clustered = true/" | \
     sed "s/^failBack.*=.*false$/failBack = true/" > ${TEMP_PROXY_SCHEDULER_CFG}
     cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
-    # proxysql-admin scheduler
+    # internal scheduler
     sed "s/#export WRITERS_ARE_READERS=.*$/export WRITERS_ARE_READERS='yes'/g" ${PROXY_SCHEDULER_CFG} 1<> ${PROXY_SCHEDULER_CFG}
 fi
 
@@ -46,7 +46,7 @@ sed "s/^clusterPort.*=.*\"$/clusterPort='${CLUSTER_PORT:-3306}'/" | \
 sed "s/^monitorUserPassword.*=.*\"$/monitorUserPassword='${MONITOR_PASSWORD_ESCAPED:-monitor}'/" | \
 sed "s/^monitorUser.*=.*\"$/monitorUser='monitor'/" > ${TEMP_PROXY_SCHEDULER_CFG}
 cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
-# proxysql-admin scheduler
+# internal scheduler
 sed "s/PROXYSQL_USERNAME='admin'/PROXYSQL_USERNAME='${PROXY_ADMIN_USER:-admin}'/g"             ${PROXY_SCHEDULER_CFG} 1<> ${PROXY_SCHEDULER_CFG}
 sed "s/PROXYSQL_PASSWORD='admin'/PROXYSQL_PASSWORD='${PROXY_ADMIN_PASSWORD_ESCAPED:-admin}'/g" ${PROXY_SCHEDULER_CFG} 1<> ${PROXY_SCHEDULER_CFG}
 sed "s/CLUSTER_USERNAME='admin'/CLUSTER_USERNAME='operator'/g"                                 ${PROXY_SCHEDULER_CFG} 1<> ${PROXY_SCHEDULER_CFG}

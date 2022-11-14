@@ -64,7 +64,7 @@ function main() {
         fi
     fi
 
-    if [ "${SCHEDULER}" == "percona" ]; then
+    if [ "${PXC_HANDLER}" == "internal" ]; then
         sed "s/^clusterHost.*=.*\"$/clusterHost=\"$first_host\"/" /etc/config.toml > ${temp} && cp -f ${temp} /etc/config.toml
         rm ${temp}
 
