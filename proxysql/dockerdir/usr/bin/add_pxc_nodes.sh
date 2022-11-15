@@ -57,7 +57,7 @@ function main() {
     SSL_ARG=""
     temp=$(mktemp)
     if [ "$(proxysql_admin_exec "127.0.0.1" 'SELECT variable_value FROM global_variables WHERE variable_name="mysql-have_ssl"')" = "true" ]; then
-        if [ "${SCHEDULER}" == "percona" ]; then
+        if [ "${PXC_HANDLER}" == "scheduler" ]; then
             sed "s/^useSSL.*=.*$/useSSL=1/" /etc/config.toml > ${temp} && cp -f ${temp} /etc/config.toml
         else
             SSL_ARG="--use-ssl=yes"
