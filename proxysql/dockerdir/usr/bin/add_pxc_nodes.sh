@@ -81,7 +81,6 @@ function main() {
             --enable \
             --update-cluster \
             --remove-all-servers \
-            --disable-updates \
             --force
 
         percona-scheduler-admin \
@@ -89,7 +88,6 @@ function main() {
             --write-node="$pod_zero.$service:3306" \
             --sync-multi-cluster-users \
             --add-query-rule \
-            --disable-updates \
             --force
 
         percona-scheduler-admin \
