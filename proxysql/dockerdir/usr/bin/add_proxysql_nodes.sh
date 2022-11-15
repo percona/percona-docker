@@ -15,7 +15,7 @@ function proxysql_admin_exec() {
 function wait_for_proxysql() {
     local server="$1"
     echo "Waiting for host $server to be online..."
-    if [ "${PXC_HANDLER}" == "internal" ]; then
+    if [ "${PXC_HANDLER}" == "scheduler" ]; then
         PROXYSQL_TABLE="runtime_scheduler"
     else
         PROXYSQL_TABLE="runtime_mysql_galera_hostgroups"
