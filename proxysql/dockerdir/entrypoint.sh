@@ -5,7 +5,7 @@ set -o xtrace
 PROXY_CFG=/etc/proxysql/proxysql.cnf
 PROXY_ADMIN_CFG=/etc/proxysql-admin.cnf
 
-if [ -n ${PROXYSQL_SERVICE} ]; then
+if [[ -n ${PROXYSQL_SERVICE} ]]; then
 	MYSQL_INTERFACES='0.0.0.0:3306;0.0.0.0:33062'
 	CLUSTER_PORT='33062'
 	sed "s/#export WRITERS_ARE_READERS=.*$/export WRITERS_ARE_READERS='yes'/g" ${PROXY_ADMIN_CFG} 1<>${PROXY_ADMIN_CFG}
@@ -71,8 +71,5 @@ if [ -f "${SSL_DIR}/ca.crt" ]; then
 fi
 
 test -e /opt/percona/hookscript/hook.sh && source /opt/percona/hookscript/hook.sh
-
-cat ${PROXY_CFG}
-cat ${PROXY_ADMIN_CFG}
 
 exec "$@"
