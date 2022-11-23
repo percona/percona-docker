@@ -40,8 +40,11 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache
 
-RUN groupadd -g 1001 mysql
-RUN useradd -m -u 1001 -r -g 1001 -s /sbin/nologin \
+RUN set -ex; \
+    groupdel input; \
+    userdel systemd-coredump; \
+    groupadd -g 1001 mysql; \
+    useradd -m -u 1001 -r -g 1001 -s /sbin/nologin \
         -c "Default Application User" mysql
 
 STOPSIGNAL SIGUSR1
