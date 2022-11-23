@@ -6,6 +6,17 @@ LABEL name="mysql-router" \
       summary="MySQL Router is lightweight middleware that provides transparent routing between your application and back-end MySQL Servers" \
       org.opencontainers.image.authors="info@percona.com"
 
+RUN set -ex; \
+    # shadow-utils are needed for user/group manipulation on UBI-based images
+    microdnf -y update; \
+    microdnf -y install glibc-langpack-en \
+        nss_wrapper \
+        shadow-utils; \
+    microdnf clean all; \
+    groupadd -g 1001 mysql; \
+    useradd -u 1001 -r -g 1001 -s /sbin/nologin \
+        -c "Default Application User" mysql
+
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
 	&& microdnf install -y findutils \
@@ -26,7 +37,6 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 RUN set -ex; \
     microdnf install -y \
-        shadow-utils \
         percona-server-server \
         percona-mysql-router \
         percona-mysql-shell \
@@ -40,13 +50,6 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache
 
-RUN set -ex; \
-    groupdel input; \
-    userdel systemd-coredump; \
-    groupadd -g 1001 mysql; \
-    useradd -m -u 1001 -r -g 1001 -s /sbin/nologin \
-        -c "Default Application User" mysql
-
 STOPSIGNAL SIGUSR1
 
 COPY dockerdir /
@@ -59,4 +62,4 @@ VOLUME ["/var/lib/mysqlrouter"]
 
 USER 1001
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["mysqlrouter", "-c", "/tmp/router/mysqlrouter.conf"]
+CMD ["mysqlrouter"]
