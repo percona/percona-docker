@@ -17,18 +17,22 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-        && percona-release setup pdps-8.0
+        && percona-release setup pdps-8.0 \
+        && curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm\
+        && rpmkeys --checksig /tmp/numactl-libs.rpm \
+        && rpm -i /tmp/numactl-libs.rpm \
+        && rm -rf /tmp/numactl-libs.rpm
 
 RUN set -ex; \
     microdnf install -y \
         shadow-utils \
+        percona-server-server \
         percona-mysql-router \
         percona-mysql-shell \
         which \
         tar \
         openssl \
         procps-ng \
-        vim-minimal \
         bind-utils \
         policycoreutils; \
     \
