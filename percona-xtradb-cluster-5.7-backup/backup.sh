@@ -223,14 +223,14 @@ is_object_exist_azure() {
 }
 
 backup_azure() {
-	S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
-	CURL_RET_ERRORS_ARG='--curl-retriable-errors=7'
+	BACKUP_PATH=${BACKUP_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
 	ENDPOINT=${AZURE_ENDPOINT:-"https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net"}
 
 	echo "[INFO] Backup to $ENDPOINT/$AZURE_CONTAINER_NAME/$BACKUP_PATH"
 
-	is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
-	is_object_exist_azure "$BACKUP_PATH/" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure "$BACKUP_PATH"
+	is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete ${INSECURE_ARG} --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
+	is_object_exist_azure "$BACKUP_PATH/" || xbcloud delete ${INSECURE_ARG} --storage=azure "$BACKUP_PATH"
+	request_streaming
 
 	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp
 	if [[ $? -ne 0 ]]; then
@@ -240,11 +240,11 @@ backup_azure() {
 	vault_store /tmp/${SST_INFO_NAME}
 
 	xbstream -C /tmp -c ${SST_INFO_NAME} \
-		| xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure --parallel=10 "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
+		| xbcloud put ${INSECURE_ARG} --storage=azure --parallel=10 "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	socat -u "$SOCAT_OPTS" stdio \
-		| xbcloud put ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=azure --parallel=10 "$BACKUP_PATH" 2>&1 \
+		| xbcloud put ${INSECURE_ARG} --storage=azure --parallel=10 "$BACKUP_PATH" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 	echo '[INFO] Backup was finished successfully'
 }
