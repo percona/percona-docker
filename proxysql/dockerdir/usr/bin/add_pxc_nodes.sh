@@ -75,19 +75,30 @@ function main() {
         fi
         set -o errexit
 
-        percona-scheduler-admin \
-            --config-file=/etc/config.toml \
-            --write-node="$pod_zero.$service:3306" \
-            --enable \
-            --update-cluster \
-            --remove-all-servers \
-            --force
+# TODO: Remove --debug from three below lines before merge
+        if [ "$(proxysql_admin_exec "127.0.0.1" 'SELECT count(*) FROM mysql_servers')" -eq 0 ]; then
+            percona-scheduler-admin \
+                --config-file=/etc/config.toml \
+                --write-node="$pod_zero.$service:3306" \
+                --enable \
+                --debug \
+                --force
+        else
+            percona-scheduler-admin \
+                --config-file=/etc/config.toml \
+                --write-node="$pod_zero.$service:3306" \
+                --update-cluster \
+                --remove-all-servers \
+                --debug \
+                --force
+        fi
 
         percona-scheduler-admin \
             --config-file=/etc/config.toml \
             --write-node="$pod_zero.$service:3306" \
             --sync-multi-cluster-users \
             --add-query-rule \
+            --debug \
             --force
 
         percona-scheduler-admin \
