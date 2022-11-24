@@ -18,9 +18,18 @@ Images are updated when new releases are published.
 
 Start a Percona Distribution for PostgreSQL container as follows:
 
-    docker run --name container-name -d perconalab/percona-distribution-postgresql:tag
+    docker run --name container-name -e POSTGRES_PASSWORD=secret -d perconalab/percona-distribution-postgresql:tag
 
-Where `container-name` is the name you want to assign to your container and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/perconalab/percona-distribution-postgresql/tags/).
+Where `container-name` is the name you want to assign to your container, `POSTGRES_PASSWORD` is the superuser password and `tag` is the tag specifying the version you want. 
+
+To secure the password, you can export it to the environment file and use that to start the container:   
+
+    echo "POSTGRES_PASSWORD=secret" > .my-pg.env
+    docker run --rm -it --env-file ./.my-pg.env percona-distribution-postgresql:tag
+
+Where `container-name` is the name you want to assign to your container, `--env-file` is the path to the environment file containing the password and `tag` is the tag specifying the version you want.
+
+See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/perconalab/percona-distribution-postgresql/tags/).
 
 ## Connect to Percona Distribution for PostgreSQL from an Application in Another Docker Container
 

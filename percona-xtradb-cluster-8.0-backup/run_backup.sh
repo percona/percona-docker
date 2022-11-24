@@ -135,8 +135,6 @@ backup_s3() {
 }
 
 backup_azure() {
-	S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
-	CURL_RET_ERRORS_ARG='--curl-retriable-errors=7'
 	ENDPOINT=${AZURE_ENDPOINT:-"https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net"}
 
 	log 'INFO' "Backup to $ENDPOINT/$AZURE_CONTAINER_NAME/$BACKUP_PATH"

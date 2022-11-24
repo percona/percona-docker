@@ -9,21 +9,19 @@ TEMP_PROXY_SCHEDULER_CFG=$(mktemp)
 # internal scheduler
 PROXY_SCHEDULER_CFG=/etc/proxysql-admin.cnf
 
-if [ -n ${PROXYSQL_SERVICE} ]; then
-    MYSQL_INTERFACES='0.0.0.0:3306;0.0.0.0:33062'
-    CLUSTER_PORT='33062'
-    # Percona scheduler
-    sed "s/^writerIsAlsoReader.*=.*$/writerIsAlsoReader = 1/" ${PERCONA_SCHEDULER_CFG} | \
-    sed "s/^hgW.*=.*$/hgW = 11/" | \
-    # TODO: Remove below one line before merge
-    sed "s/^logLevel.*=.*$/logLevel = \"debug\"/" | \
-    sed "s/^hgR.*=.*$/hgR = 10/" | \
-    sed "s/^clustered.*=.*false$/clustered = true/" | \
-    sed "s/^failBack.*=.*false$/failBack = true/" > ${TEMP_PROXY_SCHEDULER_CFG}
-    cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
-    # internal scheduler
-    sed "s/#export WRITERS_ARE_READERS=.*$/export WRITERS_ARE_READERS='yes'/g" ${PROXY_SCHEDULER_CFG} 1<> ${PROXY_SCHEDULER_CFG}
-fi
+MYSQL_INTERFACES='0.0.0.0:3306;0.0.0.0:33062'
+CLUSTER_PORT='33062'
+# Percona scheduler
+sed "s/^writerIsAlsoReader.*=.*$/writerIsAlsoReader = 1/" ${PERCONA_SCHEDULER_CFG} | \
+sed "s/^hgW.*=.*$/hgW = 11/" | \
+# TODO: Remove below one line before merge
+sed "s/^logLevel.*=.*$/logLevel = \"debug\"/" | \
+sed "s/^hgR.*=.*$/hgR = 10/" | \
+sed "s/^clustered.*=.*false$/clustered = true/" | \
+sed "s/^failBack.*=.*false$/failBack = true/" > ${TEMP_PROXY_SCHEDULER_CFG}
+cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
+# internal scheduler
+sed "s/#export WRITERS_ARE_READERS=.*$/export WRITERS_ARE_READERS='yes'/g" ${PROXY_SCHEDULER_CFG} 1<> ${PROXY_SCHEDULER_CFG}
 
 sed "s/interfaces=\"0.0.0.0:3306\"/interfaces=\"${MYSQL_INTERFACES:-0.0.0.0:3306}\"/g" ${PROXY_CFG} 1<>${PROXY_CFG}
 sed "s/stacksize=1048576/stacksize=${MYSQL_STACKSIZE:-1048576}/g" ${PROXY_CFG} 1<>${PROXY_CFG}
@@ -63,7 +61,7 @@ set -o xtrace
 ## SSL/TLS support
 CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 if [ -f "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt" ]; then
-	CA=/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+    CA=/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
 fi
 SSL_DIR=${SSL_DIR:-/etc/proxysql/ssl}
 if [ -f "${SSL_DIR}/ca.crt" ]; then
@@ -81,8 +79,8 @@ fi
 KEY=${SSL_DIR}/tls.key
 CERT=${SSL_DIR}/tls.crt
 if [ -f "${SSL_INTERNAL_DIR}/tls.key" ] && [ -f "${SSL_INTERNAL_DIR}/tls.crt" ]; then
-	KEY=${SSL_INTERNAL_DIR}/tls.key
-	CERT=${SSL_INTERNAL_DIR}/tls.crt
+    KEY=${SSL_INTERNAL_DIR}/tls.key
+    CERT=${SSL_INTERNAL_DIR}/tls.crt
 fi
 
 if [ -f "$CA" ] && [ -f "$KEY" ] && [ -f "$CERT" ] && [ -n "$PXC_SERVICE" ]; then
@@ -100,11 +98,11 @@ if [ -f "$CA" ] && [ -f "$KEY" ] && [ -f "$CERT" ] && [ -n "$PXC_SERVICE" ]; the
 fi
 
 if [ -f "${SSL_DIR}/tls.key" ] && [ -f "${SSL_DIR}/tls.crt" ]; then
-	cp "${SSL_DIR}/tls.key" /var/lib/proxysql/proxysql-key.pem
-	cp "${SSL_DIR}/tls.crt" /var/lib/proxysql/proxysql-cert.pem
+    cp "${SSL_DIR}/tls.key" /var/lib/proxysql/proxysql-key.pem
+    cp "${SSL_DIR}/tls.crt" /var/lib/proxysql/proxysql-cert.pem
 fi
 if [ -f "${SSL_DIR}/ca.crt" ]; then
-	cp "${SSL_DIR}/ca.crt" /var/lib/proxysql/proxysql-ca.pem
+    cp "${SSL_DIR}/ca.crt" /var/lib/proxysql/proxysql-ca.pem
 fi
 
 test -e /opt/percona/hookscript/hook.sh && source /opt/percona/hookscript/hook.sh
