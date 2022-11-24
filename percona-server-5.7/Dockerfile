@@ -24,6 +24,7 @@ RUN set -ex; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     rpm -i /tmp/percona-release.rpm; \
+    percona-release enable-only ps-57 testing; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #microdnf -y module disable mysql; \
@@ -32,7 +33,7 @@ RUN set -ex; \
     rpm -i /tmp/numactl-libs.rpm; \
     rm -rf /tmp/numactl-libs.rpm
 
-ENV PS_VERSION 5.7.39-42.1
+ENV PS_VERSION 5.7.40-43.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
