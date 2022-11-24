@@ -33,6 +33,7 @@ RUN set -ex; \
     microdnf -y update; \
     microdnf -y install  \
         shadow-utils \
+        tar \
         percona-server-client-${PS_VERSION} \
         percona-toolkit-${PT_VERSION}; \
     microdnf clean all; \
