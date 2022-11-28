@@ -42,13 +42,15 @@ xbcloud get ${XBCLOUD_ARGS} "$(destination)" --parallel=10 | xbstream -x -C "${t
 set +o xtrace
 transition_key=$(vault_get "$tmp/sst_info")
 if [[ -n $transition_key && $transition_key != null ]]; then
-	if ! check_for_version "$MYSQL_VERSION" '5.7.29' \
-		&& [[ $MYSQL_VERSION != '5.7.28-31-57.2' ]]; then
-		transition_key="\$transition_key"
-	fi
-	transition_option="--transition-key=$transition_key"
-	master_key_options="--generate-new-master-key"
-	echo transition-key exists
+    MYSQL_VERSION=$(parse_ini 'mysql-version' "$tmp/sst_info")
+    if ! check_for_version "$MYSQL_VERSION" '5.7.29' &&
+        [[ $MYSQL_VERSION != '5.7.28-31-57.2' ]]; then
+         transition_key="\$transition_key"
+    fi
+
+    transition_option="--transition-key=$transition_key"
+    master_key_options="--generate-new-master-key"
+    echo transition-key exists
 fi
 
 echo "+ xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare --binlog-info=ON --rollback-prepared-trx \
