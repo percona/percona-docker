@@ -1,4 +1,4 @@
-FROM golang:1.18 AS go_builder
+FROM golang:1.19 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
 RUN export GO111MODULE=off \
@@ -72,6 +72,9 @@ RUN set -ex; \
     install -o 1001 -g 0 -m 775 -d /etc/proxysql /var/lib/proxysql; \
     rpm2cpio /tmp/percona-xtradb-cluster-server-${FULL_PERCONA_VERSION}.rpm | cpio -idv ./usr/bin/my_print_defaults; \
     rm -rf /tmp/percona-xtradb-cluster-server-${FULL_PERCONA_VERSION}.rpm
+
+# fix CVE in old pxc_scheduler_handler, operator does not use it now
+RUN rm -f /usr/bin/pxc_scheduler_handler
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/proxysql2/LICENSE /licenses/LICENSE.proxysql
