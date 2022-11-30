@@ -43,7 +43,7 @@ clean_backup_s3() {
 	mc_add_bucket_dest
 
 	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
-	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH/" || xbcloud delete ${CURL_RET_ERRORS_ARG} ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 }
 
 azure_auth_header_file() {
