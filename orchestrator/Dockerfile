@@ -29,6 +29,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
         && percona-release enable-only pdps-8.0 release
 
 RUN set -ex; \
+    microdnf update -y krb5-libs; \
     microdnf install -y \
         shadow-utils \
         percona-orchestrator \
@@ -36,7 +37,6 @@ RUN set -ex; \
         tar \
         openssl \
         procps-ng \
-        vim-minimal \
         bind-utils \
         policycoreutils; \
     \
