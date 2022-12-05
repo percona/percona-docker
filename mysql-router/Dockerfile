@@ -22,27 +22,22 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& microdnf install -y findutils \
 	&& gpg --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D \
 	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
-        && gpg --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial \
-	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial\
+	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona \
 	&& curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-        && percona-release setup pdps-8.0 \
-        && curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-11.el8.x86_64.rpm\
-        && rpmkeys --checksig /tmp/numactl-libs.rpm \
-        && rpm -i /tmp/numactl-libs.rpm \
-        && rm -rf /tmp/numactl-libs.rpm
+        && percona-release setup pdps-8.0
 
 RUN set -ex; \
     microdnf install -y \
-        percona-server-server \
         percona-mysql-router \
         percona-mysql-shell \
         which \
         tar \
         openssl \
+        vim-minimal \
         procps-ng \
         bind-utils \
         policycoreutils; \
