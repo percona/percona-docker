@@ -50,6 +50,7 @@ RUN set -ex; \
         tar \
         policycoreutils; \
     \
+    yum -y update libgcrypt; \
     dnf -y install \
         percona-server-server-${FULL_PERCONA_VERSION} \
         #percona-server-tokudb-${FULL_PERCONA_VERSION} \
