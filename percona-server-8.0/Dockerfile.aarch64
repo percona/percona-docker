@@ -3,14 +3,14 @@
 # https://github.com/docker-library/official-images:
 # No official images can be derived from, or depend on, non-official images
 # with the following notable exceptions...
-FROM oraclelinux:8
+FROM arm64v8/oraclelinux:9
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PS_VERSION 8.0.30-22.1
-ENV OS_VER el8
+ENV PS_VERSION 8.0.31-23.1
+ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
-ENV PS_REPO testing
+ENV PS_REPO experimental 
 
 # It is intentionally used another UID, to have backward compatibility with
 # the previous image versions published on Docker Hub
@@ -23,6 +23,7 @@ RUN set -ex; \
 
 # check repository package signature in secure way
 RUN set -ex; \
+    yum -y install epel-release; \
     export GNUPGHOME="$(mktemp -d)"; \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D; \
     gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
@@ -31,15 +32,15 @@ RUN set -ex; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     rpm -i /tmp/percona-release.rpm; \
+    sed -i "s|x86_64|x86_64 aarch64|" /usr/bin/percona-release; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    dnf -y module disable mysql; \
+    #dnf -y module disable mysql; \
     percona-release disable all; \
-    percona-release enable ps-80 ${PS_REPO}
+    percona-release enable ps-80 ${PS_REPO}; \
+    rm -rf /tmp/percona-*
 
 RUN set -ex; \
-    yum -y install yum-utils; \
-    yum-config-manager --enable ol8_u4_security_validation; \
     rpm -e --nodeps tzdata; \
     dnf -y install \
         hostname \
@@ -50,12 +51,10 @@ RUN set -ex; \
         tar \
         policycoreutils; \
     \
-    yum -y update libgcrypt; \
     dnf -y install \
         percona-server-server-${FULL_PERCONA_VERSION} \
-        #percona-server-tokudb-${FULL_PERCONA_VERSION} \
-        percona-server-devel-${FULL_PERCONA_VERSION} \
         percona-server-rocksdb-${FULL_PERCONA_VERSION} \
+        percona-server-devel-${FULL_PERCONA_VERSION} \
         percona-icu-data-files-${FULL_PERCONA_VERSION}; \
     dnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
