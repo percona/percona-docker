@@ -26,10 +26,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-	&& percona-release setup pdpxc-8.0.30
+	&& percona-release setup pdpxc-8.0.29
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.30-22.1.el8
+ENV PERCONA_VERSION 8.0.29-21.1.el8
 
 RUN set -ex; \
 	curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/krb5-libs-1.18.2-22.0.1.el8_7.x86_64.rpm; \
