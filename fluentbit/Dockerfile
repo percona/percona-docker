@@ -14,9 +14,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 99DB70FAE1D7CE227FB6488205B555B38483C65D \
     && gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial \
     && rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Fluent ${GNUPGHOME}/RPM-GPG-KEY-redhat-release ${GNUPGHOME}/RPM-GPG-KEY-centosofficial \
-    && gpg --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
+    && gpg --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 \
     && gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
-    && rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona \
+    && gpg --batch --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > ${GNUPGHOME}/RPM-GPG-KEY-oracle \
+    && rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-oracle \
     && microdnf install -y findutils \
     && curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
     && rpmkeys --checksig /tmp/percona-release.rpm \
@@ -36,9 +37,11 @@ RUN set -ex; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
     curl -Lf https://packages.fluentbit.io/centos/8/x86_64/fluent-bit-2.0.1-1.x86_64.rpm -o /tmp/fluent-bit.rpm; \
-    rpmkeys --checksig /tmp/procps-ng.rpm /tmp/fluent-bit.rpm; \
+    curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/krb5-libs-1.18.2-22.0.1.el8_7.x86_64.rpm; \
+    rpmkeys --checksig /tmp/procps-ng.rpm /tmp/fluent-bit.rpm /tmp/krb5-libs.rpm; \
+    rpm -U /tmp/krb5-libs.rpm; \
     rpm -i /tmp/fluent-bit.rpm /tmp/procps-ng.rpm --nodeps; \
-    rm -f /tmp/fluent-bit.rpm /tmp/procps-ng.rpm; \
+    rm -f /tmp/fluent-bit.rpm /tmp/procps-ng.rpm /tmp/krb5-libs.rpm; \
     rm -rf /var/cache 
 
 

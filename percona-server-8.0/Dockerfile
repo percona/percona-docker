@@ -38,6 +38,8 @@ RUN set -ex; \
     percona-release enable ps-80 ${PS_REPO}
 
 RUN set -ex; \
+    yum -y install yum-utils; \
+    yum-config-manager --enable ol8_u4_security_validation; \
     rpm -e --nodeps tzdata; \
     dnf -y install \
         hostname \
@@ -48,6 +50,7 @@ RUN set -ex; \
         tar \
         policycoreutils; \
     \
+    yum -y update libgcrypt; \
     dnf -y install \
         percona-server-server-${FULL_PERCONA_VERSION} \
         #percona-server-tokudb-${FULL_PERCONA_VERSION} \

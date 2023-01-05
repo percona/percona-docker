@@ -17,9 +17,10 @@ LABEL name="HAproxy" \
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
 	&& microdnf install -y findutils \
-	&& gpg --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
+	&& gpg --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 \
 	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
-	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona \
+	&& gpg --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > ${GNUPGHOME}/RPM-GPG-KEY-oracle \
+	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-oracle \
 	&& curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& rpm -i /tmp/percona-release.rpm \
@@ -31,6 +32,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 ENV PERCONA_VERSION 8.0.29-21.1.el8
 
 RUN set -ex; \
+	curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/krb5-libs-1.18.2-22.0.1.el8_7.x86_64.rpm; \
+	rpmkeys --checksig /tmp/krb5-libs.rpm; \
+	rpm -U /tmp/krb5-libs.rpm; \
+	rm -rf /tmp/krb5-libs.rpm; \
     microdnf install -y \
         shadow-utils \
         percona-haproxy \

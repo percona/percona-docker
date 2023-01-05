@@ -6,10 +6,21 @@ LABEL name="mysql-router" \
       summary="MySQL Router is lightweight middleware that provides transparent routing between your application and back-end MySQL Servers" \
       org.opencontainers.image.authors="info@percona.com"
 
+RUN set -ex; \
+    # shadow-utils are needed for user/group manipulation on UBI-based images
+    microdnf -y update; \
+    microdnf -y install glibc-langpack-en \
+        nss_wrapper \
+        shadow-utils; \
+    microdnf clean all; \
+    groupadd -g 1001 mysql; \
+    useradd -u 1001 -r -g 1001 -s /sbin/nologin \
+        -c "Default Application User" mysql
+
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
 	&& microdnf install -y findutils \
-	&& gpg --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
+	&& gpg --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D \
 	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
 	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona \
 	&& curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
@@ -21,23 +32,18 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 RUN set -ex; \
     microdnf install -y \
-        shadow-utils \
         percona-mysql-router \
         percona-mysql-shell \
         which \
         tar \
         openssl \
-        procps-ng \
         vim-minimal \
+        procps-ng \
         bind-utils \
         policycoreutils; \
     \
     microdnf clean all; \
     rm -rf /var/cache
-
-RUN groupadd -g 1001 mysql
-RUN useradd -m -u 1001 -r -g 1001 -s /sbin/nologin \
-        -c "Default Application User" mysql
 
 STOPSIGNAL SIGUSR1
 
@@ -51,4 +57,4 @@ VOLUME ["/var/lib/mysqlrouter"]
 
 USER 1001
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["mysqlrouter", "-c", "/tmp/router/mysqlrouter.conf"]
+CMD ["mysqlrouter"]
