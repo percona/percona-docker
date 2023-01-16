@@ -8,9 +8,11 @@ FROM oraclelinux:8
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PS_VERSION 8.0.30-22.1
+ENV MYSQL_SHELL_VERSION 8.0.30-2
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
-ENV PS_REPO testing
+ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
+ENV PS_REPO release
 
 # It is intentionally used another UID, to have backward compatibility with
 # the previous image versions published on Docker Hub
@@ -35,7 +37,8 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     dnf -y module disable mysql; \
     percona-release disable all; \
-    percona-release enable ps-80 ${PS_REPO}
+    percona-release enable ps-80 ${PS_REPO}; \
+    percona-release enable mysql-shell ${PS_REPO}
 
 RUN set -ex; \
     yum -y install yum-utils; \
@@ -56,7 +59,8 @@ RUN set -ex; \
         #percona-server-tokudb-${FULL_PERCONA_VERSION} \
         percona-server-devel-${FULL_PERCONA_VERSION} \
         percona-server-rocksdb-${FULL_PERCONA_VERSION} \
-        percona-icu-data-files-${FULL_PERCONA_VERSION}; \
+        percona-icu-data-files-${FULL_PERCONA_VERSION} \
+        percona-mysql-shell-${FULL_MYSQL_SHELL_VERSION}; \
     dnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
