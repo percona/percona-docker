@@ -8,8 +8,10 @@ FROM oraclelinux:8
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PS_VERSION 8.0.30-22.1
+ENV MYSQL_SHELL_VERSION 8.0.30-1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
 ENV PS_REPO release
 
 # It is intentionally used another UID, to have backward compatibility with
@@ -58,7 +60,7 @@ RUN set -ex; \
         percona-server-devel-${FULL_PERCONA_VERSION} \
         percona-server-rocksdb-${FULL_PERCONA_VERSION} \
         percona-icu-data-files-${FULL_PERCONA_VERSION} \
-        percona-mysql-shell-${FULL_PERCONA_VERSION}; \
+        percona-mysql-shell-${FULL_MYSQL_SHELL_VERSION}; \
     dnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
