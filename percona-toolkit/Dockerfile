@@ -1,7 +1,7 @@
 FROM redhat/ubi8-minimal
 
 LABEL name="Percona Toolkit" \
-	release="3.5.0" \
+	release="3.5.1" \
 	vendor="Percona" \
 	summary="Percona Toolkit is a collection of advanced command-line tools used by Percona" \
 	description="Percona Toolkit is derived from Maatkit and Aspersa, two of the best-known toolkits for MySQL server administration. It is developed and supported by Percona." \
@@ -11,7 +11,7 @@ RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
 ENV PS_VERSION 8.0.30-22.1.el8
-ENV PT_VERSION 3.5.0-5.el8
+ENV PT_VERSION 3.5.1-2.el8
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -27,7 +27,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable ps-80 release; \
-    percona-release enable tools testing
+    percona-release enable tools release
 
 RUN set -ex; \
     microdnf -y update; \
