@@ -51,7 +51,9 @@ RUN set -ex; \
         percona-server-client-${FULL_PERCONA_VERSION} \
         socat \
         procps-ng \
-        qpress; \
+        qpress \
+        lz4 \
+        zstd; \
     \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
