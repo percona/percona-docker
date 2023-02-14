@@ -53,7 +53,7 @@ RUN set -ex; \
         tar \
         policycoreutils; \
     \
-    yum -y update libgcrypt; \
+    yum -y update libgcrypt-10:1.8.5-7.el8_6_fips; \
     dnf -y install \
         percona-server-server-${FULL_PERCONA_VERSION} \
         #percona-server-tokudb-${FULL_PERCONA_VERSION} \
