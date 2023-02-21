@@ -7,6 +7,7 @@ ARG CGO_ENABLED=0
 
 ENV YQ_VERSION 3.3.4
 RUN git clone -b $YQ_VERSION https://github.com/mikefarah/yq.git .; \
+    go get -u ./...; \
     mkdir -p build/_output/bin; \
     ./scripts/devtools.sh; \
     sed -i -e 's^dev: test ^dev: ^' ./Makefile; \
