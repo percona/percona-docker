@@ -1,4 +1,4 @@
-FROM golang:1.18 AS go_builder
+FROM golang:1.19 AS go_builder
 WORKDIR /go/src/github.com/mikefarah/yq
 
 ARG GOOS=linux
@@ -7,6 +7,7 @@ ARG CGO_ENABLED=0
 
 ENV YQ_VERSION 3.3.4
 RUN git clone -b $YQ_VERSION https://github.com/mikefarah/yq.git .; \
+    go get -u ./...; \
     mkdir -p build/_output/bin; \
     ./scripts/devtools.sh; \
     sed -i -e 's^dev: test ^dev: ^' ./Makefile; \
@@ -102,7 +103,7 @@ RUN set -ex; \
     rm -rf /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
            /tmp/openssh.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm
 
-ENV PATRONI_VERSION='2.1.3-2'
+ENV PATRONI_VERSION='2.1.4-2'
 
 RUN set -ex; \
     microdnf -y install \
