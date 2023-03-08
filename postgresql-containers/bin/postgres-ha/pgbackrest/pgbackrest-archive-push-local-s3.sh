@@ -27,8 +27,14 @@ CRUNCHY_DIR=${CRUNCHY_DIR:-'/opt/crunchy'}
 # Load the pgBackRest environmental variables
 source "${CRUNCHY_DIR}/bin/postgres-ha/pgbackrest/pgbackrest-set-env.sh"
 
+pgconfig="$PGBACKREST_DB_PATH/postgresql.conf"
+if [ -f $pgconfig ]; then
+    archive_timeout=$(/usr/bin/grep 'archive_timeout' $pgconfig | /usr/bin/awk '{print $3}' | /usr/bin/tr -d "'")
+fi
+
+TIMEOUT=$((${archive_timeout:-60} * 2))
 # first try local
-pgbackrest archive-push $1
+/usr/bin/timeout $TIMEOUT pgbackrest archive-push $1
 local_exit=$?
 
 # set the repo type flag
@@ -42,7 +48,7 @@ then
 fi
 
 # then try S3
-pgbackrest archive-push ${archive_push_cmd_args[*]} $1
+/usr/bin/timeout $TIMEOUT pgbackrest archive-push ${archive_push_cmd_args[*]} $1
 s3_exit=$?
 
 # check each exit code. If one of them fail, exit with their nonzero exit code
