@@ -1,4 +1,4 @@
-![logo](https://www.percona.com/blog/wp-content/uploads/2014/05/percona_server.jpeg)
+![logo](https://www.percona.com/wp-content/uploads/2023/03/font-1.jpg)
 
 # What is Percona Server?
 
