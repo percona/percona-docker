@@ -51,8 +51,6 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache
 
-STOPSIGNAL SIGUSR1
-
 COPY dockerdir /
 
 RUN set -ex; \
