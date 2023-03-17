@@ -3,16 +3,16 @@
 # https://github.com/docker-library/official-images:
 # No official images can be derived from, or depend on, non-official images
 # with the following notable exceptions...
-FROM oraclelinux:8
+FROM oraclelinux:9
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PS_VERSION 8.0.31-23.1
-ENV MYSQL_SHELL_VERSION 8.0.31-1
-ENV OS_VER el8
+ENV PS_VERSION 8.0.32-24.1
+ENV MYSQL_SHELL_VERSION 8.0.32-1
+ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
-ENV PS_REPO release
+ENV PS_REPO testing
 
 # It is intentionally used another UID, to have backward compatibility with
 # the previous image versions published on Docker Hub
@@ -35,15 +35,17 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    dnf -y module disable mysql; \
+#    dnf -y module disable mysql; \
     percona-release disable all; \
     percona-release enable ps-80 ${PS_REPO}; \
     percona-release enable mysql-shell ${PS_REPO}
 
 RUN set -ex; \
-    yum -y install yum-utils; \
-    yum-config-manager --enable ol8_u4_security_validation; \
+    dnf -y update; \
+    dnf -y install crypto-policies-scripts; \
+    dnf -y install epel-release; \
     rpm -e --nodeps tzdata; \
+    fips-mode-setup --enable; \
     dnf -y install \
         hostname \
         tzdata \
@@ -53,7 +55,6 @@ RUN set -ex; \
         tar \
         policycoreutils; \
     \
-    yum -y update libgcrypt-10:1.8.5-7.el8_6_fips; \
     dnf -y install \
         percona-server-server-${FULL_PERCONA_VERSION} \
         #percona-server-tokudb-${FULL_PERCONA_VERSION} \
