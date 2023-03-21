@@ -4,6 +4,7 @@ set -o errexit
 
 declare -A dockerfilePaths
 pathToTests=$(dirname $0)
+old_os_versions=("jessie" "wheezy" "trusty")
 
 echo "Changed files between $@:"
 for file in $(git --no-pager diff --name-only "$@"); do
@@ -26,12 +27,26 @@ for dockerfilePath in "${!dockerfilePaths[@]}"; do
 	docker build --no-cache -t $tag $dockerfilePath
 	echo 
 
-	echo ======================================================
-	echo = Testing $tag
-	echo ======================================================
-	echo + $pathToTests/run.sh $tag
-	$pathToTests/run.sh $tag
-	echo 
+	os_used="$(grep FROM $dockerfilePath/Dockerfile | cut -d':' -f 2)"
+	echo $os_version
+	for old_os in ${old_os_versions[@]}
+		do
+			if [[ $os_used == $old_os ]]; then
+				echo ======================================================
+				echo = Tests are skipped due to an old os version
+				echo ======================================================
+				skip_tests=1
+				break
+			fi
+		done
+	if [[ $skip_tests != 1 ]]; then
+		echo ======================================================
+		echo = Testing $tag
+		echo ======================================================
+		echo + $pathToTests/run.sh $tag
+		$pathToTests/run.sh $tag
+		echo
+	fi
 done
 
 echo "Everything OK"
