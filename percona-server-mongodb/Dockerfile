@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM debian/eol:jessie
 MAINTAINER Percona Development Team <opensource-dev@percona.com>
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
                 pwgen \
         && rm -rf /var/lib/apt/lists/*
 
-RUN apt-key adv --keyserver keys.gnupg.net --recv-keys 8507EFA5
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8507EFA5
 
 RUN echo 'deb https://repo.percona.com/apt jessie main' > /etc/apt/sources.list.d/percona.list
 
@@ -15,7 +15,7 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mongodb
 
 ENV PERCONA_MAJOR 30
-ENV PERCONA_VERSION 3.0.14-1.9.jessie
+ENV PERCONA_VERSION 3.0.15-1.10.jessie
 
 
 RUN \
