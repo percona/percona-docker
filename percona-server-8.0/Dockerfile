@@ -35,17 +35,14 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-#    dnf -y module disable mysql; \
     percona-release disable all; \
     percona-release enable ps-80 ${PS_REPO}; \
     percona-release enable mysql-shell ${PS_REPO}
 
 RUN set -ex; \
-    dnf -y update; \
     dnf -y install crypto-policies-scripts; \
     dnf -y install epel-release; \
     rpm -e --nodeps tzdata; \
-    fips-mode-setup --enable; \
     dnf -y install \
         hostname \
         tzdata \
