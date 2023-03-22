@@ -25,7 +25,9 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #microdnf -y module disable mysql perl-DBD-MySQL; \
-    percona-release enable tools testing
+    percona-release enable tools testing; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
 
 RUN set -ex; \
     curl -Lf -o /tmp/libev.rpm https://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \

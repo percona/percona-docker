@@ -28,12 +28,16 @@ RUN set -ex; \
     percona-release disable all; \
     #percona-release setup -y ps-80; \
     percona-release enable ps-80 testing; \
-    percona-release enable tools testing
+    percona-release enable tools testing; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
 
 RUN set -ex; \
     microdnf -y install \
         tar \
-        shadow-utils
+        shadow-utils; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql; \
