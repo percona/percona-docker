@@ -1,4 +1,4 @@
-FROM redhat/ubi8-minimal AS ubi8
+FROM redhat/ubi9-minimal AS ubi9
 
 LABEL name="mysql-router" \
       description="MySQL Router is lightweight middleware that provides transparent routing between your application and back-end MySQL Servers" \
@@ -6,9 +6,9 @@ LABEL name="mysql-router" \
       summary="MySQL Router is lightweight middleware that provides transparent routing between your application and back-end MySQL Servers" \
       org.opencontainers.image.authors="info@percona.com"
 
-ENV ROUTE_VERSION 8.0.31-23.1
-ENV MYSQL_SHELL_VERSION 8.0.31-1
-ENV OS_VER el8
+ENV ROUTE_VERSION 8.0.32-24.1
+ENV MYSQL_SHELL_VERSION 8.0.32-1
+ENV OS_VER el9
 ENV FULL_ROUTE_VERSION "$ROUTE_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
 

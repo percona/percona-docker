@@ -1,4 +1,4 @@
-FROM golang:1.18 AS go_builder
+FROM golang:1.20 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
 RUN export GO111MODULE=off \
@@ -6,7 +6,7 @@ RUN export GO111MODULE=off \
     && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go \
     && go build peer-list.go
 
-FROM redhat/ubi8-minimal AS ubi8
+FROM redhat/ubi9-minimal AS ubi9
 
 LABEL name="HAproxy" \
       description="TCP proxy loadbalancer for Percona Xtradb Cluster" \
@@ -17,22 +17,22 @@ LABEL name="HAproxy" \
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
 	&& microdnf install -y findutils \
-	&& gpg --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 \
+	&& gpg --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F \
 	&& gpg --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona \
-	&& gpg --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > ${GNUPGHOME}/RPM-GPG-KEY-oracle \
+	&& gpg --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle \
 	&& rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-oracle \
 	&& curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
 	&& rpmkeys --checksig /tmp/percona-release.rpm \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-	&& percona-release setup pdpxc-8.0.29
+	&& percona-release setup pdpxc-8.0.31
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.29-21.1.el8
+ENV PERCONA_VERSION 8.0.31-23.1.el9
 
 RUN set -ex; \
-	curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/krb5-libs-1.18.2-22.0.1.el8_7.x86_64.rpm; \
+	curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/krb5-libs-1.19.1-24.0.1.el9_1.x86_64.rpm; \
 	rpmkeys --checksig /tmp/krb5-libs.rpm; \
 	rpm -U /tmp/krb5-libs.rpm; \
 	rm -rf /tmp/krb5-libs.rpm; \

@@ -1,4 +1,4 @@
-FROM golang:1.18 AS go_builder
+FROM golang:1.20 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-server-mysql-operator/src
 
 RUN export GO111MODULE=off \
@@ -6,7 +6,7 @@ RUN export GO111MODULE=off \
     && curl -Lf -o /go/src/github.com/percona/percona-server-mysql-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-server-mysql-operator/main/cmd/peer-list/main.go \
     && go build peer-list.go
 
-FROM redhat/ubi8-minimal AS ubi8
+FROM redhat/ubi9-minimal AS ubi9
 
 LABEL name="orchestrator" \
       description="orchestrator is a MySQL high availability and replication management tool" \
@@ -25,8 +25,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-        && percona-release setup pdps-8.0.31 \
-        && percona-release enable-only pdps-8.0.31 testing
+        && percona-release setup pdps-8.0.32 \
+        && percona-release enable-only pdps-8.0.32 release
 
 RUN set -ex; \
     microdnf install -y \

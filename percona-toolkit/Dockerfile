@@ -10,8 +10,8 @@ LABEL name="Percona Toolkit" \
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV PS_VERSION 8.0.31-23.1.el9
-ENV PT_VERSION 3.5.1-2.el9
+ENV PS_VERSION 8.0.32-24.1.el9
+ENV PT_VERSION 3.5.2-2.el9
 
 # check repository package signature in secure way
 RUN set -ex; \
