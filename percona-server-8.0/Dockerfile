@@ -40,6 +40,7 @@ RUN set -ex; \
     percona-release enable mysql-shell ${PS_REPO}
 
 RUN set -ex; \
+    dnf -y install epel-release; \
     rpm -e --nodeps tzdata; \
     dnf -y install \
         hostname \
