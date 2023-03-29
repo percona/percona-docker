@@ -7,13 +7,6 @@ FROM oraclelinux:9
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PS_VERSION 8.0.32-24.1
-ENV MYSQL_SHELL_VERSION 8.0.32-1
-ENV OS_VER el9
-ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
-ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
-ENV PS_REPO testing
-
 # It is intentionally used another UID, to have backward compatibility with
 # the previous image versions published on Docker Hub
 RUN set -ex; \
@@ -22,6 +15,13 @@ RUN set -ex; \
     groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -m -c "Default Application User" mysql
+
+ENV PS_VERSION 8.0.32-24.1
+ENV MYSQL_SHELL_VERSION 8.0.32-1
+ENV OS_VER el9
+ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
+ENV PS_REPO testing
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -40,8 +40,6 @@ RUN set -ex; \
     percona-release enable mysql-shell ${PS_REPO}
 
 RUN set -ex; \
-    dnf -y install crypto-policies-scripts; \
-    dnf -y install epel-release; \
     rpm -e --nodeps tzdata; \
     dnf -y install \
         hostname \
