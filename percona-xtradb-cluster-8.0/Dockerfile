@@ -10,8 +10,8 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.31-23.1
-ENV PXC_REPO release
+ENV PXC_VERSION 8.0.31-23.2
+ENV PXC_REPO testing
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 
@@ -116,13 +116,13 @@ RUN if [[ -n $DEBUG ]] ; then \
     sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf; \
     mv /usr/sbin/mysqld /usr/sbin/mysqld-ps; \
     cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld; \
-    percona-release enable pdpxc-8.0 release; \
+    percona-release enable pdpxc-${PXC_VERSION%-*} ${PXC_REPO}; \
     microdnf install -y \
         net-tools \
         nc \
         percona-toolkit \
         gdb; \
-    percona-release disable pdpxc-8.0 release; \
+    percona-release disable pdpxc-${PXC_VERSION%-*} ${PXC_REPO}; \
     curl -Lf -o /tmp/telnet.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
     curl -Lf -o /tmp/tcpdump.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/tcpdump-4.9.3-2.el8.x86_64.rpm; \
     curl -Lf -o /tmp/perf.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/perf-4.18.0-372.16.1.0.1.el8_6.x86_64.rpm; \
