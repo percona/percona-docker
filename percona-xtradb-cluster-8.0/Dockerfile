@@ -62,6 +62,7 @@ RUN set -ex; \
         procps-ng \
         cracklib-dicts \
         tar; \
+    microdnf update -y libksba; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
