@@ -32,10 +32,10 @@ LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high ava
 	helps enterprises avoid downtime and outages and meet expected customer experience."
 LABEL org.opencontainers.image.license="GPL"
 
-ENV PXB_VERSION 8.0.31-24.1
+ENV PXB_VERSION 8.0.32-26.1
 ENV PS_VERSION 8.0.31-23.1
 
-ENV PXC_VERSION 8.0.31-23.1
+ENV PXC_VERSION 8.0.31-23.2
 ENV PXC_REPO release
 ENV KUBECTL_VERSION=v1.21.14
 ENV KUBECTL_SHA256SUM=0c1682493c2abd7bc5fe4ddcdb0b6e5d417aa7e067994ffeca964163a988c6ee
