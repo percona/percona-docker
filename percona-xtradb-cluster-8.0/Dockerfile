@@ -11,7 +11,7 @@ FROM redhat/ubi8-minimal
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXC_VERSION 8.0.31-23.2
-ENV PXC_REPO testing
+ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 
