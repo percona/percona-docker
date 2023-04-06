@@ -54,6 +54,16 @@ dir_check_err "${PGDATANEW?}"
 # Set the postgres binary to match the NEW_VERSION
 
   case $NEW_VERSION in
+"15")
+    echo_info "Setting PGBINNEW to ${NEW_VERSION}."
+    export PGBINNEW=/usr/pgsql-15/bin
+    export LD_LIBRARY_PATH=/usr/pgsql-15/lib
+    ;;
+"14")
+    echo_info "Setting PGBINNEW to ${NEW_VERSION}."
+    export PGBINNEW=/usr/pgsql-14/bin
+    export LD_LIBRARY_PATH=/usr/pgsql-14/lib
+    ;;
 "13")
     echo_info "Setting PGBINNEW to ${NEW_VERSION}."
     export PGBINNEW=/usr/pgsql-13/bin
@@ -69,27 +79,20 @@ dir_check_err "${PGDATANEW?}"
     export PGBINNEW=/usr/pgsql-11/bin
     export LD_LIBRARY_PATH=/usr/pgsql-11/lib
     ;;
-"10")
-    echo_info "Setting PGBINNEW to ${NEW_VERSION}."
-    export PGBINNEW=/usr/pgsql-10/bin
-    export LD_LIBRARY_PATH=/usr/pgsql-10/lib
-    ;;
-"9.6")
-    echo_info "Setting PGBINNEW to ${NEW_VERSION}."
-    export PGBINNEW=/usr/pgsql-9.6/bin
-    export LD_LIBRARY_PATH=/usr/pgsql-9.6/lib
-    ;;
-"9.5")
-    echo_info "Setting PGBINNEW to ${NEW_VERSION}."
-    export PGBINNEW=/usr/pgsql-9.5/bin
-    export LD_LIBRARY_PATH=/usr/pgsql-9.5/lib
-    ;;
 *)
     echo_info "Unsupported NEW_VERSION of ${NEW_VERSION}."
     exit 2
     ;;
 esac
 case $OLD_VERSION in
+"14")
+    echo_info "Setting PGBINOLD to ${OLD_VERSION}."
+    export PGBINOLD=/usr/pgsql-14/bin
+    ;;
+"13")
+    echo_info "Setting PGBINOLD to ${OLD_VERSION}."
+    export PGBINOLD=/usr/pgsql-13/bin
+    ;;
 "12")
     echo_info "Setting PGBINOLD to ${OLD_VERSION}."
     export PGBINOLD=/usr/pgsql-12/bin
@@ -97,18 +100,6 @@ case $OLD_VERSION in
 "11")
     echo_info "Setting PGBINOLD to ${OLD_VERSION}."
     export PGBINOLD=/usr/pgsql-11/bin
-    ;;
-"10")
-    echo_info "Setting PGBINOLD to ${OLD_VERSION}."
-    export PGBINOLD=/usr/pgsql-10/bin
-    ;;
-"9.6")
-    echo_info "Setting PGBINOLD to ${OLD_VERSION}."
-    export PGBINOLD=/usr/pgsql-9.6/bin
-    ;;
-"9.5")
-    echo_info "Setting PGBINOLD to ${OLD_VERSION}."
-    export PGBINOLD=/usr/pgsql-9.5/bin
     ;;
 *)
     echo_info "Unsupported OLD_VERSION of ${OLD_VERSION}."
