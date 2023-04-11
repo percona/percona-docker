@@ -58,6 +58,7 @@ RUN set -ex; \
         curl \
         tar \
         procps-ng \
+        cyrus-sasl-gssapi \
         policycoreutils; \
     microdnf update systemd-libs; \
         \
