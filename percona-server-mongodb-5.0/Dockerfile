@@ -34,6 +34,7 @@ RUN set -ex; \
         jq \
         tar \
         oniguruma \
+        cyrus-sasl-gssapi \
         policycoreutils; \
         \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-50/yum/${PSMDB_REPO}/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
