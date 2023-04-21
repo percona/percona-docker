@@ -55,7 +55,10 @@ COPY dockerdir /
 
 RUN set -ex; \
     mkdir -p /tmp/mysqlrouter/run /var/lib/mysqlrouter ; \
-    chown -R 1001:1001 /tmp/mysqlrouter/run /var/lib/mysqlrouter
+    chown -R 1001:1001 /tmp/mysqlrouter/run /var/lib/mysqlrouter ; \
+    chmod -R 777 /var/log/mysqlrouter ; \
+    chmod -R 777 /tmp/mysqlrouter ; \
+    chmod -R 777 /etc/mysqlrouter
 
 VOLUME ["/var/lib/mysqlrouter"]
 
