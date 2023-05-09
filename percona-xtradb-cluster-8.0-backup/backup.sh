@@ -16,7 +16,6 @@ function get_backup_source() {
         | cut -d : -f 12)
 
     if [ -z "${CLUSTER_SIZE}" ]; then
-        log 'ERROR' 'Cannot get cluster size'
         exit 1
     fi
 
