@@ -1,4 +1,4 @@
-FROM golang:1.18 AS go_builder
+FROM golang:1.20 AS go_builder
 WORKDIR /go/src/github.com/mikefarah/yq
 
 ARG GOOS=linux
@@ -7,6 +7,7 @@ ARG CGO_ENABLED=0
 
 ENV YQ_VERSION 3.3.4
 RUN git clone -b $YQ_VERSION https://github.com/mikefarah/yq.git .; \
+    go get -u ./...; \
     mkdir -p build/_output/bin; \
     ./scripts/devtools.sh; \
     sed -i -e 's^dev: test ^dev: ^' ./Makefile; \
@@ -102,8 +103,6 @@ RUN set -ex; \
     rm -rf /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
            /tmp/openssh.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm
 
-ENV PATRONI_VERSION='2.1.3-2'
-
 RUN set -ex; \
     microdnf -y install \
         --enablerepo="epel" \
@@ -137,14 +136,23 @@ RUN set -ex; \
     pip install pyyaml; \
     pip install six; \
     pip install urllib3; \
-    curl -Lf -o /tmp/percona-patroni.rpm https://repo.percona.com/ppg-${PG_MAJOR//.}/yum/release/8/RPMS/x86_64/percona-patroni-${PATRONI_VERSION}.el8.x86_64.rpm; \
-    rpmkeys --checksig /tmp/percona-patroni.rpm; \
-    rpm -i --nodeps /tmp/percona-patroni.rpm; \
-    rm -rf /tmp/percona-patroni.rpm; \
-# patroni block ends
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
+ENV PATRONI_VERSION='2.1.4-2'
+
+RUN if [[ "${PG_MAJOR//.}" -le '14' ]]; then \
+        curl -Lf -o /tmp/percona-patroni.rpm https://repo.percona.com/ppg-${PG_MAJOR//.}/yum/release/8/RPMS/x86_64/percona-patroni-${PATRONI_VERSION}.el8.x86_64.rpm; \
+    else \
+        microdnf -y install \
+            --enablerepo="epel" \
+            percona-patroni; \
+    fi; \
+    rpmkeys --checksig /tmp/percona-patroni.rpm; \
+    rpm -i --nodeps /tmp/percona-patroni.rpm; \
+    rm -rf /tmp/percona-patroni.rpm; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
 
 ENV PATH="${PGROOT}/bin:${PATH}"
 

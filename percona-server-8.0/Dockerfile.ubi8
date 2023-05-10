@@ -12,7 +12,7 @@ RUN set -ex; \
     microdnf clean all; \
     groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
-        -c "Default Application User" mysql
+        -m -c "Default Application User" mysql
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -30,14 +30,17 @@ RUN set -ex; \
     #microdnf -y module disable mysql; \
     percona-release disable all; \
     percona-release enable ps-80 release; \
+    percona-release enable mysql-shell release; \
     curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/numactl-libs.rpm; \
     rpm -i /tmp/numactl-libs.rpm; \
     rm -rf /tmp/numactl-libs.rpm
 
-ENV PS_VERSION 8.0.30-22.1
+ENV PS_VERSION 8.0.31-23.1
+ENV MYSQL_SHELL_VERSION 8.0.31-1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
@@ -53,7 +56,8 @@ RUN set -ex; \
         #percona-server-tokudb-${FULL_PERCONA_VERSION} \
         percona-server-devel-${FULL_PERCONA_VERSION} \
         percona-server-rocksdb-${FULL_PERCONA_VERSION} \
-        percona-icu-data-files-${FULL_PERCONA_VERSION}; \
+        percona-icu-data-files-${FULL_PERCONA_VERSION} \
+        percona-mysql-shell-${FULL_MYSQL_SHELL_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 

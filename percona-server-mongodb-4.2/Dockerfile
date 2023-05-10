@@ -2,7 +2,7 @@ FROM oraclelinux:8
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 4.2.23-23
+ENV PSMDB_VERSION 4.2.24-24
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
@@ -34,6 +34,7 @@ RUN set -ex; \
         procps-ng \
         oniguruma \
         tar \
+        cyrus-sasl-gssapi \
         policycoreutils; \
         \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-42/yum/${PSMDB_REPO}/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \

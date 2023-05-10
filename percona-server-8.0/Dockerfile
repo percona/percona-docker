@@ -3,14 +3,9 @@
 # https://github.com/docker-library/official-images:
 # No official images can be derived from, or depend on, non-official images
 # with the following notable exceptions...
-FROM oraclelinux:8
+FROM oraclelinux:9
 
 LABEL org.opencontainers.image.authors="info@percona.com"
-
-ENV PS_VERSION 8.0.30-22.1
-ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
-ENV PS_REPO testing
 
 # It is intentionally used another UID, to have backward compatibility with
 # the previous image versions published on Docker Hub
@@ -19,7 +14,14 @@ RUN set -ex; \
     userdel systemd-coredump; \
     groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
-        -c "Default Application User" mysql
+        -m -c "Default Application User" mysql
+
+ENV PS_VERSION 8.0.32-24.1
+ENV MYSQL_SHELL_VERSION 8.0.32-1
+ENV OS_VER el9
+ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
+ENV PS_REPO testing
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -33,13 +35,12 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    dnf -y module disable mysql; \
     percona-release disable all; \
-    percona-release enable ps-80 ${PS_REPO}
+    percona-release enable ps-80 ${PS_REPO}; \
+    percona-release enable mysql-shell ${PS_REPO}
 
 RUN set -ex; \
-    yum -y install yum-utils; \
-    yum-config-manager --enable ol8_u4_security_validation; \
+    dnf -y install epel-release; \
     rpm -e --nodeps tzdata; \
     dnf -y install \
         hostname \
@@ -50,13 +51,13 @@ RUN set -ex; \
         tar \
         policycoreutils; \
     \
-    yum -y update libgcrypt; \
     dnf -y install \
         percona-server-server-${FULL_PERCONA_VERSION} \
         #percona-server-tokudb-${FULL_PERCONA_VERSION} \
         percona-server-devel-${FULL_PERCONA_VERSION} \
         percona-server-rocksdb-${FULL_PERCONA_VERSION} \
-        percona-icu-data-files-${FULL_PERCONA_VERSION}; \
+        percona-icu-data-files-${FULL_PERCONA_VERSION} \
+        percona-mysql-shell-${FULL_MYSQL_SHELL_VERSION}; \
     dnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 

@@ -8,8 +8,8 @@ RUN go build
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
 RUN go build
 
-ENV MC_VERSION=RELEASE.2022-10-29T10-09-23Z 
-ENV MC_SHA256SUM=0753e5edd0de0ce82fac495af59b2c2e34ba1ce41fd0ef5ef32f568f3379616b
+ENV MC_VERSION=RELEASE.2023-02-28T00-12-59Z
+ENV MC_SHA256SUM=d07cee8ecb085f3e1d932b054bed6998e89b640821aaae480a7f09f3b56d6d48
 RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
 	&& chmod +x /go/bin/mc \
 	&& echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
@@ -32,10 +32,10 @@ LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high ava
 	helps enterprises avoid downtime and outages and meet expected customer experience."
 LABEL org.opencontainers.image.license="GPL"
 
-ENV PXB_VERSION 8.0.30-23.1
-ENV PS_VERSION 8.0.30-22.1
+ENV PXB_VERSION 8.0.32-26.1
+ENV PS_VERSION 8.0.31-23.1
 
-ENV PXC_VERSION 8.0.29-21.1
+ENV PXC_VERSION 8.0.31-23.2
 ENV PXC_REPO release
 ENV KUBECTL_VERSION=v1.21.14
 ENV KUBECTL_SHA256SUM=0c1682493c2abd7bc5fe4ddcdb0b6e5d417aa7e067994ffeca964163a988c6ee

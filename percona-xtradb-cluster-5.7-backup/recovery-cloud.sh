@@ -21,8 +21,12 @@ if [ -n "$S3_BUCKET_URL" ]; then
 	mc ${MC_ARGS} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
 	set -x
 	mc ${MC_ARGS} ls "dest/${S3_BUCKET_URL}"
-elif [ -n "${AZURE_CONTAINER_NAME}" ]; then
+elif [ -n "${BACKUP_PATH}" ]; then
 	XBCLOUD_ARGS="${XBCLOUD_ARGS} --storage=azure"
+fi
+
+if [ -n "${AZURE_CONTAINER_NAME}" ]; then
+    XBCLOUD_ARGS="${XBCLOUD_ARGS} --azure-container-name=${AZURE_CONTAINER_NAME}"
 fi
 
 rm -rf /datadir/*
@@ -31,7 +35,7 @@ tmp=$(mktemp --directory /datadir/pxc_sst_XXXX)
 destination() {
 	if [ -n "${S3_BUCKET_URL}" ]; then
 		echo -n "s3://${S3_BUCKET_URL}"
-	elif [ -n "${AZURE_CONTAINER_NAME}" ]; then
+	elif [ -n "${BACKUP_PATH}" ]; then
 		echo -n "${BACKUP_PATH}"
 	fi
 }

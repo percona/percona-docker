@@ -18,23 +18,28 @@ Images are updated when new releases are published.
 
 Start a Percona Distribution for PostgreSQL container as follows:
 
-    docker run --name container-name -e POSTGRESQL-PASSWORD=secret -d perconalab/percona-distribution-postgresql:tag
+    docker run --name container-name -e POSTGRES_PASSWORD=secret -d perconalab/percona-distribution-postgresql:tag
 
 Where `container-name` is the name you want to assign to your container and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/perconalab/percona-distribution-postgresql/tags/).
 
 ## Connect to Percona Distribution for PostgreSQL from an Application in Another Docker Container
 
-This image exposes the standard PostgreSQL port (5432), so container linking makes the instance available to other containers. Start other containers like this in order to link it to the Percona Distribution for PostgreSQL container:
+This image exposes the standard PostgreSQL port (5432), so container linking makes the instance available to other containers. 
 
-    docker run --name app-container-name --link container-name -d app-that-uses-postgresql
+Start other containers like this in order to link it to the Percona Distribution for PostgreSQL container:
+
+    docker run --rm -it --name app-container-name --network container:container-name -d app-that-uses-postgresql 
+
+where `app-container-name` is the name of the container where your application is running, `container name` is the name of your Percona Distribution for PostgreSQL container and `app-that-uses-postgresql` is the name of your PostgreSQL client.
 
 ## Connect to Percona Distribution for PostgreSQL from the PSQL Command Line Client
 
 The following command starts another container instance and runs the `psql` command line client against your original container, allowing you to execute SQL statements against your database:
 
-    docker run -it --link container-name --rm perconalab/percona-distribution-postgresql:tag psql -h container-name -U user-name
+    docker run -it --network container:container-name --rm perconalab/percona-distribution-postgresql:tag psql -h container-name -U user-name
 
 where `container-name` is the name of your database container.
+
 
 
 # Notes, Tips, Gotchas

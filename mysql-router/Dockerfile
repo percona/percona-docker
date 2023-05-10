@@ -1,10 +1,16 @@
-FROM redhat/ubi8-minimal AS ubi8
+FROM redhat/ubi9-minimal AS ubi9
 
 LABEL name="mysql-router" \
       description="MySQL Router is lightweight middleware that provides transparent routing between your application and back-end MySQL Servers" \
       vendor="Percona" \
       summary="MySQL Router is lightweight middleware that provides transparent routing between your application and back-end MySQL Servers" \
       org.opencontainers.image.authors="info@percona.com"
+
+ENV ROUTE_VERSION 8.0.32-24.1
+ENV MYSQL_SHELL_VERSION 8.0.32-1
+ENV OS_VER el9
+ENV FULL_ROUTE_VERSION "$ROUTE_VERSION.$OS_VER"
+ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
 
 RUN set -ex; \
     # shadow-utils are needed for user/group manipulation on UBI-based images
@@ -15,7 +21,7 @@ RUN set -ex; \
     microdnf clean all; \
     groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
-        -c "Default Application User" mysql
+        -m -c "Default Application User" mysql
 
 # check repository package signature in secure way
 RUN export GNUPGHOME="$(mktemp -d)" \
@@ -32,8 +38,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 RUN set -ex; \
     microdnf install -y \
-        percona-mysql-router \
-        percona-mysql-shell \
+        percona-mysql-router-${FULL_ROUTE_VERSION} \
+        percona-mysql-shell-${FULL_MYSQL_SHELL_VERSION} \
         which \
         tar \
         openssl \
@@ -45,13 +51,14 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache
 
-STOPSIGNAL SIGUSR1
-
 COPY dockerdir /
 
 RUN set -ex; \
     mkdir -p /tmp/mysqlrouter/run /var/lib/mysqlrouter ; \
-    chown -R 1001:1001 /tmp/mysqlrouter/run /var/lib/mysqlrouter
+    chown -R 1001:1001 /tmp/mysqlrouter/run /var/lib/mysqlrouter ; \
+    chmod -R 777 /var/log/mysqlrouter ; \
+    chmod -R 777 /tmp/mysqlrouter ; \
+    chmod -R 777 /etc/mysqlrouter
 
 VOLUME ["/var/lib/mysqlrouter"]
 
