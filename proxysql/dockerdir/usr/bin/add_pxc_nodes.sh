@@ -75,27 +75,24 @@ function main() {
         fi
         set -o errexit
 
-        lock=$(proxysql_admin_exec "127.0.0.1" "SELECT comment FROM runtime_proxysql_servers WHERE hostname LIKE '$HOSTNAME.%'")
-        if [ "${lock}" == "" ]; then
-            echo "I don't have the lock. Do nothing."
-            exit 0
-        fi
-
-# TODO: Remove --debug from three below lines before merge
         if [ "$(proxysql_admin_exec "127.0.0.1" 'SELECT count(*) FROM mysql_servers')" -eq 0 ]; then
             percona-scheduler-admin \
                 --config-file=/etc/config.toml \
                 --write-node="$pod_zero.$service:3306" \
                 --enable \
-                --debug \
                 --force
         else
+            lock=$(proxysql_admin_exec "127.0.0.1" "SELECT comment FROM runtime_proxysql_servers WHERE hostname LIKE '$HOSTNAME.%'")
+            if [ "${lock}" == "" ]; then
+                echo "I don't have the lock. Do nothing."
+                exit 0
+            fi
+
             percona-scheduler-admin \
                 --config-file=/etc/config.toml \
                 --write-node="$pod_zero.$service:3306" \
                 --update-cluster \
                 --remove-all-servers \
-                --debug \
                 --force
         fi
 
@@ -104,7 +101,6 @@ function main() {
             --write-node="$pod_zero.$service:3306" \
             --sync-multi-cluster-users \
             --add-query-rule \
-            --debug \
             --force
 
         percona-scheduler-admin \

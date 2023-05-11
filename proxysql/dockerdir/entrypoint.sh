@@ -14,8 +14,6 @@ CLUSTER_PORT='33062'
 # Percona scheduler
 sed "s/^writerIsAlsoReader.*=.*$/writerIsAlsoReader = 1/" ${PERCONA_SCHEDULER_CFG} | \
 sed "s/^hgW.*=.*$/hgW = 11/" | \
-# TODO: Remove below one line before merge
-sed "s/^logLevel.*=.*$/logLevel = \"debug\"/" | \
 sed "s/^hgR.*=.*$/hgR = 10/" | \
 sed "s/^clustered.*=.*false$/clustered = true/" | \
 sed "s/^failBack.*=.*false$/failBack = true/" > ${TEMP_PROXY_SCHEDULER_CFG}
