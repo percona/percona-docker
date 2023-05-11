@@ -75,6 +75,12 @@ function main() {
         fi
         set -o errexit
 
+        lock=$(proxysql_admin_exec "127.0.0.1" "SELECT comment FROM runtime_proxysql_servers WHERE hostname LIKE '$HOSTNAME.%'")
+        if [ "${lock}" == "" ]; then
+            echo "I don't have the lock. Do nothing."
+            exit 0
+        fi
+
 # TODO: Remove --debug from three below lines before merge
         if [ "$(proxysql_admin_exec "127.0.0.1" 'SELECT count(*) FROM mysql_servers')" -eq 0 ]; then
             percona-scheduler-admin \
