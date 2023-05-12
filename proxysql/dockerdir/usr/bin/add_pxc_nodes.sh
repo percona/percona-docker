@@ -39,6 +39,14 @@ function wait_for_proxy() {
     done
 }
 
+function exit_if_no_lock() {
+    lock=$(proxysql_admin_exec "127.0.0.1" "SELECT comment FROM runtime_proxysql_servers WHERE hostname LIKE '$HOSTNAME.%'")
+    if [ "${lock}" == "" ]; then
+        echo "I don't have the lock. Do nothing."
+        exit 0
+    fi
+}
+
 function main() {
     echo "Running $0"
 
@@ -82,11 +90,7 @@ function main() {
                 --enable \
                 --force
         else
-            lock=$(proxysql_admin_exec "127.0.0.1" "SELECT comment FROM runtime_proxysql_servers WHERE hostname LIKE '$HOSTNAME.%'")
-            if [ "${lock}" == "" ]; then
-                echo "I don't have the lock. Do nothing."
-                exit 0
-            fi
+            exit_if_no_lock
 
             percona-scheduler-admin \
                 --config-file=/etc/config.toml \
@@ -95,6 +99,8 @@ function main() {
                 --remove-all-servers \
                 --force
         fi
+
+        exit_if_no_lock
 
         percona-scheduler-admin \
             --config-file=/etc/config.toml \
