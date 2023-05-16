@@ -25,11 +25,9 @@ jobs:
           sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
 
       - name: Run Trivy vulnerability scanner on dev-latest
-        if: steps.check_image.outcome == 'success'
         run: |
           trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress perconalab/pmm-server:dev-latest
 
       - name: Run Trivy vulnerability scanner on dev-latest-el9
-        if: steps.check_image.outcome == 'success'
         run: |
           trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress perconalab/pmm-server:dev-latest-el9
