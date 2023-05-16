@@ -1,4 +1,5 @@
-name: Trivy Scan Pmm dev-latest Image
+
+name: Trivy Scan Docker Image
 
 on:
   push:
@@ -23,6 +24,18 @@ jobs:
           wget https://github.com/aquasecurity/trivy/releases/download/v0.41.0/trivy_0.41.0_Linux-64bit.deb
           sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
 
-      - name: Run Trivy vulnerability scanner
+      - name: Check if Docker images exist
+        id: check_image
         run: |
-          trivy image --severity HIGH,CRITICAL --no-progress perconalab/pmm-server:dev-latest
+          docker pull perconalab/pmm-server:dev-latest
+          docker pull perconalab/pmm-server:dev-latest-el9
+
+      - name: Run Trivy vulnerability scanner on dev-latest
+        if: steps.check_image.outcome == 'success'
+        run: |
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress perconalab/pmm-server:dev-latest
+
+      - name: Run Trivy vulnerability scanner on dev-latest-el9
+        if: steps.check_image.outcome == 'success'
+        run: |
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress perconalab/pmm-server:dev-latest-el9
