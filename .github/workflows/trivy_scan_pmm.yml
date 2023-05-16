@@ -1,0 +1,33 @@
+
+name: Trivy Scan Docker Image
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * *' # This will run the scan daily at midnight.
+
+jobs:
+  trivy_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Install Trivy
+        run: |
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.41.0/trivy_0.41.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
+
+      - name: Run Trivy vulnerability scanner on dev-latest
+        run: |
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress perconalab/pmm-server:dev-latest
+
+      - name: Run Trivy vulnerability scanner on dev-latest-el9
+        run: |
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress perconalab/pmm-server:dev-latest-el9
