@@ -24,12 +24,6 @@ jobs:
           wget https://github.com/aquasecurity/trivy/releases/download/v0.41.0/trivy_0.41.0_Linux-64bit.deb
           sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
 
-      - name: Check if Docker images exist
-        id: check_image
-        run: |
-          docker pull perconalab/pmm-server:dev-latest
-          docker pull perconalab/pmm-server:dev-latest-el9
-
       - name: Run Trivy vulnerability scanner on dev-latest
         if: steps.check_image.outcome == 'success'
         run: |
