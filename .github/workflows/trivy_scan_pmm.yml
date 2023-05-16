@@ -1,5 +1,5 @@
 
-name: Trivy Scan Docker Image
+name: Trivy Scan Docker PMM-SERVER:dev-latest
 
 on:
   push:
