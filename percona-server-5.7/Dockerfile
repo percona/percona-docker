@@ -33,7 +33,7 @@ RUN set -ex; \
     rpm -i /tmp/numactl-libs.rpm; \
     rm -rf /tmp/numactl-libs.rpm
 
-ENV PS_VERSION 5.7.40-43.1
+ENV PS_VERSION 5.7.42-45.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
