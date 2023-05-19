@@ -30,10 +30,10 @@ OPERATOR_PASSWORD_ESCAPED=$(sed 's/[][\-\!\#\$\%\&\(\)\*\+\,\.\:\;\<\=\>\?\@\^\_
 MONITOR_PASSWORD_ESCAPED=$(sed 's/[][\-\!\#\$\%\&\(\)\*\+\,\.\:\;\<\=\>\?\@\^\_\~\{\}]/\\&/g' <<<"${MONITOR_PASSWORD}")
 PROXY_ADMIN_PASSWORD_ESCAPED=$(sed 's/[][\-\!\#\$\%\&\(\)\*\+\,\.\:\;\<\=\>\?\@\^\_\~\{\}]/\\&/g' <<<"${PROXY_ADMIN_PASSWORD}")
 
-sed "s/\"admin:admin\"/\"${PROXY_ADMIN_USER:-admin}:${PROXY_ADMIN_PASSWORD:-admin}\"/g"  ${PROXY_CFG} 1<> ${PROXY_CFG}
+sed "s/\"admin:admin\"/\"${PROXY_ADMIN_USER:-admin}:${PROXY_ADMIN_PASSWORD_ESCAPED:-admin}\"/g"  ${PROXY_CFG} 1<> ${PROXY_CFG}
 sed "s/cluster_username=\"admin\"/cluster_username=\"${PROXY_ADMIN_USER:-admin}\"/g"     ${PROXY_CFG} 1<> ${PROXY_CFG}
-sed "s/cluster_password=\"admin\"/cluster_password=\"${PROXY_ADMIN_PASSWORD:-admin}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
-sed "s/monitor_password=\"monitor\"/monitor_password=\"${MONITOR_PASSWORD:-monitor}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
+sed "s/cluster_password=\"admin\"/cluster_password=\"${PROXY_ADMIN_PASSWORD_ESCAPED:-admin}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
+sed "s/monitor_password=\"monitor\"/monitor_password=\"${MONITOR_PASSWORD_ESCAPED:-monitor}\"/g" ${PROXY_CFG} 1<> ${PROXY_CFG}
 
 # Percona scheduler
 sed "s/^host.*=.*\"$/host = '$(hostname -f)'/" ${PERCONA_SCHEDULER_CFG} | \
