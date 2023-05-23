@@ -39,6 +39,14 @@ function wait_for_proxy() {
     done
 }
 
+function exit_if_no_lock() {
+    lock=$(proxysql_admin_exec "127.0.0.1" "SELECT comment FROM runtime_proxysql_servers WHERE hostname LIKE '$HOSTNAME.%'")
+    if [ "${lock}" == "" ]; then
+        echo "I don't have the lock. Do nothing."
+        exit 0
+    fi
+}
+
 function main() {
     echo "Running $0"
 
@@ -55,35 +63,86 @@ function main() {
     wait_for_proxy
 
     SSL_ARG=""
+    temp=$(mktemp)
     if [ "$(proxysql_admin_exec "127.0.0.1" 'SELECT variable_value FROM global_variables WHERE variable_name="mysql-have_ssl"')" = "true" ]; then
-        SSL_ARG="--use-ssl=yes"
+        if [ "${PXC_HANDLER}" == "scheduler" ]; then
+            sed "s/^useSSL.*=.*$/useSSL=1/" /etc/config.toml > ${temp} && cp -f ${temp} /etc/config.toml
+        else
+            SSL_ARG="--use-ssl=yes"
+        fi
     fi
 
-    sed "s/WRITE_NODE=.*/WRITE_NODE='$pod_zero.$service:3306'/g" /etc/proxysql-admin.cnf 1<> /etc/proxysql-admin.cnf
+    if [ "${PXC_HANDLER}" == "scheduler" ]; then
+        sed "s/^clusterHost.*=.*\"$/clusterHost=\"$first_host\"/" /etc/config.toml > ${temp} && cp -f ${temp} /etc/config.toml
+        rm ${temp}
 
-    proxysql-admin \
-        --config-file=/etc/proxysql-admin.cnf \
-        --cluster-hostname="$first_host" \
-        --enable \
-        --update-cluster \
-        --force \
-        --remove-all-servers \
-        --disable-updates \
-        --force \
-        $SSL_ARG
+        set +o errexit
+        if proxysql-admin --config-file=/etc/proxysql-admin.cnf --is-enabled >/dev/null 2>&1; then
+            echo "Cleaning setup from proxysql-admin..."
+            proxysql-admin --config-file=/etc/proxysql-admin.cnf --disable
+        fi
+        set -o errexit
 
-    proxysql-admin \
-        --config-file=/etc/proxysql-admin.cnf \
-        --cluster-hostname="$first_host" \
-        --sync-multi-cluster-users \
-        --add-query-rule \
-        --disable-updates \
-        --force 
+        if [ "$(proxysql_admin_exec "127.0.0.1" 'SELECT count(*) FROM mysql_servers')" -eq 0 ]; then
+            percona-scheduler-admin \
+                --config-file=/etc/config.toml \
+                --write-node="$pod_zero.$service:3306" \
+                --enable \
+                --force
+        else
+            exit_if_no_lock
 
-    proxysql-admin \
-        --config-file=/etc/proxysql-admin.cnf \
-        --cluster-hostname="$first_host" \
-        --update-mysql-version
+            percona-scheduler-admin \
+                --config-file=/etc/config.toml \
+                --write-node="$pod_zero.$service:3306" \
+                --update-cluster \
+                --remove-all-servers \
+                --force
+        fi
+
+        exit_if_no_lock
+
+        percona-scheduler-admin \
+            --config-file=/etc/config.toml \
+            --write-node="$pod_zero.$service:3306" \
+            --sync-multi-cluster-users \
+            --add-query-rule \
+            --force
+
+        percona-scheduler-admin \
+            --config-file=/etc/config.toml \
+            --update-mysql-version
+    else
+        set +o errexit
+        if percona-scheduler-admin --config-file=/etc/config.toml --is-enabled >/dev/null 2>&1; then
+            echo "Cleaning setup from percona-scheduler-admin..."
+            percona-scheduler-admin --config-file=/etc/config.toml --disable
+        fi
+        set -o errexit
+
+        proxysql-admin \
+            --config-file=/etc/proxysql-admin.cnf \
+            --cluster-hostname="$first_host" \
+            --enable \
+            --update-cluster \
+            --force \
+            --remove-all-servers \
+            --disable-updates \
+            $SSL_ARG
+
+        proxysql-admin \
+            --config-file=/etc/proxysql-admin.cnf \
+            --cluster-hostname="$first_host" \
+            --sync-multi-cluster-users \
+            --add-query-rule \
+            --disable-updates \
+            --force
+
+        proxysql-admin \
+            --config-file=/etc/proxysql-admin.cnf \
+            --cluster-hostname="$first_host" \
+            --update-mysql-version
+    fi
 
     echo "All done!"
 }

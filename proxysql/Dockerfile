@@ -11,7 +11,7 @@ FROM redhat/ubi8-minimal
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXC_VERSION 8.0.30-22.1
-ENV PROXYSQL_VERSION 2.4.8-1.1
+ENV PROXYSQL_VERSION 2.5.1-1.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
 ENV FULL_PROXYSQL_VERSION "$PROXYSQL_VERSION.$OS_VER"
@@ -81,8 +81,8 @@ RUN cp /usr/share/doc/proxysql2/LICENSE /licenses/LICENSE.proxysql
 
 COPY dockerdir /
 COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
-RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf; \
-    chmod 664 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf
+RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf /etc/config.toml; \
+    chmod 664 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf /etc/config.toml
 
 USER 1001
 
