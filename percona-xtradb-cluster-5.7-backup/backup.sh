@@ -70,7 +70,7 @@ check_ssl() {
 }
 
 request_streaming() {
-	local LOCAL_IP=$(hostname -i)
+	local LOCAL_IP=$(hostname -i | sed -E 's/.*\b([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\b.*/\1/')
 	local NODE_NAME=$(get_backup_source)
 
 	if [ -z "$NODE_NAME" ]; then
