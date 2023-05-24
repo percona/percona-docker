@@ -32,10 +32,6 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 ENV PERCONA_VERSION 8.0.32-24.1.el9
 
 RUN set -ex; \
-	curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/krb5-libs-1.19.1-24.0.1.el9_1.x86_64.rpm; \
-	rpmkeys --checksig /tmp/krb5-libs.rpm; \
-	rpm -U /tmp/krb5-libs.rpm; \
-	rm -rf /tmp/krb5-libs.rpm; \
     microdnf install -y \
         shadow-utils \
         percona-haproxy \
