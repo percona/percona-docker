@@ -98,6 +98,8 @@ function main() {
                 --update-cluster \
                 --remove-all-servers \
                 --force
+
+            proxysql_admin_exec "127.0.0.1" 'LOAD MYSQL SERVERS TO RUNTIME;'
         fi
 
         exit_if_no_lock
