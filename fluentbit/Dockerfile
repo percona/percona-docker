@@ -24,10 +24,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && rpm -i /tmp/percona-release.rpm \
     && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
     && rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-    && percona-release setup pdpxc-8.0.29
+    && percona-release setup pdpxc-8.0.32
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.29-21.1.el8
+ENV PERCONA_VERSION 8.0.32-24.1.el8
 
 # fluentbit does not have el8 repo and the doc suggests installing el7 rpm
 RUN set -ex; \
@@ -36,7 +36,7 @@ RUN set -ex; \
     curl -Lf -o /tmp/procps-ng.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/procps-ng-3.3.15-6.el8.x86_64.rpm; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
-    curl -Lf https://packages.fluentbit.io/centos/8/x86_64/fluent-bit-2.0.1-1.x86_64.rpm -o /tmp/fluent-bit.rpm; \
+    curl -Lf https://packages.fluentbit.io/centos/8/x86_64/fluent-bit-2.1.4-1.x86_64.rpm -o /tmp/fluent-bit.rpm; \
     curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/krb5-libs-1.18.2-22.0.1.el8_7.x86_64.rpm; \
     rpmkeys --checksig /tmp/procps-ng.rpm /tmp/fluent-bit.rpm /tmp/krb5-libs.rpm; \
     rpm -U /tmp/krb5-libs.rpm; \
