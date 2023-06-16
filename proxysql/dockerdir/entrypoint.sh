@@ -16,6 +16,8 @@ sed "s/^writerIsAlsoReader.*=.*$/writerIsAlsoReader = 1/" ${PERCONA_SCHEDULER_CF
 sed "s/^hgW.*=.*$/hgW = 11/" | \
 sed "s/^hgR.*=.*$/hgR = 10/" | \
 sed "s/^clustered.*=.*false$/clustered = true/" | \
+sed 's/logLevel = "info"/logLevel = "debug"/g'  | \
+sed '/lockClusterTimeout/a lockrefreshtime=450'  | \
 sed "s/^failBack.*=.*false$/failBack = true/" > ${TEMP_PROXY_SCHEDULER_CFG}
 cp -f ${TEMP_PROXY_SCHEDULER_CFG} ${PERCONA_SCHEDULER_CFG}
 # internal scheduler

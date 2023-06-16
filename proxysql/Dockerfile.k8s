@@ -6,6 +6,19 @@ RUN export GO111MODULE=off \
     && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go \
     && go build peer-list.go
 
+FROM golang:1.19 AS go_builder_pxc_scheduler
+
+RUN git clone --branch=FR-72-Shunned https://github.com/percona/pxc_scheduler_handler.git /go/src/github.com/percona/pxc_scheduler_handler/
+
+WORKDIR /go/src/github.com/percona/pxc_scheduler_handler
+
+RUN go get github.com/Tusamarco/toml \
+    && go get github.com/go-sql-driver/mysql \
+    && go get github.com/sirupsen/logrus \
+    && go get golang.org/x/text/language \
+    && go get golang.org/x/text/message \
+    && go build -o pxc_scheduler_handler .
+
 FROM redhat/ubi8-minimal AS ubi8
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
@@ -97,6 +110,10 @@ RUN cp /usr/share/doc/proxysql2/LICENSE /licenses/LICENSE.proxysql
 
 COPY dockerdir /
 COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
+
+RUN rm -rf /usr/bin/pxc_scheduler_handler
+COPY --from=go_builder_pxc_scheduler /go/src/github.com/percona/pxc_scheduler_handler/pxc_scheduler_handler /usr/bin/
+
 RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf /etc/config.toml; \
     chmod 664 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf /etc/config.toml
 
