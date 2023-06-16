@@ -1,4 +1,4 @@
-FROM golang:1.19 AS go_builder
+FROM golang:1.20 AS go_builder
 
 RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
 
@@ -8,8 +8,8 @@ RUN go build
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
 RUN go build
 
-ENV MC_VERSION=RELEASE.2023-03-23T20-03-04Z
-ENV MC_SHA256SUM=5de4aec1fc6c6608723a1d6da988350c876d5eb14538000ccb4d3a226199ab89
+ENV MC_VERSION=RELEASE.2023-06-15T15-08-26Z
+ENV MC_SHA256SUM=f9d0cd9fe80306b251d40f967435b14b75bd151af055d1efc9bfc20c6dcce65d
 RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
 	&& chmod +x /go/bin/mc \
 	&& echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
@@ -33,9 +33,9 @@ LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high ava
 LABEL org.opencontainers.image.license="GPL"
 
 ENV PXB_VERSION 2.4.28-1
-ENV PXC_VERSION 5.7.41-31.65.1
-ENV KUBECTL_VERSION=v1.21.14
-ENV KUBECTL_SHA256SUM=0c1682493c2abd7bc5fe4ddcdb0b6e5d417aa7e067994ffeca964163a988c6ee
+ENV PXC_VERSION 5.7.42-31.65.1
+ENV KUBECTL_VERSION=v1.24.14
+ENV KUBECTL_SHA256SUM=cb37928205142cfdf595d94499835b7279585960e30ae6c5c45e20296c5a6497bb5f92f736023763f226c0909fcb7aa8e6e0caebbcdfe8b08b2d6816d19059f2
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
@@ -61,19 +61,13 @@ RUN set -ex; \
 	percona-release enable pxc-57 release
 
 RUN set -ex; \
-	curl -Lf -o /tmp/numactl-libs.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/libev.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
-	curl -Lf -o /tmp/jq.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
-	curl -Lf -o /tmp/oniguruma.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
 	curl -Lf -o /tmp/compat-openssl.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/compat-openssl10-1.0.2o-3.el8.x86_64.rpm; \
-	curl -Lf -o /tmp/socat.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/socat-1.7.4.1-1.el8.x86_64.rpm; \
-	curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/krb5-libs-1.18.2-22.0.1.el8_7.x86_64.rpm; \
-	rpmkeys --checksig /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm /tmp/krb5-libs.rpm; \
-	rpm -U /tmp/krb5-libs.rpm; \
+	rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm; \
 	rpm -i /tmp/compat-openssl.rpm --nodeps; \
-	rpm -i /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
-	rm -rf /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm /tmp/krb5-libs.rpm
+	rpm -i /tmp/libev.rpm /tmp/pv.rpm; \
+	rm -rf /tmp/libev.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm
 
 RUN set -ex; \
 	microdnf install -y \
@@ -82,6 +76,11 @@ RUN set -ex; \
 	findutils \
 	diffutils \
 	openssl \
+	numactl-libs \
+	jq \
+	socat \
+	iputils \
+	procps-ng \
 	util-linux \
 	procps-ng \
 	qpress \
@@ -101,10 +100,9 @@ RUN set -ex; \
 	curl -Lf -o /tmp/Percona-XtraDB-Cluster-garbd-57.rpm https://repo.percona.com/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-garbd-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
 	curl -Lf -o /tmp/Percona-XtraDB-Cluster-client-57.rpm https://repo.percona.com/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-client-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
 	curl -Lf -o /tmp/percona-xtrabackup-24.rpm http://repo.percona.com/percona/yum/release/8/RPMS/x86_64/percona-xtrabackup-24-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
-	curl -Lf -o /tmp/iputils.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/iputils-20180629-7.el8.x86_64.rpm; \
-	rpm --checksig /tmp/iputils.rpm /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm; \
-	rpm -iv /tmp/iputils.rpm /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm --nodeps; \
-	rm -rf /tmp/iputils.rpm /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm; \
+	rpm --checksig /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm; \
+	rpm -iv /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm --nodeps; \
+	rm -rf /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm; \
 	rpm -ql Percona-XtraDB-Cluster-client-57 | egrep -v "mysql$|mysqldump$|mysqlbinlog$" | xargs rm -rf; \
 	microdnf clean all; \
 	rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
