@@ -1,4 +1,4 @@
-FROM golang:1.20 AS go_builder
+FROM golang:1.19 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
 RUN export GO111MODULE=off; \
@@ -10,7 +10,7 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.32-24.1
+ENV PXC_VERSION 8.0.32-24.2
 ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"

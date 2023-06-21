@@ -16,7 +16,7 @@ RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/arch
 	&& curl -o /go/bin/LICENSE.mc \
 	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
 
-FROM redhat/ubi8-minimal
+FROM redhat/ubi9-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona XtraBackup" \
@@ -35,8 +35,8 @@ LABEL org.opencontainers.image.license="GPL"
 ENV PXB_VERSION 2.4.28-1
 ENV PXC_VERSION 5.7.42-31.65.1
 ENV KUBECTL_VERSION=v1.24.14
-ENV KUBECTL_SHA256SUM=cb37928205142cfdf595d94499835b7279585960e30ae6c5c45e20296c5a6497bb5f92f736023763f226c0909fcb7aa8e6e0caebbcdfe8b08b2d6816d19059f2
-ENV OS_VER el8
+ENV KUBECTL_SHA512SUM=3ec6e321be772291cc6396bd10079f66ac6e690d776108fe2f24724ed51a0557a764228c45aa597a991733c04d052179b220ce8cdedc70c2783621a8925d1945
+ENV OS_VER el9
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 LABEL org.label-schema.schema-version=${PXC_VERSION}
@@ -45,12 +45,10 @@ LABEL org.opencontainers.image.version=${PXC_VERSION}
 # check repository package signature in secure way
 RUN set -ex; \
 	export GNUPGHOME="$(mktemp -d)"; \
-	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
+	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F; \
 	gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
-	gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-	gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
-	gpg --batch --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-	rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8 ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+	gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+	rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona  ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
 	microdnf install -y findutils; \
 	curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
 	rpmkeys --checksig /tmp/percona-release.rpm; \
@@ -61,13 +59,11 @@ RUN set -ex; \
 	percona-release enable pxc-57 release
 
 RUN set -ex; \
-	curl -Lf -o /tmp/libev.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
-	curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
-	curl -Lf -o /tmp/compat-openssl.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/compat-openssl10-1.0.2o-3.el8.x86_64.rpm; \
-	rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm; \
-	rpm -i /tmp/compat-openssl.rpm --nodeps; \
+	curl -Lf -o /tmp/libev.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/libev-4.33-5.el9.x86_64.rpm; \
+	curl -Lf -o /tmp/pv.rpm https://yum.oracle.com/repo/OracleLinux/OL9/developer/EPEL/x86_64/getPackage/pv-1.6.20-1.el9.x86_64.rpm; \
+	rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm; \
 	rpm -i /tmp/libev.rpm /tmp/pv.rpm; \
-	rm -rf /tmp/libev.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm
+	rm -rf /tmp/libev.rpm /tmp/pv.rpm
 
 RUN set -ex; \
 	microdnf install -y \
@@ -97,9 +93,9 @@ RUN groupadd -g 1001 mysql; \
 
 # we need licenses from docs
 RUN set -ex; \
-	curl -Lf -o /tmp/Percona-XtraDB-Cluster-garbd-57.rpm https://repo.percona.com/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-garbd-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-	curl -Lf -o /tmp/Percona-XtraDB-Cluster-client-57.rpm https://repo.percona.com/yum/release/8/RPMS/x86_64/Percona-XtraDB-Cluster-client-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-	curl -Lf -o /tmp/percona-xtrabackup-24.rpm http://repo.percona.com/percona/yum/release/8/RPMS/x86_64/percona-xtrabackup-24-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/Percona-XtraDB-Cluster-garbd-57.rpm https://repo.percona.com/yum/release/9/RPMS/x86_64/Percona-XtraDB-Cluster-garbd-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/Percona-XtraDB-Cluster-client-57.rpm https://repo.percona.com/yum/release/9/RPMS/x86_64/Percona-XtraDB-Cluster-client-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/percona-xtrabackup-24.rpm http://repo.percona.com/percona/yum/release/9/RPMS/x86_64/percona-xtrabackup-24-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
 	rpm --checksig /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm; \
 	rpm -iv /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm --nodeps; \
 	rm -rf /tmp/Percona-XtraDB-Cluster-garbd-57.rpm /tmp/percona-xtrabackup-24.rpm /tmp/Percona-XtraDB-Cluster-client-57.rpm; \
@@ -114,7 +110,7 @@ RUN cp /usr/share/doc/percona-xtrabackup-24/COPYING /licenses/LICENSE.xtrabackup
 RUN curl -o /usr/bin/kubectl \
 	https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl; \
 	chmod +x /usr/bin/kubectl; \
-	echo "${KUBECTL_SHA256SUM} /usr/bin/kubectl" | sha256sum -c -; \
+	echo "${KUBECTL_SHA512SUM} /usr/bin/kubectl" | sha512sum -c -; \
 	curl -o /licenses/LICENSE.kubectl \
 	https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
 

@@ -16,7 +16,7 @@ RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/arch
 	&& curl -o /go/bin/LICENSE.mc \
 	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
 
-FROM redhat/ubi8-minimal
+FROM redhat/ubi9-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona XtraBackup" \
@@ -33,13 +33,13 @@ LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high ava
 LABEL org.opencontainers.image.license="GPL"
 
 ENV PXB_VERSION 8.0.33-27.1
-ENV PS_VERSION 8.0.33-25.1
+ENV PS_VERSION 8.0.32-24.1
 
 ENV PXC_VERSION 8.0.32-24.2
 ENV PXC_REPO release
 ENV KUBECTL_VERSION=v1.24.14
-ENV KUBECTL_SHA256SUM=cb37928205142cfdf595d94499835b7279585960e30ae6c5c45e20296c5a6497bb5f92f736023763f226c0909fcb7aa8e6e0caebbcdfe8b08b2d6816d19059f2
-ENV OS_VER el8
+ENV KUBECTL_SHA512SUM=3ec6e321be772291cc6396bd10079f66ac6e690d776108fe2f24724ed51a0557a764228c45aa597a991733c04d052179b220ce8cdedc70c2783621a8925d1945
+ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
@@ -49,12 +49,10 @@ LABEL org.opencontainers.image.version=${PXC_VERSION}
 # check repository package signature in secure way
 RUN set -ex; \
 	export GNUPGHOME="$(mktemp -d)"; \
-	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
+	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F; \
 	gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
-	gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-	gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
-	gpg --batch --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-	rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8 ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+	gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+	rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona  ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
 	microdnf install -y findutils; \
 	curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
 	rpmkeys --checksig /tmp/percona-release.rpm; \
@@ -63,11 +61,12 @@ RUN set -ex; \
 	rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
 RUN set -ex; \
-	curl -Lf -o /tmp/libev.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
-	curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
-	rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm; \
-	rpm -i /tmp/libev.rpm /tmp/pv.rpm; \
-	rm -rf /tmp/libev.rpm /tmp/pv.rpm
+	curl -Lf -o /tmp/libev.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/libev-4.33-5.el9.x86_64.rpm; \
+	curl -Lf -o /tmp/pv.rpm https://yum.oracle.com/repo/OracleLinux/OL9/developer/EPEL/x86_64/getPackage/pv-1.6.20-1.el9.x86_64.rpm; \
+	curl -Lf -o /tmp/boost-program-options.rpm https://yum.oracle.com/repo/OracleLinux/OL9/appstream/x86_64/getPackage/boost-program-options-1.75.0-8.el9.x86_64.rpm; \
+	rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm /tmp/boost-program-options.rpm; \
+	rpm -i /tmp/libev.rpm /tmp/pv.rpm /tmp/boost-program-options.rpm; \
+	rm -rf /tmp/libev.rpm /tmp/pv.rpm /tmp/boost-program-options.rpm
 
 RUN set -ex; \
 	microdnf install -y \
@@ -95,10 +94,10 @@ RUN groupadd -g 1001 mysql; \
 
 # we need licenses from docs
 RUN set -ex; \
-	curl -Lf -o /tmp/percona-xtrabackup.rpm http://repo.percona.com/tools/yum/release/8/RPMS/x86_64/percona-xtrabackup-80-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
-	curl -Lf -o /tmp/percona-server-shared.rpm http://repo.percona.com/ps-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-server-shared-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-	curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-garbd-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-	curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-client-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/percona-xtrabackup.rpm http://repo.percona.com/tools/yum/release/9/RPMS/x86_64/percona-xtrabackup-80-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/percona-server-shared.rpm http://repo.percona.com/ps-80/yum/${PXC_REPO}/9/RPMS/x86_64/percona-server-shared-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-garbd-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-client-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
 	rpmkeys --checksig /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm; \
 	rpm -iv /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm --nodeps; \
 	rm -rf /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm; \
@@ -113,7 +112,7 @@ RUN cp /usr/share/doc/percona-xtrabackup-80/LICENSE /licenses/LICENSE.xtrabackup
 RUN curl -o /usr/bin/kubectl \
 	https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl; \
 	chmod +x /usr/bin/kubectl; \
-	echo "${KUBECTL_SHA256SUM} /usr/bin/kubectl" | sha256sum -c -; \
+	echo "${KUBECTL_SHA512SUM} /usr/bin/kubectl" | sha512sum -c -; \
 	curl -o /licenses/LICENSE.kubectl \
 	https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
 
