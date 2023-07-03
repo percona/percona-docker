@@ -29,7 +29,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& percona-release setup pdpxc-8.0.32
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.32-24.1.el9
+ENV PERCONA_VERSION 8.0.32-24.2.el9
 
 RUN set -ex; \
     microdnf install -y \
