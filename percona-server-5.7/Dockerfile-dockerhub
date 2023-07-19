@@ -37,7 +37,6 @@ ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
     dnf config-manager --enable ol8_u4_security_validation; \
-    dnf -y update; \
     dnf -y install \
         tzdata \
         jemalloc \
