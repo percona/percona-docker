@@ -25,7 +25,7 @@ LABEL org.opencontainers.image.license="GPL+"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXC_VERSION 8.0.32-24.2
-ENV PROXYSQL_VERSION 2.5.1-1.1
+ENV PROXYSQL_VERSION 2.5.4-1.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
 ENV FULL_PROXYSQL_VERSION "$PROXYSQL_VERSION.$OS_VER"
@@ -78,13 +78,13 @@ RUN groupadd -g 1001 proxysql; \
 
 # we need licenses from docs
 RUN set -ex; \
-	curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/krb5-libs-1.18.2-22.0.1.el8_7.x86_64.rpm; \
+    curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/krb5-libs-1.18.2-22.0.1.el8_7.x86_64.rpm; \
     curl -Lf -o /tmp/util-linux.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/util-linux-2.32.1-28.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm http://repo.percona.com/proxysql/yum/release/8/RPMS/x86_64/proxysql2-${FULL_PROXYSQL_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm http://repo.percona.com/proxysql/yum/testing/8/RPMS/x86_64/proxysql2-${FULL_PROXYSQL_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-${FULL_PERCONA_VERSION}.rpm http://repo.percona.com/pxc-80/yum/release/8.0/RPMS/x86_64/percona-xtradb-cluster-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/percona-xtradb-cluster-server-${FULL_PERCONA_VERSION}.rpm /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm /tmp/krb5-libs.rpm; \
     rpm -iv /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm --nodeps; \
-	rpm -U /tmp/krb5-libs.rpm; \
+    rpm -U /tmp/krb5-libs.rpm; \
     rm -rf /tmp/proxysql2-${FULL_PROXYSQL_VERSION}.rpm /tmp/util-linux.rpm /tmp/krb5-libs.rpm; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /etc/proxysql /var/lib/proxysql; \
