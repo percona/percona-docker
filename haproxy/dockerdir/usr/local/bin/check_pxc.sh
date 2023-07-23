@@ -29,9 +29,9 @@ fi
 log() {
     local address=$1
     local message=$2
-    local now=$(/usr/bin/date +"[%d/%b/%Y:%H:%M:%S.%3N]")
+    local date=$(/usr/bin/date +"[%d/%b/%Y:%H:%M:%S.%3N]")
 
-    echo "${address} ${now} ${message}"
+    echo "${address} ${date} ${message}"
 }
 
 PXC_NODE_STATUS=($(MYSQL_PWD="${MONITOR_PASSWORD}" $MYSQL_CMDLINE -h $PXC_SERVER_IP -P $PXC_SERVER_PORT \
