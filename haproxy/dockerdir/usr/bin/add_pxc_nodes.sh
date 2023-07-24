@@ -2,12 +2,7 @@
 
 set -o errexit
 
-log() {
-    local message=$1
-    local date=$(/usr/bin/date +"[%d/%b/%Y:%H:%M:%S.%3N]")
-
-    echo "${date} ${message}"
-}
+. /entrypoint.sh
 
 function main() {
     log "Running $0"

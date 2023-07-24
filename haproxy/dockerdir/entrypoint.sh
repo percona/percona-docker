@@ -3,9 +3,9 @@ set -e
 
 log() {
     local message=$1
-    local date=$(/usr/bin/date +"[%d/%b/%Y:%H:%M:%S.%3N]")
+    local date=$(/usr/bin/date +"%d/%b/%Y:%H:%M:%S.%3N")
 
-    echo "${date} ${message}"
+    echo "{\"time\":\"${date}\", \"message\": \"${message}\"}"
 }
 
 if [ "$1" = 'haproxy' ]; then

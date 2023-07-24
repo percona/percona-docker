@@ -28,10 +28,11 @@ fi
 
 log() {
     local address=$1
-    local message=$2
-    local date=$(/usr/bin/date +"[%d/%b/%Y:%H:%M:%S.%3N]")
+    local port=$2
+    local message=$3
+    local date=$(/usr/bin/date +"%d/%b/%Y:%H:%M:%S.%3N")
 
-    echo "${address} ${date} ${message}"
+    echo "{\"time\":\"${date}\", \"backend_source_ip\": \"${address}\", \"backend_source_port\": \"${port}\", \"message\": \"${message}\"}"
 }
 
 PXC_NODE_STATUS=($(MYSQL_PWD="${MONITOR_PASSWORD}" $MYSQL_CMDLINE -h $PXC_SERVER_IP -P $PXC_SERVER_PORT \
@@ -41,15 +42,15 @@ PXC_NODE_STATUS=($(MYSQL_PWD="${MONITOR_PASSWORD}" $MYSQL_CMDLINE -h $PXC_SERVER
 # ${PXC_NODE_STATUS[0]} - wsrep_local_state
 # ${PXC_NODE_STATUS[1]} - pxc_maint_mod
 # ${PXC_NODE_STATUS[2]} - wsrep_cluster_status
-log "$PXC_SERVER_IP:$PXC_SERVER_PORT" "The following values are used for PXC node $PXC_SERVER_IP in backend $HAPROXY_PROXY_NAME:"
-log "$PXC_SERVER_IP:$PXC_SERVER_PORT" "wsrep_local_state is ${PXC_NODE_STATUS[0]}; pxc_maint_mod is ${PXC_NODE_STATUS[1]}; wsrep_cluster_status is ${PXC_NODE_STATUS[2]}; $AVAILABLE_NODES nodes are available"
+log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "The following values are used for PXC node $PXC_SERVER_IP in backend $HAPROXY_PROXY_NAME:"
+log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "wsrep_local_state is ${PXC_NODE_STATUS[0]}; pxc_maint_mod is ${PXC_NODE_STATUS[1]}; wsrep_cluster_status is ${PXC_NODE_STATUS[2]}; $AVAILABLE_NODES nodes are available"
 if [[ ${PXC_NODE_STATUS[2]} == 'Primary' &&  ( ${PXC_NODE_STATUS[0]} -eq 4 || \
     ${PXC_NODE_STATUS[0]} -eq 2 && ( "${AVAILABLE_NODES}" -le 1 || "${DONOR_IS_OK}" -eq 1 ) ) \
     && ${PXC_NODE_STATUS[1]} == 'DISABLED' ]];
 then
-    log "$PXC_SERVER_IP:$PXC_SERVER_PORT" "PXC node $PXC_SERVER_IP for backend $HAPROXY_PROXY_NAME is ok"
+    log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "PXC node $PXC_SERVER_IP for backend $HAPROXY_PROXY_NAME is ok"
     exit 0
 else
-    log "$PXC_SERVER_IP:$PXC_SERVER_PORT" "PXC node $PXC_SERVER_IP for backend $HAPROXY_PROXY_NAME is not ok"
+    log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "PXC node $PXC_SERVER_IP for backend $HAPROXY_PROXY_NAME is not ok"
     exit 1
 fi
