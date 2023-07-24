@@ -61,6 +61,7 @@ RUN set -ex; \
         cracklib-dicts \
         tar; \
     microdnf update -y libksba; \
+    microdnf update -y krb5-libs; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
