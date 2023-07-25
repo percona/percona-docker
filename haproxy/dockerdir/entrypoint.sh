@@ -1,17 +1,25 @@
 #!/bin/sh
 set -e
-set -o xtrace
+
+log() {
+    local message=$1
+    local date=$(/usr/bin/date +"%d/%b/%Y:%H:%M:%S.%3N")
+
+    echo "{\"time\":\"${date}\", \"message\": \"${message}\"}"
+}
 
 if [ "$1" = 'haproxy' ]; then
     if [ ! -f '/etc/haproxy/pxc/haproxy.cfg' ]; then
+        log '/etc/haproxy/haproxy.cfg /etc/haproxy/pxc'
         cp /etc/haproxy/haproxy.cfg /etc/haproxy/pxc
     fi
 
     custom_conf='/etc/haproxy-custom/haproxy-global.cfg'
     if [ -f "$custom_conf" ]; then
+        log "haproxy -c -f $custom_conf -f /etc/haproxy/pxc/haproxy.cfg"
         haproxy -c -f $custom_conf -f /etc/haproxy/pxc/haproxy.cfg || EC=$?
         if [ -n "$EC" ]; then
-            echo "The custom config $custom_conf is not valid and will be ignored."
+            log "The custom config $custom_conf is not valid and will be ignored."
         fi
     fi
 
@@ -24,6 +32,8 @@ if [ "$1" = 'haproxy' ]; then
     haproxy_opt+='-f /etc/haproxy/pxc/haproxy.cfg -p /etc/haproxy/pxc/haproxy.pid -S /etc/haproxy/pxc/haproxy-main.sock '
 fi
 
+log 'test -e /opt/percona/hookscript/hook.sh && source /opt/percona/hookscript/hook.sh'
 test -e /opt/percona/hookscript/hook.sh && source /opt/percona/hookscript/hook.sh
 
+log "$@ $haproxy_opt"
 exec "$@" $haproxy_opt

@@ -1,10 +1,16 @@
 #!/bin/bash
 
 set -o errexit
-set -o xtrace
+
+log() {
+    local message=$1
+    local date=$(/usr/bin/date +"%d/%b/%Y:%H:%M:%S.%3N")
+
+    echo "{\"time\":\"${date}\", \"message\": \"${message}\"}"
+}
 
 function main() {
-    echo "Running $0"
+    log "Running $0"
 
     NODE_LIST=()
     NODE_LIST_REPL=()
@@ -24,7 +30,7 @@ function main() {
 
     while read pxc_host; do
         if [ -z "$pxc_host" ]; then
-            echo "Could not find PEERS ..."
+            log 'Could not find PEERS ...'
             exit 0
         fi
 
@@ -71,6 +77,7 @@ cat <<-EOF > "$path_to_haproxy_cfg/haproxy.cfg"
       external-check command /usr/local/bin/check_pxc.sh
 EOF
 
+    log "number of available nodes are ${#NODE_LIST_REPL[@]}"
     echo "${#NODE_LIST_REPL[@]}" > $path_to_haproxy_cfg/AVAILABLE_NODES
     ( IFS=$'\n'; echo "${NODE_LIST[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
 
@@ -123,12 +130,14 @@ EOF
     if [ -n "$main_node" ]; then
          if /usr/local/bin/check_pxc.sh '' '' "$main_node"; then
              for backup_server in ${NODE_LIST_BACKUP[@]}; do
+                 log "shutdown sessions server $backup_server | socat stdio ${SOCKET}"
                  echo "shutdown sessions server $backup_server" | socat stdio "${SOCKET}"
              done
          fi
     fi
 
     if [ -S "$path_to_haproxy_cfg/haproxy-main.sock" ]; then
+        log "reload | socat stdio $path_to_haproxy_cfg/haproxy-main.sock"
         echo 'reload' | socat stdio "$path_to_haproxy_cfg/haproxy-main.sock"
     fi
 }
