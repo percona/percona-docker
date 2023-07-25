@@ -2,7 +2,12 @@
 
 set -o errexit
 
-. /entrypoint.sh
+log() {
+    local message=$1
+    local date=$(/usr/bin/date +"%d/%b/%Y:%H:%M:%S.%3N")
+
+    echo "{\"time\":\"${date}\", \"message\": \"${message}\"}"
+}
 
 function main() {
     log "Running $0"
@@ -132,7 +137,6 @@ EOF
     fi
 
     if [ -S "$path_to_haproxy_cfg/haproxy-main.sock" ]; then
-        log "reload haproxy"
         log "reload | socat stdio $path_to_haproxy_cfg/haproxy-main.sock"
         echo 'reload' | socat stdio "$path_to_haproxy_cfg/haproxy-main.sock"
     fi
