@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 ENV PS_VERSION 8.0.33-25.1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
-ENV PS_REPO experimental 
+ENV PS_REPO release
 
 # It is intentionally used another UID, to have backward compatibility with
 # the previous image versions published on Docker Hub

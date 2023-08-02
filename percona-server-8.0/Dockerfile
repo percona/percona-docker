@@ -17,11 +17,11 @@ RUN set -ex; \
         -m -c "Default Application User" mysql
 
 ENV PS_VERSION 8.0.33-25.1
-ENV MYSQL_SHELL_VERSION 8.0.33-1
+ENV MYSQL_SHELL_VERSION 8.0.33-2
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
-ENV PS_REPO testing
+ENV PS_REPO release
 
 # check repository package signature in secure way
 RUN set -ex; \
