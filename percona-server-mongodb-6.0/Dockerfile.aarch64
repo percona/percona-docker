@@ -26,7 +26,7 @@ RUN set -ex; \
     sed -i "s|x86_64|x86_64 aarch64|" /usr/bin/percona-release; \
     percona-release enable psmdb-60 ${PSMDB_REPO}; \
     dnf config-manager --enable ol8_u4_security_validation; \
-    dnf -y update; \
+    dnf -y update openssh; \
     dnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
