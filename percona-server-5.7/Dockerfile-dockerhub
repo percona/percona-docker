@@ -30,7 +30,7 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     dnf -y module disable mysql
 
-ENV PS_VERSION 5.7.39-42.1
+ENV PS_VERSION 5.7.43-47.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 
