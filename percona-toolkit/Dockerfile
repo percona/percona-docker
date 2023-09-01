@@ -1,7 +1,7 @@
 FROM redhat/ubi9-minimal
 
 LABEL name="Percona Toolkit" \
-        release="3.5.1" \
+        release="3.5.3" \
         vendor="Percona" \
         summary="Percona Toolkit is a collection of advanced command-line tools used by Percona" \
         description="Percona Toolkit is derived from Maatkit and Aspersa, two of the best-known toolkits for MySQL server administration. It is developed and supported by Percona." \
@@ -10,7 +10,7 @@ LABEL name="Percona Toolkit" \
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV PS_VERSION 8.0.32-24.1.el9
+ENV PS_VERSION 8.0.33-25.1.el9
 ENV PT_VERSION 3.5.3-1.el9
 
 # check repository package signature in secure way
