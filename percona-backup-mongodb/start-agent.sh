@@ -25,6 +25,10 @@ if [ "${1:0:9}" = "pbm-agent" ]; then
 	OUT_CFG="$(mktemp)"
 	timeout=5
 	for i in {1..10}; do
+		# ARM image doesn't contain mongo CLI, preliminary check is skipped, PBM will return error in case of connection failure
+		if [ ! -e "/usr/bin/mongo" ]; then
+			break
+		fi
 		if [ "${SHARDED}" ]; then
 			echo "waiting for sharded scluster"
 
