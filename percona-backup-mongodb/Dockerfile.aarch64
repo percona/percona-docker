@@ -48,7 +48,7 @@ RUN set -ex; \
 
 # kubectl needed for Percona Operator for PSMDB
 ENV KUBECTL_VERSION=v1.19.12
-ENV KUBECTL_MD5SUM=7c6a25afdec07da2cf1e1c1caf9e4381
+ENV KUBECTL_MD5SUM=b5d1a7052ba61a2bbd1f009b127c95f7
 RUN set -ex; \
     curl -Lf -o /usr/bin/kubectl \
         https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/arm64/kubectl; \
