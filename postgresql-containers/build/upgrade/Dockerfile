@@ -16,7 +16,7 @@ RUN set -ex; \
 
 ENV LC_ALL en_US.utf-8
 ENV LANG en_US.utf-8
-ARG PG_MAJOR=15
+ARG PG_MAJOR=16
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -77,6 +77,7 @@ RUN set -ex; \
         percona-postgresql${PG_MAJOR//.}-plpython* \
         percona-postgresql${PG_MAJOR//.}-llvmjit \
         percona-wal2json${PG_MAJOR//.} \
+        percona-pg_stat_monitor${PG_MAJOR//.} \
         nss_wrapper \
         lz4 \
         unzip; \
@@ -84,7 +85,7 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-RUN for pg_version in 14 13 12; do \
+RUN for pg_version in 15 14 13 12; do \
         percona-release enable ppg-${pg_version} release; \
         microdnf -y install --nodocs \
             percona-pgaudit \
@@ -94,8 +95,9 @@ RUN for pg_version in 14 13 12; do \
             percona-postgresql${pg_version}-libs \
             percona-postgresql${pg_version}-plpython* \
             percona-postgresql${pg_version}-llvmjit \
-            percona-wal2json${pg_version}; \
-    done 
+            percona-wal2json${pg_version} \
+            percona-pg_stat_monitor${pg_version}; \
+    done
 
 #    && microdnf -y clean all; \
 #            microdnf clean all; \

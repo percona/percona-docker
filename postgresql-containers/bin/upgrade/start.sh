@@ -54,6 +54,11 @@ dir_check_err "${PGDATANEW?}"
 # Set the postgres binary to match the NEW_VERSION
 
   case $NEW_VERSION in
+"16")
+    echo_info "Setting PGBINNEW to ${NEW_VERSION}."
+    export PGBINNEW=/usr/pgsql-16/bin
+    export LD_LIBRARY_PATH=/usr/pgsql-16/lib
+    ;;
 "15")
     echo_info "Setting PGBINNEW to ${NEW_VERSION}."
     export PGBINNEW=/usr/pgsql-15/bin
