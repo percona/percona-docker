@@ -23,6 +23,13 @@ ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
 ENV PS_REPO release
 
+# Do not report during Docker image creation.
+# Note that doing so, would create telemetry config file
+# which would prevent reporting when new container is started.
+# If we want to track Docker image creation as well,
+# remove telemetry config file after installing packages!
+ARG PERCONA_TELEMETRY_DISABLE=1
+
 # check repository package signature in secure way
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -80,6 +87,10 @@ RUN set -ex; \
 	chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+COPY call-home.sh /call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown mysql:mysql /usr/local/percona
 
 COPY ps-entry.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
