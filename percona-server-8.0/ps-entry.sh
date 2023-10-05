@@ -230,20 +230,20 @@ fi
 
 CALL_HOME_OPTIONAL_PARAMS=
 
-if [ ! -z "$PERCONA_INSTANCE_ID" ]; then
+if [ ! -z "${PERCONA_INSTANCE_ID}" ]; then
   CALL_HOME_OPTIONAL_PARAMS+=" -i ${PERCONA_INSTANCE_ID}"
 fi
 
-if [ ! -z "$PERCONA_TELEMETRY_CONFIG_FILE_PATH" ]; then
+if [ ! -z "${PERCONA_TELEMETRY_CONFIG_FILE_PATH}" ]; then
   CALL_HOME_OPTIONAL_PARAMS+=" -j ${PERCONA_TELEMETRY_CONFIG_FILE_PATH}"
 fi
 
-if [ ! -z "$PERCONA_SEND_TIMEOUT" ]; then
+if [ ! -z "${PERCONA_SEND_TIMEOUT}" ]; then
   CALL_HOME_OPTIONAL_PARAMS+=" -j ${PERCONA_SEND_TIMEOUT}"
 fi
 
 # PERCONA_TELEMETRY_DISABLE is handled at the very beginning of call-home.sh
-/call-home.sh -f "PRODUCT_FAMILY_PS" -v "$PS_VERSION" -s "$OS_VER" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS}
+/call-home.sh -f "PRODUCT_FAMILY_PS" -v "${PS_VERSION}" -s "${OS_VER}" -d "DOCKER" "${CALL_HOME_OPTIONAL_PARAMS}" &> /dev/null || :
 
 
 exec "$@"
