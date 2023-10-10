@@ -26,6 +26,9 @@ RUN set -ex; \
     percona-release enable psmdb-60 ${PSMDB_REPO}; \
     dnf config-manager --enable ol8_u4_security_validation; \
     dnf -y update openssh; \
+    dnf -y update bind-export-libs; \
+    dnf -y update glibc; \
+    dnf -y update libgcrypt; \
     dnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
