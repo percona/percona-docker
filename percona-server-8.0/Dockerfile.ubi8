@@ -34,7 +34,7 @@ RUN set -ex; \
     percona-release disable all; \
     percona-release enable ps-80 release; \
     percona-release enable mysql-shell release; \
-    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/numactl-libs.rpm https://rpmfind.net/linux/centos/8-stream/BaseOS/x86_64/os/Packages/numactl-libs-2.0.16-3.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/numactl-libs.rpm; \
     rpm -i /tmp/numactl-libs.rpm; \
     rm -rf /tmp/numactl-libs.rpm
