@@ -228,8 +228,6 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 fi
 
 
-CALL_HOME_OPTIONAL_PARAMS=
-
 if [ ! -z "${PERCONA_INSTANCE_ID}" ]; then
   CALL_HOME_OPTIONAL_PARAMS+=" -i ${PERCONA_INSTANCE_ID}"
 fi
@@ -239,10 +237,18 @@ if [ ! -z "${PERCONA_TELEMETRY_CONFIG_FILE_PATH}" ]; then
 fi
 
 if [ ! -z "${PERCONA_SEND_TIMEOUT}" ]; then
-  CALL_HOME_OPTIONAL_PARAMS+=" -j ${PERCONA_SEND_TIMEOUT}"
+  CALL_HOME_OPTIONAL_PARAMS+=" -t ${PERCONA_SEND_TIMEOUT}"
+else
+  CALL_HOME_OPTIONAL_PARAMS+=" -t 7"
+fi
+
+if [ ! -z "${PERCONA_CONNECT_TIMEOUT}" ]; then
+  CALL_HOME_OPTIONAL_PARAMS+=" -c ${PERCONA_CONNECT_TIMEOUT}"
+else
+  CALL_HOME_OPTIONAL_PARAMS+=" -c 2"
 fi
 
 # PERCONA_TELEMETRY_DISABLE is handled at the very beginning of call-home.sh
-/call-home.sh -f "PRODUCT_FAMILY_PS" -v "${PS_VERSION}" -d "DOCKER" "${CALL_HOME_OPTIONAL_PARAMS}" -c 2 -t 7 &> /dev/null || :
+/call-home.sh -f "PRODUCT_FAMILY_PS" -v "${PS_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
 
 exec "$@"
