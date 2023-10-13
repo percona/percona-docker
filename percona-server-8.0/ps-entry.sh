@@ -243,6 +243,6 @@ if [ ! -z "${PERCONA_SEND_TIMEOUT}" ]; then
 fi
 
 # PERCONA_TELEMETRY_DISABLE is handled at the very beginning of call-home.sh
-/call-home.sh -f "PRODUCT_FAMILY_PS" -v "${PS_VERSION}" -s "${OS_VER}" -d "DOCKER" "${CALL_HOME_OPTIONAL_PARAMS}" -c 2 -t 7 &> /dev/null || :
+/call-home.sh -f "PRODUCT_FAMILY_PS" -v "${PS_VERSION}" -d "DOCKER" "${CALL_HOME_OPTIONAL_PARAMS}" -c 2 -t 7 &> /dev/null || :
 
 exec "$@"
