@@ -89,6 +89,7 @@ RUN set -ex; \
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
 COPY call-home.sh /call-home.sh
+RUN chmod a+x /call-home.sh
 RUN mkdir -p /usr/local/percona
 RUN chown mysql:mysql /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
