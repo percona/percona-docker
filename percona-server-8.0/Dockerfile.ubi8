@@ -14,6 +14,9 @@ RUN set -ex; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -m -c "Default Application User" mysql
 
+# Do not report during Docker image creation.
+ARG PERCONA_TELEMETRY_DISABLE=1
+
 # check repository package signature in secure way
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -31,7 +34,7 @@ RUN set -ex; \
     percona-release disable all; \
     percona-release enable ps-80 release; \
     percona-release enable mysql-shell release; \
-    curl -Lf -o /tmp/numactl-libs.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/numactl-libs.rpm https://rpmfind.net/linux/centos/8-stream/BaseOS/x86_64/os/Packages/numactl-libs-2.0.16-3.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/numactl-libs.rpm; \
     rpm -i /tmp/numactl-libs.rpm; \
     rm -rf /tmp/numactl-libs.rpm
@@ -80,6 +83,12 @@ RUN set -ex; \
 	chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx /call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}-openshift"
 
 COPY ps-entry.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -21,6 +21,9 @@ RUN set -ex; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -m -c "Default Application User" mysql
 
+# Do not report during Docker image creation.
+ARG PERCONA_TELEMETRY_DISABLE=1
+
 # check repository package signature in secure way
 RUN set -ex; \
     yum -y install epel-release; \
@@ -78,6 +81,12 @@ RUN set -ex; \
 	chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx /call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY ps-entry.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
