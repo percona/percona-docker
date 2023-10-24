@@ -66,7 +66,10 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable ppg-${PG_MAJOR} release
 
+COPY build/postgres/oracle-linux-ol8.repo /etc/yum.repos.d/
+
 RUN set -ex; \
+    curl -Lf -o /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle https://yum.oracle.com/RPM-GPG-KEY-oracle-ol8; \
     microdnf -y install \
         bind-utils \
         gettext \
@@ -77,6 +80,7 @@ RUN set -ex; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
     sed -i 's/install_langs C.utf8/install_langs all/' /etc/rpm/macros.image-language-conf; \
     microdnf -y module disable llvm-toolset; \
+    microdnf -y module disable postgresql; \
     microdnf -y install \
         libpq \
         llvm \
@@ -117,6 +121,10 @@ RUN set -ex; \
         percona-postgresql${PG_MAJOR//.}-plpython* \
         percona-pg_stat_monitor${PG_MAJOR//.} \
         percona-postgresql${PG_MAJOR//.}-llvmjit \
+        percona-wal2json${PG_MAJOR//.} \
+        percona-pg_repack${PG_MAJOR//.} \
+        percona-postgis33 \
+        percona-postgis33-client \
         psmisc \
         rsync \
         perl \
@@ -124,10 +132,9 @@ RUN set -ex; \
         tar \
         bzip2 \
         lz4 \
-        percona-wal2json${PG_MAJOR//.} \
         file \
+        tzdata \
         unzip; \
-    microdnf -y reinstall tzdata; \
 # patroni block starts
 # Provided by Percona
     microdnf -y install \
