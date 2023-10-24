@@ -159,7 +159,7 @@ ENV PATH="${PGROOT}/bin:${PATH}"
 RUN set -ex; \
     mkdir -p /opt/crunchy/bin /opt/crunchy/conf /pgdata /pgwal /pgconf /backrestrepo /tablespaces; \
     chown -R postgres:postgres /opt/crunchy /var/lib/pgsql \
-        /pgdata /pgwal /pgconf /backrestrepo /tablespaces; \
+        /pgdata /pgwal /pgconf /backrestrepo /tablespaces /usr/pgsql-${PG_MAJOR//.}; \
     chmod -R g=u /opt/crunchy /var/lib/pgsql \
         /pgdata /pgwal /pgconf /backrestrepo /tablespaces
 
@@ -184,6 +184,7 @@ RUN set -ex; \
         /etc/pgbackrest.conf
 
 COPY conf/pgbackrest-repo/pgbackrest.conf /etc/pgbackrest.conf
+COPY bin/relocate-extensions.sh /usr/local/bin/relocate-extensions.sh
 
 # remove the default spool directory so that pgBackRest does not attempt to look there when
 # performing a restore (pgBackRest will not have permissions to access to this dir in all envs)
