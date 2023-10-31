@@ -69,6 +69,8 @@ RUN set -ex; \
         tar; \
     microdnf update -y libksba; \
     microdnf update -y krb5-libs; \
+    microdnf update -y libnghttp2; \
+    microdnf update -y glibc; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 

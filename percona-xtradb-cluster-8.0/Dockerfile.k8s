@@ -64,7 +64,7 @@ RUN set -ex; \
         shadow-utils \
         hostname \
         curl \
-        jq
+        jq \
         numactl-libs \
         socat \
         krb5-libs \
