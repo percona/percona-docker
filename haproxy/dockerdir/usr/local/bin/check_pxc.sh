@@ -17,6 +17,7 @@ if [ -f "$PATH_TO_SECRET/OK_IF_DONOR" ]; then
     OK_IF_DONOR=$(/bin/cat $PATH_TO_SECRET/OK_IF_DONOR)
 fi
 
+VERBOSE=${VERBOSE:-1}
 TIMEOUT=${CUSTOM_TIMEOUT:-10}
 DONOR_IS_OK=${OK_IF_DONOR:-0}
 MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER"
@@ -30,9 +31,12 @@ log() {
     local address=$1
     local port=$2
     local message=$3
-    local date=$(/usr/bin/date +"%d/%b/%Y:%H:%M:%S.%3N")
+    local should_log=$4
 
-    echo "{\"time\":\"${date}\", \"backend_source_ip\": \"${address}\", \"backend_source_port\": \"${port}\", \"message\": \"${message}\"}"
+    if [ "$should_log" -eq 1 ]; then
+        local date=$(/usr/bin/date +"%d/%b/%Y:%H:%M:%S.%3N")
+        echo "{\"time\":\"${date}\", \"backend_source_ip\": \"${address}\", \"backend_source_port\": \"${port}\", \"message\": \"${message}\"}"
+    fi
 }
 
 PXC_NODE_STATUS=($(MYSQL_PWD="${MONITOR_PASSWORD}" $MYSQL_CMDLINE -h $PXC_SERVER_IP -P $PXC_SERVER_PORT \
@@ -42,15 +46,18 @@ PXC_NODE_STATUS=($(MYSQL_PWD="${MONITOR_PASSWORD}" $MYSQL_CMDLINE -h $PXC_SERVER
 # ${PXC_NODE_STATUS[0]} - wsrep_local_state
 # ${PXC_NODE_STATUS[1]} - pxc_maint_mod
 # ${PXC_NODE_STATUS[2]} - wsrep_cluster_status
-log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "The following values are used for PXC node $PXC_SERVER_IP in backend $HAPROXY_PROXY_NAME:"
-log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "wsrep_local_state is ${PXC_NODE_STATUS[0]}; pxc_maint_mod is ${PXC_NODE_STATUS[1]}; wsrep_cluster_status is ${PXC_NODE_STATUS[2]}; $AVAILABLE_NODES nodes are available"
+status_log="The following values are used for PXC node $PXC_SERVER_IP in backend $HAPROXY_PROXY_NAME: "
+status_log+="wsrep_local_state is ${PXC_NODE_STATUS[0]}; pxc_maint_mod is ${PXC_NODE_STATUS[1]}; wsrep_cluster_status is ${PXC_NODE_STATUS[2]}; $AVAILABLE_NODES nodes are available"
+
 if [[ ${PXC_NODE_STATUS[2]} == 'Primary' &&  ( ${PXC_NODE_STATUS[0]} -eq 4 || \
     ${PXC_NODE_STATUS[0]} -eq 2 && ( "${AVAILABLE_NODES}" -le 1 || "${DONOR_IS_OK}" -eq 1 ) ) \
     && ${PXC_NODE_STATUS[1]} == 'DISABLED' ]];
 then
-    log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "PXC node $PXC_SERVER_IP for backend $HAPROXY_PROXY_NAME is ok"
+    log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "$status_log" "$VERBOSE"
+    log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "PXC node $PXC_SERVER_IP for backend $HAPROXY_PROXY_NAME is ok" "$VERBOSE"
     exit 0
 else
-    log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "PXC node $PXC_SERVER_IP for backend $HAPROXY_PROXY_NAME is not ok"
+    log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "$status_log" 1
+    log "$PXC_SERVER_IP" "$PXC_SERVER_PORT" "PXC node $PXC_SERVER_IP for backend $HAPROXY_PROXY_NAME is not ok" 1
     exit 1
 fi
