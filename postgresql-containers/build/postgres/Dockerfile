@@ -186,6 +186,7 @@ RUN set -ex; \
         /etc/pgbackrest.conf
 
 COPY conf/pgbackrest-repo/pgbackrest.conf /etc/pgbackrest.conf
+RUN echo "huge_pages = off" >> ${PGROOT}/share/postgresql.conf.sample
 
 # remove the default spool directory so that pgBackRest does not attempt to look there when
 # performing a restore (pgBackRest will not have permissions to access to this dir in all envs)
