@@ -117,6 +117,8 @@ RUN set -ex; \
         percona-postgresql${PG_MAJOR//.}-plpython* \
         percona-pg_stat_monitor${PG_MAJOR//.} \
         percona-postgresql${PG_MAJOR//.}-llvmjit \
+        percona-wal2json${PG_MAJOR//.} \
+        percona-pg_repack${PG_MAJOR//.} \
         psmisc \
         rsync \
         perl \
@@ -124,10 +126,10 @@ RUN set -ex; \
         tar \
         bzip2 \
         lz4 \
-        percona-wal2json${PG_MAJOR//.} \
         file \
+        tzdata \
         unzip; \
-    microdnf -y reinstall tzdata; \
+        microdnf -y reinstall tzdata; \
 # patroni block starts
 # Provided by Percona
     microdnf -y install \
