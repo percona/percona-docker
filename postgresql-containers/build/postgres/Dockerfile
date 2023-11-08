@@ -129,6 +129,7 @@ RUN set -ex; \
         file \
         tzdata \
         unzip; \
+        microdnf -y reinstall tzdata; \
 # patroni block starts
 # Provided by Percona
     microdnf -y install \
