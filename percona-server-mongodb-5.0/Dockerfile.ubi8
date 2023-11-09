@@ -2,7 +2,7 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 5.0.21-18
+ENV PSMDB_VERSION 5.0.22-19
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
