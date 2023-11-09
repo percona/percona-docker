@@ -75,10 +75,12 @@ RUN set -ex; \
         libedit \
         procps-ng; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
+    sed -i 's/install_langs C.utf8/install_langs all/' /etc/rpm/macros.image-language-conf; \
     microdnf -y module disable llvm-toolset; \
     microdnf -y install \
         libpq \
         llvm \
+        glibc-all-langpacks \
         percona-postgresql${PG_MAJOR//.}; \
     microdnf -y clean all
 
@@ -102,8 +104,6 @@ RUN set -ex; \
            /tmp/openssh.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm; \
     rm -rf /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
            /tmp/openssh.rpm /tmp/openssh-server.rpm /tmp/openssh-clients.rpm /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm
-
-ENV PATRONI_VERSION='2.1.4-2'
 
 RUN set -ex; \
     microdnf -y install \
@@ -138,7 +138,18 @@ RUN set -ex; \
     pip install pyyaml; \
     pip install six; \
     pip install urllib3; \
-    curl -Lf -o /tmp/percona-patroni.rpm https://repo.percona.com/ppg-${PG_MAJOR//.}/yum/release/8/RPMS/x86_64/percona-patroni-${PATRONI_VERSION}.el8.x86_64.rpm; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
+
+ENV PATRONI_VERSION='2.1.4-2'
+
+RUN if [[ "${PG_MAJOR//.}" -le '14' ]]; then \
+        curl -Lf -o /tmp/percona-patroni.rpm https://repo.percona.com/ppg-${PG_MAJOR//.}/yum/release/8/RPMS/x86_64/percona-patroni-${PATRONI_VERSION}.el8.x86_64.rpm; \
+    else \
+        microdnf -y install \
+            --enablerepo="epel" \
+            percona-patroni; \
+    fi; \
     rpmkeys --checksig /tmp/percona-patroni.rpm; \
     rpm -i --nodeps /tmp/percona-patroni.rpm; \
     rm -rf /tmp/percona-patroni.rpm; \

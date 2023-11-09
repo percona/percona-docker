@@ -1,4 +1,4 @@
-FROM percona/percona-server-mongodb:5.0
+FROM percona/percona-server-mongodb:7.0
 
 LABEL org.label-schema.schema-version="1.0"
 LABEL org.label-schema.name="Percona Server for MongoDB"
@@ -21,9 +21,6 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 LABEL org.label-schema.schema-version=${PSMDB_VERSION}
 LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
-# Do not report during Docker image creation.
-ARG PERCONA_TELEMETRY_DISABLE=1
-
 USER 0
 
 RUN set -ex; \
@@ -35,19 +32,12 @@ RUN set -ex; \
         telnet \
         cyrus-sasl-gssapi \
         percona-server-mongodb-server-debuginfo-${FULL_PERCONA_VERSION} \
-        percona-server-mongodb-shell-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-mongos-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-debugsource-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION}; \
     dnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
-
-ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
-RUN chmod a+rx call-home.sh
-RUN mkdir -p /usr/local/percona
-RUN chown 1001:1001 /usr/local/percona
-ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 VOLUME ["/data/db"]
 

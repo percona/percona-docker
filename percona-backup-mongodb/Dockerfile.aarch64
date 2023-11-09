@@ -1,4 +1,4 @@
-FROM redhat/ubi8-minimal
+FROM redhat/ubi9-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona Backup for MongoDB" \
@@ -15,10 +15,8 @@ LABEL org.opencontainers.image.title="Percona Backup for MongoDB" \
     org.opencontainers.image.authors="info@percona.com"
 
 ENV PBM_VERSION 2.3.0-1
-ENV PBM_REPO_CH release
-ENV PSMDB_REPO psmdb-42
-ENV PSMDB_REPO_CH release
-ENV OS_VER el8
+ENV PBM_REPO_CH experimental
+ENV OS_VER el9
 ENV FULL_PBM_VERSION "$PBM_VERSION.$OS_VER"
 
 # check repository package signature in secure way
@@ -35,8 +33,8 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable pbm ${PBM_REPO_CH}; \
-    percona-release enable ${PSMDB_REPO} ${PSMDB_REPO_CH}
+    sed -i "s|x86_64|x86_64 aarch64|" /usr/bin/percona-release; \
+    percona-release enable pbm ${PBM_REPO_CH}
 
 RUN set -ex; \
     microdnf -y update; \
@@ -45,16 +43,15 @@ RUN set -ex; \
         oniguruma; \
     microdnf -y install \
         percona-backup-mongodb-${FULL_PBM_VERSION}; \
-    microdnf -y install percona-server-mongodb-shell; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
 # kubectl needed for Percona Operator for PSMDB
 ENV KUBECTL_VERSION=v1.19.12
-ENV KUBECTL_MD5SUM=7c6a25afdec07da2cf1e1c1caf9e4381
+ENV KUBECTL_MD5SUM=b5d1a7052ba61a2bbd1f009b127c95f7
 RUN set -ex; \
     curl -Lf -o /usr/bin/kubectl \
-        https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl; \
+        https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/arm64/kubectl; \
     chmod +x /usr/bin/kubectl; \
     echo "${KUBECTL_MD5SUM} /usr/bin/kubectl" | md5sum -c -; \
     mkdir -p /licenses; \

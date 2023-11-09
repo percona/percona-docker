@@ -16,25 +16,23 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-ENV PSMDB_VERSION 5.0.22-19
+ENV PSMDB_VERSION 7.0.2-1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
-ENV PSMDB_REPO release
-
-# Do not report during Docker image creation.
-ARG PERCONA_TELEMETRY_DISABLE=1
+ENV PSMDB_REPO testing
 
 RUN set -ex; \
-    percona-release enable psmdb-50 ${PSMDB_REPO}; \
+    percona-release enable psmdb-70 ${PSMDB_REPO}; \
     dnf config-manager --enable ol8_u4_security_validation; \
+    dnf -y update openssh; \
     dnf -y update bind-export-libs; \
     dnf -y update glibc; \
     dnf -y update libgcrypt; \
     dnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
-        percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
+        percona-mongodb-mongosh \
         procps-ng \
         jq \
         tar \
@@ -42,7 +40,7 @@ RUN set -ex; \
         cyrus-sasl-gssapi \
         policycoreutils; \
         \
-    curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-50/yum/${PSMDB_REPO}/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-70/yum/${PSMDB_REPO}/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
     rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
@@ -87,12 +85,6 @@ VOLUME ["/data/db"]
 RUN set -ex; \
     curl -fSL https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js -o /js-yaml.js; \
     echo "45dc3dd03dc07a06705a2c2989b8c7f709013f04bd5386e3279d4e447f07ebd7  /js-yaml.js" | sha256sum -c -
-
-ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
-RUN chmod a+rx call-home.sh
-RUN mkdir -p /usr/local/percona
-RUN chown 1001:1001 /usr/local/percona
-ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY ps-entry.sh /entrypoint.sh
 

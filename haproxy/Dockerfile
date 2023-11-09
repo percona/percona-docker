@@ -26,10 +26,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-	&& percona-release setup pdpxc-8.0.33
+	&& percona-release setup pdpxc-8.0.34
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.33-25.1.el9
+ENV PERCONA_VERSION 8.0.34-26.1.el9
 
 RUN set -ex; \
     microdnf install -y \

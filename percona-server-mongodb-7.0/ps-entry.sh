@@ -194,7 +194,7 @@ _parse_config() {
 	if configPath="$(_mongod_hack_get_arg_val --config "$@")"; then
 		# if --config is specified, parse it into a JSON file so we can remove a few problematic keys (especially SSL-related keys)
 		# see https://docs.mongodb.com/manual/reference/configuration-options/
-		mongo --norc --nodb --quiet --eval "load('/js-yaml.js'); printjson(jsyaml.load(cat($(_js_escape "$configPath"))))" > "$jsonConfigFile"
+		mongosh --norc --nodb --quiet --eval "load('/js-yaml.js'); printjson(jsyaml.load(cat($(_js_escape "$configPath"))))" > "$jsonConfigFile"
 		jq 'del(.systemLog, .processManagement, .net, .security)' "$jsonConfigFile" > "$tempConfigFile"
 		return 0
 	fi
@@ -314,7 +314,7 @@ if [ "$originalArgOne" = 'mongod' ]; then
 
 		"${mongodHackedArgs[@]}" --fork
 
-		mongo=( mongo --host 127.0.0.1 --port 27017 --quiet )
+		mongo=( mongosh --host 127.0.0.1 --port 27017 --quiet )
 
 		# check to see that our "mongod" actually did start up (catches "--help", "--version", MongoDB 3.2 being silly, slow prealloc, etc)
 		# https://jira.mongodb.org/browse/SERVER-16292
@@ -399,7 +399,7 @@ if [ "$originalArgOne" = 'mongod' ]; then
 	fi
 
 	MONGODB_VERSION=$(mongod --version  | head -1 | awk '{print $3}' | awk -F'.' '{print $1"."$2}')
-	if [ "$MONGODB_VERSION" == 'v4.2' ] || [ "$MONGODB_VERSION" == 'v4.4' ] || [ "$MONGODB_VERSION" == 'v5.0' ]; then
+	if [ "$MONGODB_VERSION" == 'v4.2' ] || [ "$MONGODB_VERSION" == 'v4.4' ] || [ "$MONGODB_VERSION" == 'v5.0' ] || [ "$MONGODB_VERSION" == 'v6.0' ] || [ "$MONGODB_VERSION" == 'v7.0' ]; then
 		_mongod_hack_rename_arg_save_val --sslMode --tlsMode "${mongodHackedArgs[@]}"
 
 		if _mongod_hack_have_arg '--tlsMode' "${mongodHackedArgs[@]}"; then
@@ -460,33 +460,5 @@ fi
 
 rm -f "$jsonConfigFile" "$tempConfigFile"
 
-set -o xtrace +u
-
-# PERCONA_TELEMETRY_DISABLE is handled at the very beginning of call-home.sh
-if [ ! -z "${PERCONA_INSTANCE_ID}" ]; then
-  CALL_HOME_OPTIONAL_PARAMS+=" -i ${PERCONA_INSTANCE_ID}"
-fi
-
-if [ ! -z "${PERCONA_TELEMETRY_CONFIG_FILE_PATH}" ]; then
-  CALL_HOME_OPTIONAL_PARAMS+=" -j ${PERCONA_TELEMETRY_CONFIG_FILE_PATH}"
-fi
-
-if [ ! -z "${PERCONA_TELEMETRY_URL}" ]; then
-  CALL_HOME_OPTIONAL_PARAMS+=" -u ${PERCONA_TELEMETRY_URL}"
-fi
-
-if [ ! -z "${PERCONA_SEND_TIMEOUT}" ]; then
-  CALL_HOME_OPTIONAL_PARAMS+=" -t ${PERCONA_SEND_TIMEOUT}"
-else
-  CALL_HOME_OPTIONAL_PARAMS+=" -t 7"
-fi
-
-if [ ! -z "${PERCONA_CONNECT_TIMEOUT}" ]; then
-  CALL_HOME_OPTIONAL_PARAMS+=" -c ${PERCONA_CONNECT_TIMEOUT}"
-else
-  CALL_HOME_OPTIONAL_PARAMS+=" -c 2"
-fi
-
-/call-home.sh -f "PRODUCT_FAMILY_PSMDB" -v "${PSMDB_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
-
+set -o xtrace
 exec "$@"

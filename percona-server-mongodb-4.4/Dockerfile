@@ -16,7 +16,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-ENV PSMDB_VERSION 4.4.24-23
+ENV PSMDB_VERSION 4.4.25-24
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
@@ -25,6 +25,9 @@ ENV PSMDB_REPO release
 RUN set -ex; \
     percona-release enable psmdb-44 ${PSMDB_REPO}; \
     dnf config-manager --enable ol8_u4_security_validation; \
+    dnf -y update bind-export-libs; \
+    dnf -y update glibc; \
+    dnf -y update libgcrypt; \
     dnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-${FULL_PERCONA_VERSION} \
