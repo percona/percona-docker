@@ -57,12 +57,10 @@ RUN set -ex; \
     curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
     curl -Lf -o /tmp/socat.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/socat-1.7.4.1-1.el8.x86_64.rpm; \
     curl -Lf -o /tmp/compat-openssl.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/compat-openssl10-1.0.2o-3.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/krb5-libs.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/krb5-libs-1.18.2-22.0.1.el8_7.x86_64.rpm; \
-    rpmkeys --checksig /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm /tmp/krb5-libs.rpm; \
+    rpmkeys --checksig /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm; \
     rpm -i /tmp/compat-openssl.rpm --nodeps; \
-    rpm -U /tmp/krb5-libs.rpm; \
     rpm -i /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
-    rm -rf /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm /tmp/krb5-libs.rpm
+    rm -rf /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm /tmp/compat-openssl.rpm
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
@@ -79,6 +77,7 @@ RUN set -ex; \
         which \
         pam \
         qpress \
+        krb5-libs \
         cracklib-dicts \
         tar; \
     microdnf update systemd-libs; \
