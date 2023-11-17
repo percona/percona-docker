@@ -42,8 +42,8 @@ destination() {
 	fi
 }
 
-xbcloud get ${XBCLOUD_ARGS} "$(destination).sst_info" --parallel=10 | xbstream -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)" $XBSTREAM_EXTRA_ARGS
-xbcloud get ${XBCLOUD_ARGS} "$(destination)" --parallel=10 | xbstream --decompress -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)" $XBSTREAM_EXTRA_ARGS
+xbcloud get ${XBCLOUD_ARGS} "$(destination).sst_info" --parallel="$(grep -c processor /proc/cpuinfo)" | xbstream -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)" $XBSTREAM_EXTRA_ARGS
+xbcloud get ${XBCLOUD_ARGS} "$(destination)" --parallel="$(grep -c processor /proc/cpuinfo)" | xbstream --decompress -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)" $XBSTREAM_EXTRA_ARGS
 
 set +o xtrace
 transition_key=$(vault_get "$tmp/sst_info")

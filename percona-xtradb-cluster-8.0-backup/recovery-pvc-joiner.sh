@@ -56,7 +56,7 @@ echo "+ xtrabackup ${XB_EXTRA_ARGS} ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY}
 xtrabackup ${XB_EXTRA_ARGS} ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare $transition_option --rollback-prepared-trx \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp
 
-echo "+ xtrabackup --defaults-group=mysqld --datadir=/datadir --move-back \
+echo "+ xtrabackup ${XB_EXTRA_ARGS} --defaults-group=mysqld --datadir=/datadir --move-back \
     --force-non-empty-directories $master_key_options \
     --keyring-vault-config=/etc/mysql/vault-keyring-secret/keyring_vault.conf --early-plugin-load=keyring_vault.so \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp"

@@ -114,13 +114,13 @@ backup_s3() {
 	vault_store /tmp/${SST_INFO_NAME}
 
 	xbstream -C /tmp -c ${SST_INFO_NAME} $XBSTREAM_EXTRA_ARGS \
-		| xbcloud put $XBCLOUD_ARGS --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
+		| xbcloud put $XBCLOUD_ARGS --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	if ((SST_FAILED == 0)); then
 		FIRST_RECEIVED=0
 		socat -u "$SOCAT_OPTS" stdio \
-			| xbcloud put $XBCLOUD_ARGS --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
+			| xbcloud put $XBCLOUD_ARGS --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
 			| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 		FIRST_RECEIVED=1
 	fi
@@ -155,13 +155,13 @@ backup_azure() {
 	vault_store /tmp/${SST_INFO_NAME}
 
 	xbstream -C /tmp -c ${SST_INFO_NAME} $XBSTREAM_EXTRA_ARGS \
-		| xbcloud put $XBCLOUD_ARGS --storage=azure --parallel=10 "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
+		| xbcloud put $XBCLOUD_ARGS --storage=azure --parallel="$(grep -c processor /proc/cpuinfo)" "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	if ((SST_FAILED == 0)); then
 		FIRST_RECEIVED=0
 		socat -u "$SOCAT_OPTS" stdio \
-			| xbcloud put $XBCLOUD_ARGS --storage=azure --parallel=10 "$BACKUP_PATH" 2>&1 \
+			| xbcloud put $XBCLOUD_ARGS --storage=azure --parallel="$(grep -c processor /proc/cpuinfo)" "$BACKUP_PATH" 2>&1 \
 			| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 		FIRST_RECEIVED=1
 	fi
