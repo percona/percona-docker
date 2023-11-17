@@ -57,6 +57,11 @@ RUN set -ex; \
         cracklib-dicts \
         tar \
         policycoreutils; \
+    dnf -y update \
+        curl \
+        glibc \
+        libnghttp2 \
+        python3; \
     \
     dnf -y install \
         percona-server-server-${FULL_PERCONA_VERSION} \
