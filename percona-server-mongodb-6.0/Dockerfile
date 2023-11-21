@@ -22,6 +22,9 @@ ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
 ENV PSMDB_REPO release
 
+# Do not report during Docker image creation.
+ARG PERCONA_TELEMETRY_DISABLE=1
+
 RUN set -ex; \
     percona-release enable psmdb-60 ${PSMDB_REPO}; \
     dnf config-manager --enable ol8_u4_security_validation; \
@@ -85,6 +88,12 @@ VOLUME ["/data/db"]
 RUN set -ex; \
     curl -fSL https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js -o /js-yaml.js; \
     echo "45dc3dd03dc07a06705a2c2989b8c7f709013f04bd5386e3279d4e447f07ebd7  /js-yaml.js" | sha256sum -c -
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown 1001:1001 /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY ps-entry.sh /entrypoint.sh
 
