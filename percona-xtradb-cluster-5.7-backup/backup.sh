@@ -169,11 +169,11 @@ backup_s3() {
 	fi
 	vault_store /tmp/${SST_INFO_NAME}
 	xbstream -C /tmp -c ${SST_INFO_NAME} $XBSTREAM_EXTRA_ARGS \
-		| xbcloud put ${INSECURE_ARG} --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 $XBCLOUD_EXTRA_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
+		| xbcloud put --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	socat -u "$SOCAT_OPTS" stdio \
-		| xbcloud put ${INSECURE_ARG} --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 $XBCLOUD_EXTRA_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
+		| xbcloud put --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	mc -C /tmp/mc ${INSECURE_ARG} stat "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
