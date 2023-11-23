@@ -8,7 +8,7 @@ XBCLOUD_ARGS="--curl-retriable-errors=7 $XBCLOUD_EXTRA_ARGS"
 INSECURE_ARG=""
 if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
 	INSECURE_ARG="--insecure"
-	XBCLOUD_ARGS="${XBCLOUD_ARGS} --insecure"
+	XBCLOUD_ARGS="${INSECURE_ARG} ${XBCLOUD_ARGS}"
 fi
 
 S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
