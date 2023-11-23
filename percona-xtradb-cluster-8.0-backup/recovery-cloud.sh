@@ -13,7 +13,7 @@ XBCLOUD_ARGS="--curl-retriable-errors=7 $XBCLOUD_EXTRA_ARGS"
 MC_ARGS='-C /tmp/mc'
 
 if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
-	XBCLOUD_ARGS="${XBCLOUD_ARGS} --insecure"
+	XBCLOUD_ARGS="--insecure ${XBCLOUD_ARGS}"
 	MC_ARGS="${MC_ARGS} --insecure"
 fi
 
@@ -42,8 +42,8 @@ destination() {
 	fi
 }
 
-xbcloud get ${XBCLOUD_ARGS} "$(destination).sst_info" --parallel="$(grep -c processor /proc/cpuinfo)" | xbstream -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)" $XBSTREAM_EXTRA_ARGS
-xbcloud get ${XBCLOUD_ARGS} "$(destination)" --parallel="$(grep -c processor /proc/cpuinfo)" | xbstream --decompress -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)" $XBSTREAM_EXTRA_ARGS
+xbcloud get --parallel="$(grep -c processor /proc/cpuinfo)" ${XBCLOUD_ARGS} "$(destination).sst_info" | xbstream -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)" $XBSTREAM_EXTRA_ARGS
+xbcloud get --parallel="$(grep -c processor /proc/cpuinfo)" ${XBCLOUD_ARGS} "$(destination)" | xbstream --decompress -x -C "${tmp}" --parallel="$(grep -c processor /proc/cpuinfo)" $XBSTREAM_EXTRA_ARGS
 
 set +o xtrace
 transition_key=$(vault_get "$tmp/sst_info")
@@ -53,18 +53,18 @@ if [[ -n $transition_key && $transition_key != null ]]; then
 	echo transition-key exists
 fi
 
-echo "+ xtrabackup ${XB_EXTRA_ARGS} ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare --rollback-prepared-trx \
+echo "+ xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare ${XB_EXTRA_ARGS} --rollback-prepared-trx \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp"
 
-xtrabackup ${XB_EXTRA_ARGS} ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare ${transition_option:+"$transition_option"} --rollback-prepared-trx \
+xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare ${transition_option:+"$transition_option"} ${XB_EXTRA_ARGS} --rollback-prepared-trx \
 	--xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin "--target-dir=$tmp"
 
-echo "+ xtrabackup ${XB_EXTRA_ARGS} --defaults-group=mysqld --datadir=/datadir --move-back \
+echo "+ xtrabackup --defaults-group=mysqld --datadir=/datadir --move-back ${XB_EXTRA_ARGS} \
     --force-non-empty-directories $master_key_options \
     --keyring-vault-config=/etc/mysql/vault-keyring-secret/keyring_vault.conf --early-plugin-load=keyring_vault.so \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp"
 
-xtrabackup ${XB_EXTRA_ARGS} --defaults-group=mysqld --datadir=/datadir --move-back \
+xtrabackup --defaults-group=mysqld --datadir=/datadir --move-back ${XB_EXTRA_ARGS} \
 	--force-non-empty-directories ${transition_option:+"$transition_option"} $master_key_options \
 	--keyring-vault-config=/etc/mysql/vault-keyring-secret/keyring_vault.conf --early-plugin-load=keyring_vault.so \
 	--xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin "--target-dir=$tmp"
