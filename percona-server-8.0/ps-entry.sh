@@ -249,6 +249,6 @@ else
 fi
 
 # PERCONA_TELEMETRY_DISABLE is handled at the very beginning of call-home.sh
-/call-home.sh -f "PRODUCT_FAMILY_PS" -v "${PS_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
+/call-home.sh -f "PRODUCT_FAMILY_PS" -v "${PS_TELEMETRY_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
 
 exec "$@"
