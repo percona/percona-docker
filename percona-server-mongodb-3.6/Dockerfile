@@ -28,6 +28,7 @@ RUN set -ex; \
         procps-ng \
         jq \
         oniguruma \
+        numactl \
         Percona-Server-MongoDB-36-shell-${FULL_PERCONA_VERSION} \
         Percona-Server-MongoDB-36-mongos-${FULL_PERCONA_VERSION}; \
         repoquery -a --location \
