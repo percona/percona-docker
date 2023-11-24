@@ -39,6 +39,9 @@ RUN set -ex; \
         vim-minimal \
         bind-utils \
         policycoreutils; \
+    microdnf -y update \
+        curl-minimal \
+        libnghttp2; \
     \
     microdnf clean all; \
     rm -rf /var/cache

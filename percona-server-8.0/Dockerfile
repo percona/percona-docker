@@ -22,6 +22,7 @@ ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
 ENV PS_REPO release
+ENV PS_TELEMETRY_VERSION 8.0.34-25-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
