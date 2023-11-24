@@ -326,6 +326,8 @@ _main() {
 			echo
 		fi
 	fi
+	# PERCONA_TELEMETRY_DISABLE is handled at the very beginning of call-home.sh
+	./call-home.sh -f "PRODUCT_FAMILY_POSTGRESQL" -v "14.10" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
 
 	exec "$@"
 }

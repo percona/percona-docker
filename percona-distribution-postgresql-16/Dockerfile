@@ -1,12 +1,12 @@
-FROM redhat/ubi8-minimal
+FROM oraclelinux:9
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-RUN microdnf -y update; \
-    microdnf -y install glibc-langpack-en
+RUN dnf -y update; \
+    dnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 13.13-1
-ENV OS_VER el8
+ENV PPG_VERSION 16.1-2
+ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
 
 # Do not report during Docker image creation.
@@ -23,18 +23,18 @@ RUN set -ex; \
     gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    microdnf install -y findutils; \
+    dnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    #percona-release setup -y ppg13; \
-    percona-release enable ppg-13.13 testing;
+    #percona-release setup -y ppg16; \
+    percona-release enable ppg-16.1 testing; 
 
 RUN set -ex; \
-    microdnf -y update; \
-    microdnf -y install \
+    dnf -y update; \
+    dnf -y install \
         bind-utils \
         gettext \
         hostname \
@@ -43,43 +43,37 @@ RUN set -ex; \
         bzip2 \
         lz4 \
         procps-ng; \
-    microdnf -y install  \
+    dnf -y install  \
         nss_wrapper \
         shadow-utils \
         libpq \
         libedit; \
-    microdnf clean all
+    dnf clean all
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" postgres
 
 RUN set -ex; \
-    export GNUPGHOME="$(mktemp -d)"; \
-    curl -Lf -o /tmp/perl-JSON.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-JSON-2.97.001-2.el8.noarch.rpm; \
-    rpmkeys --checksig /tmp/perl-JSON.rpm; \
-    rpm -i /tmp/perl-JSON.rpm
-
-RUN set -ex; \
-    microdnf install -y \
-        percona-postgresql13-server-${FULL_PERCONA_VERSION} \
-        percona-postgresql13-contrib-${FULL_PERCONA_VERSION} \
+    dnf install -y \
+        percona-postgresql16-server-${FULL_PERCONA_VERSION} \
+        percona-postgresql16-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql-common \
-        percona-pg_stat_monitor13 \
-        percona-pg_repack13 \
-        percona-pgaudit13 \
-        percona-pgaudit13_set_user \
-        percona-wal2json13; \
-    microdnf clean all; \
+        percona-pg_stat_monitor16 \
+        percona-pg_repack16 \
+        percona-pgaudit16 \
+        percona-pgaudit16_set_user \
+        percona-wal2json16; \
+    dnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db /docker-entrypoint-initdb.d; \
     chown -R 1001:0 /data/db docker-entrypoint-initdb.d
 
 RUN set -ex; \
-    sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-13/share/postgresql.conf.sample; \
-    grep -F "listen_addresses = '*'" /usr/pgsql-13/share/postgresql.conf.sample
+    sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-16/share/postgresql.conf.sample; \
+    grep -F "listen_addresses = '*'" /usr/pgsql-16/share/postgresql.conf.sample
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN cp /usr/share/doc/percona-postgresql13/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
+RUN cp /usr/share/doc/percona-postgresql16/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
 
 ENV GOSU_VERSION=1.11
 RUN set -eux; \
