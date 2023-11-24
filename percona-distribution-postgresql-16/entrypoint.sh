@@ -220,7 +220,7 @@ pg_setup_hba_conf() {
 		echo
 		if [ 'trust' = "$POSTGRES_HOST_AUTH_METHOD" ]; then
 			echo '# warning trust is enabled for all connections'
-			echo '# see https://www.postgresql.org/docs/12/auth-trust.html'
+			echo '# see https://www.postgresql.org/docs/16/auth-trust.html'
 		fi
 		echo "host all all all $POSTGRES_HOST_AUTH_METHOD"
 	} >> "$PGDATA/pg_hba.conf"
@@ -280,7 +280,7 @@ _main() {
 		set -- postgres "$@"
 	fi
 
-	export PATH=$PATH:/usr/pgsql-11/bin
+	export PATH=$PATH:/usr/pgsql-16/bin
 
 	if [ "$1" = 'postgres' ] && ! _pg_want_help "$@"; then
 		docker_setup_env
@@ -327,7 +327,7 @@ _main() {
 		fi
 	fi
 	# PERCONA_TELEMETRY_DISABLE is handled at the very beginning of call-home.sh
-	./call-home.sh -f "PRODUCT_FAMILY_POSTGRESQL" -v "11.22" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
+	./call-home.sh -f "PRODUCT_FAMILY_POSTGRESQL" -v "16.1" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
 
 	exec "$@"
 }

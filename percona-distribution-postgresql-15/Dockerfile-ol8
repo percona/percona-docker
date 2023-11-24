@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 13.13-1
+ENV PPG_VERSION 15.5-1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
 
@@ -29,8 +29,8 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    #percona-release setup -y ppg13; \
-    percona-release enable ppg-13.13 testing;
+    #percona-release setup -y ppg15; \
+    percona-release enable ppg-15.5 testing; 
 
 RUN set -ex; \
     microdnf -y update; \
@@ -62,24 +62,24 @@ RUN set -ex; \
 
 RUN set -ex; \
     microdnf install -y \
-        percona-postgresql13-server-${FULL_PERCONA_VERSION} \
-        percona-postgresql13-contrib-${FULL_PERCONA_VERSION} \
+        percona-postgresql15-server-${FULL_PERCONA_VERSION} \
+        percona-postgresql15-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql-common \
-        percona-pg_stat_monitor13 \
-        percona-pg_repack13 \
-        percona-pgaudit13 \
-        percona-pgaudit13_set_user \
-        percona-wal2json13; \
+        percona-pg_stat_monitor15 \
+        percona-pg_repack15 \
+        percona-pgaudit15 \
+        percona-pgaudit15_set_user \
+        percona-wal2json15; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db /docker-entrypoint-initdb.d; \
     chown -R 1001:0 /data/db docker-entrypoint-initdb.d
 
 RUN set -ex; \
-    sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-13/share/postgresql.conf.sample; \
-    grep -F "listen_addresses = '*'" /usr/pgsql-13/share/postgresql.conf.sample
+    sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-15/share/postgresql.conf.sample; \
+    grep -F "listen_addresses = '*'" /usr/pgsql-15/share/postgresql.conf.sample
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN cp /usr/share/doc/percona-postgresql13/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
+RUN cp /usr/share/doc/percona-postgresql15/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
 
 ENV GOSU_VERSION=1.11
 RUN set -eux; \
