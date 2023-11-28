@@ -75,10 +75,12 @@ RUN set -ex; \
         libedit \
         procps-ng; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
+    sed -i 's/install_langs C.utf8/install_langs all/' /etc/rpm/macros.image-language-conf; \
     microdnf -y module disable llvm-toolset; \
     microdnf -y install \
         libpq \
         llvm \
+        glibc-all-langpacks \
         percona-postgresql${PG_MAJOR//.}; \
     microdnf -y clean all
 
