@@ -36,7 +36,7 @@ RUN set -ex; \
 ENV PS_VERSION 5.7.44-48.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
-ENV ENV PS_TELEMETRY_VERSION 5.7.44-48-1
+ENV PS_TELEMETRY_VERSION 5.7.44-48-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
