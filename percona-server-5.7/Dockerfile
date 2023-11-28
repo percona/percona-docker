@@ -36,6 +36,14 @@ RUN set -ex; \
 ENV PS_VERSION 5.7.44-48.1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV PS_TELEMETRY_VERSION 5.7.44-48-1
+
+# Do not report during Docker image creation.
+# Note that doing so, would create telemetry config file
+# which would prevent reporting when new container is started.
+# If we want to track Docker image creation as well,
+# remove telemetry config file after installing packages!
+ARG PERCONA_TELEMETRY_DISABLE=1
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
@@ -80,6 +88,12 @@ RUN set -ex; \
 	chmod -R ug+rwX /etc/percona-server.cnf /etc/percona-server.conf.d /etc/my.cnf.d
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx /call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY ps-entry.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
