@@ -12,7 +12,7 @@ LABEL name="Percona PostgreSQL Distribution" \
 
 USER 0
 
-COPY build/postgis/oracle-linux-ol8.repo /etc/yum.repos.d/
+COPY build/postgres-gis/oracle-linux-ol8.repo /etc/yum.repos.d/
 
 RUN set -ex; \
     curl -Lf -o /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle https://yum.oracle.com/RPM-GPG-KEY-oracle-ol8; \
