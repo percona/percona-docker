@@ -4,7 +4,7 @@ WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 RUN export GO111MODULE=off; \
     go get k8s.io/apimachinery/pkg/util/sets; \
     curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go; \
-    go build /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go
+    go build peer-list.go
 
 FROM redhat/ubi8-minimal
 
