@@ -1,10 +1,10 @@
-FROM golang:1.19 AS go_builder
+FROM golang:1.21 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
 RUN export GO111MODULE=off; \
     go get k8s.io/apimachinery/pkg/util/sets; \
     curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go; \
-    go build peer-list.go
+    go build /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go
 
 FROM redhat/ubi8-minimal
 
@@ -138,15 +138,15 @@ RUN if [[ -n $DEBUG ]] ; then \
     rm -rf /var/cache/dnf /var/cache/yum; \
 fi
 
-USER 1001
-
-VOLUME ["/var/lib/mysql", "/var/log/mysql"]
-
 ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
 RUN chmod a+rx /call-home.sh
 RUN mkdir -p /usr/local/percona
 RUN chown mysql:mysql /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
+
+USER 1001
+
+VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
 ENTRYPOINT ["/entrypoint.sh"]
 
