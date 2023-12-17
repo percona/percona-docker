@@ -88,7 +88,11 @@ RUN set -ex; \
         krb5-libs \
         cracklib-dicts \
         tar; \
-    microdnf update systemd-libs; \
+    microdnf update \
+        curl \
+        glibc \
+        libnghttp2 \
+        python3; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
