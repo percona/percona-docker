@@ -75,10 +75,12 @@ RUN set -ex; \
         libedit \
         procps-ng; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
+    sed -i 's/install_langs C.utf8/install_langs all/' /etc/rpm/macros.image-language-conf; \
     microdnf -y module disable llvm-toolset; \
     microdnf -y install \
         libpq \
         llvm \
+        glibc-all-langpacks \
         percona-postgresql${PG_MAJOR//.}; \
     microdnf -y clean all
 
@@ -115,6 +117,8 @@ RUN set -ex; \
         percona-postgresql${PG_MAJOR//.}-plpython* \
         percona-pg_stat_monitor${PG_MAJOR//.} \
         percona-postgresql${PG_MAJOR//.}-llvmjit \
+        percona-wal2json${PG_MAJOR//.} \
+        percona-pg_repack${PG_MAJOR//.} \
         psmisc \
         rsync \
         perl \
@@ -122,10 +126,10 @@ RUN set -ex; \
         tar \
         bzip2 \
         lz4 \
-        percona-wal2json${PG_MAJOR//.} \
         file \
+        tzdata \
         unzip; \
-    microdnf -y reinstall tzdata; \
+        microdnf -y reinstall tzdata; \
 # patroni block starts
 # Provided by Percona
     microdnf -y install \
@@ -159,7 +163,7 @@ ENV PATH="${PGROOT}/bin:${PATH}"
 RUN set -ex; \
     mkdir -p /opt/crunchy/bin /opt/crunchy/conf /pgdata /pgwal /pgconf /backrestrepo /tablespaces; \
     chown -R postgres:postgres /opt/crunchy /var/lib/pgsql \
-        /pgdata /pgwal /pgconf /backrestrepo /tablespaces; \
+        /pgdata /pgwal /pgconf /backrestrepo /tablespaces /usr/pgsql-${PG_MAJOR//.}; \
     chmod -R g=u /opt/crunchy /var/lib/pgsql \
         /pgdata /pgwal /pgconf /backrestrepo /tablespaces
 
@@ -184,6 +188,9 @@ RUN set -ex; \
         /etc/pgbackrest.conf
 
 COPY conf/pgbackrest-repo/pgbackrest.conf /etc/pgbackrest.conf
+COPY bin/relocate-extensions.sh /usr/local/bin/relocate-extensions.sh
+
+RUN echo "huge_pages = off" >> ${PGROOT}/share/postgresql.conf.sample
 
 # remove the default spool directory so that pgBackRest does not attempt to look there when
 # performing a restore (pgBackRest will not have permissions to access to this dir in all envs)

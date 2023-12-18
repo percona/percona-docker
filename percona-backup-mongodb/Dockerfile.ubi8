@@ -14,7 +14,7 @@ LABEL org.opencontainers.image.title="Percona Backup for MongoDB" \
     low-impact solution for achieving consistent backups of MongoDB Sharded Clusters and Replica Sets." \
     org.opencontainers.image.authors="info@percona.com"
 
-ENV PBM_VERSION 2.2.1-1
+ENV PBM_VERSION 2.3.1-1
 ENV PBM_REPO_CH release
 ENV PSMDB_REPO psmdb-42
 ENV PSMDB_REPO_CH release
@@ -41,6 +41,7 @@ RUN set -ex; \
 RUN set -ex; \
     microdnf -y update; \
     microdnf -y install \
+        vim-minimal \
         jq \
         oniguruma; \
     microdnf -y install \
@@ -61,7 +62,9 @@ RUN set -ex; \
     curl -Lf  -o /licenses/LICENSE.kubectl \
         https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
 
-USER nobody
+RUN useradd -u 1001 -r -g 0 -m -s /sbin/nologin \
+            -c "Default Application User" mongodb;
+USER 1001
 
 # Containers should be started either with --mongodb-uri flag or with PBM_MONGODB_URI env variable
 # Also, one can map volume to /etc (/etc/sysconfig/pbm-agent, /etc/pbm-storage.conf)

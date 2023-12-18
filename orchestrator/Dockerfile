@@ -25,8 +25,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-        && percona-release setup pdps-8.0.32 \
-        && percona-release enable-only pdps-8.0.32 release
+        && percona-release setup pdps-8.0.34 \
+        && percona-release enable-only pdps-8.0.34 release
 
 RUN set -ex; \
     microdnf install -y \
@@ -39,6 +39,9 @@ RUN set -ex; \
         vim-minimal \
         bind-utils \
         policycoreutils; \
+    microdnf -y update \
+        curl-minimal \
+        libnghttp2; \
     \
     microdnf clean all; \
     rm -rf /var/cache

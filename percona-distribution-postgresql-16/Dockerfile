@@ -5,9 +5,16 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN dnf -y update; \
     dnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 16.0-1
+ENV PPG_VERSION 16.1-2
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
+
+# Do not report during Docker image creation.
+# Note that doing so, would create telemetry config file
+# which would prevent reporting when new container is started.
+# If we want to track Docker image creation as well,
+# remove telemetry config file after installing packages!
+ARG PERCONA_TELEMETRY_DISABLE=1
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -23,7 +30,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #percona-release setup -y ppg16; \
-    percona-release enable ppg-16.0 testing; 
+    percona-release enable ppg-16.1 testing; 
 
 RUN set -ex; \
     dnf -y update; \
@@ -54,7 +61,7 @@ RUN set -ex; \
         percona-postgresql-common \
         percona-pg_stat_monitor16 \
         percona-pg_repack16 \
-        percona-pgaudit \
+        percona-pgaudit16 \
         percona-pgaudit16_set_user \
         percona-wal2json16; \
     dnf clean all; \
@@ -82,6 +89,12 @@ RUN set -eux; \
     curl -f -o /licenses/LICENSE.gosu https://raw.githubusercontent.com/tianon/gosu/${GOSU_VERSION}/LICENSE
 
 COPY entrypoint.sh /entrypoint.sh
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown 1001:0 /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 VOLUME ["/data/db"]
 

@@ -22,12 +22,16 @@ LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high ava
 helps enterprises avoid downtime and outages and meet expected customer experience."
 LABEL org.opencontainers.image.license="GPL"
 
-ENV PXC_VERSION 8.0.31-23.1
+ENV PXC_VERSION 8.0.34-26.1
 ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 LABEL org.label-schema.schema-version=${PXC_VERSION}
 LABEL org.opencontainers.image.version=${PXC_VERSION}
+
+# Do not report during Docker image creation.
+ARG PERCONA_TELEMETRY_DISABLE=1
+
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -60,7 +64,7 @@ RUN set -ex; \
         shadow-utils \
         hostname \
         curl \
-        jq
+        jq \
         numactl-libs \
         socat \
         krb5-libs \
@@ -141,6 +145,12 @@ RUN if [[ -n $DEBUG ]] ; then \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum; \
 fi
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx /call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}-openshift"
 
 USER 1001
 

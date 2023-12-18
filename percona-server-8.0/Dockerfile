@@ -16,12 +16,20 @@ RUN set -ex; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -m -c "Default Application User" mysql
 
-ENV PS_VERSION 8.0.33-25.1
-ENV MYSQL_SHELL_VERSION 8.0.33-2
+ENV PS_VERSION 8.0.34-26.1
+ENV MYSQL_SHELL_VERSION 8.0.34-1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
 ENV PS_REPO release
+ENV PS_TELEMETRY_VERSION 8.0.34-25-1
+
+# Do not report during Docker image creation.
+# Note that doing so, would create telemetry config file
+# which would prevent reporting when new container is started.
+# If we want to track Docker image creation as well,
+# remove telemetry config file after installing packages!
+ARG PERCONA_TELEMETRY_DISABLE=1
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -50,6 +58,11 @@ RUN set -ex; \
         cracklib-dicts \
         tar \
         policycoreutils; \
+    dnf -y update \
+        curl \
+        glibc \
+        libnghttp2 \
+        python3; \
     \
     dnf -y install \
         percona-server-server-${FULL_PERCONA_VERSION} \
@@ -80,6 +93,12 @@ RUN set -ex; \
 	chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx /call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY ps-entry.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]

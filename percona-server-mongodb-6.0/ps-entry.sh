@@ -460,5 +460,33 @@ fi
 
 rm -f "$jsonConfigFile" "$tempConfigFile"
 
-set -o xtrace
+set -o xtrace +u
+
+# PERCONA_TELEMETRY_DISABLE is handled at the very beginning of call-home.sh
+if [ ! -z "${PERCONA_INSTANCE_ID}" ]; then
+  CALL_HOME_OPTIONAL_PARAMS+=" -i ${PERCONA_INSTANCE_ID}"
+fi
+
+if [ ! -z "${PERCONA_TELEMETRY_CONFIG_FILE_PATH}" ]; then
+  CALL_HOME_OPTIONAL_PARAMS+=" -j ${PERCONA_TELEMETRY_CONFIG_FILE_PATH}"
+fi
+
+if [ ! -z "${PERCONA_TELEMETRY_URL}" ]; then
+  CALL_HOME_OPTIONAL_PARAMS+=" -u ${PERCONA_TELEMETRY_URL}"
+fi
+
+if [ ! -z "${PERCONA_SEND_TIMEOUT}" ]; then
+  CALL_HOME_OPTIONAL_PARAMS+=" -t ${PERCONA_SEND_TIMEOUT}"
+else
+  CALL_HOME_OPTIONAL_PARAMS+=" -t 7"
+fi
+
+if [ ! -z "${PERCONA_CONNECT_TIMEOUT}" ]; then
+  CALL_HOME_OPTIONAL_PARAMS+=" -c ${PERCONA_CONNECT_TIMEOUT}"
+else
+  CALL_HOME_OPTIONAL_PARAMS+=" -c 2"
+fi
+
+/call-home.sh -f "PRODUCT_FAMILY_PSMDB" -v "${PSMDB_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
+
 exec "$@"

@@ -115,7 +115,7 @@ backup_volume() {
 
 	echo '[INFO] Socat was started'
 
-	socat -u "$SOCAT_OPTS" stdio | xbstream -x
+	socat -u "$SOCAT_OPTS" stdio | xbstream -x $XBSTREAM_EXTRA_ARGS
 	if [[ $? -ne 0 ]]; then
 		echo '[ERROR] Socat(1) failed'
 		exit 1
@@ -158,22 +158,22 @@ backup_s3() {
 	echo "+ mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
 	mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
 	set -x
-	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
-	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${INSECURE_ARG} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
+	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 	request_streaming
 
-	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp
+	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp $XBSTREAM_EXTRA_ARGS
 	if [[ $? -ne 0 ]]; then
 		echo '[ERROR] Socat(1) failed'
 		exit 1
 	fi
 	vault_store /tmp/${SST_INFO_NAME}
-	xbstream -C /tmp -c ${SST_INFO_NAME} \
-		| xbcloud put ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
+	xbstream -C /tmp -c ${SST_INFO_NAME} $XBSTREAM_EXTRA_ARGS \
+		| xbcloud put --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	socat -u "$SOCAT_OPTS" stdio \
-		| xbcloud put ${INSECURE_ARG} --storage=s3 --parallel=10 --md5 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
+		| xbcloud put --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	mc -C /tmp/mc ${INSECURE_ARG} stat "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
@@ -228,23 +228,23 @@ backup_azure() {
 
 	echo "[INFO] Backup to $ENDPOINT/$AZURE_CONTAINER_NAME/$BACKUP_PATH"
 
-	is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete ${INSECURE_ARG} --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
-	is_object_exist_azure "$BACKUP_PATH/" || xbcloud delete ${INSECURE_ARG} --storage=azure "$BACKUP_PATH"
+	is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
+	is_object_exist_azure "$BACKUP_PATH/" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=azure "$BACKUP_PATH"
 	request_streaming
 
-	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp
+	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp $XBSTREAM_EXTRA_ARGS
 	if [[ $? -ne 0 ]]; then
 		echo '[ERROR] Socat(1) failed'
 		exit 1
 	fi
 	vault_store /tmp/${SST_INFO_NAME}
 
-	xbstream -C /tmp -c ${SST_INFO_NAME} \
-		| xbcloud put ${INSECURE_ARG} --storage=azure --parallel=10 "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
+	xbstream -C /tmp -c ${SST_INFO_NAME} $XBSTREAM_EXTRA_ARGS \
+		| xbcloud put ${INSECURE_ARG} --storage=azure --parallel="$(grep -c processor /proc/cpuinfo)" $XBCLOUD_EXTRA_ARGS "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	socat -u "$SOCAT_OPTS" stdio \
-		| xbcloud put ${INSECURE_ARG} --storage=azure --parallel=10 "$BACKUP_PATH" 2>&1 \
+		| xbcloud put ${INSECURE_ARG} --storage=azure --parallel="$(grep -c processor /proc/cpuinfo)" $XBCLOUD_EXTRA_ARGS "$BACKUP_PATH" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 	echo '[INFO] Backup was finished successfully'
 }

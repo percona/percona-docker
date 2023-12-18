@@ -10,10 +10,17 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.33-25.1
+ENV PXC_VERSION 8.0.34-26.1
 ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
+
+# Do not report during Docker image creation.
+# Note that doing so, would create telemetry config file
+# which would prevent reporting when new container is started.
+# If we want to track Docker image creation as well,
+# remove telemetry config file after installing packages!
+ARG PERCONA_TELEMETRY_DISABLE=1
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -62,6 +69,8 @@ RUN set -ex; \
         tar; \
     microdnf update -y libksba; \
     microdnf update -y krb5-libs; \
+    microdnf update -y libnghttp2; \
+    microdnf update -y glibc; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
@@ -135,6 +144,12 @@ RUN if [[ -n $DEBUG ]] ; then \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum; \
 fi
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 USER 1001
 
