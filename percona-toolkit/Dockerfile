@@ -11,7 +11,7 @@ RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
 ENV PS_VERSION 8.0.34-26.1.el9
-ENV PT_VERSION 3.5.5-1.el9
+ENV PT_VERSION 3.5.6-1.el9
 
 # check repository package signature in secure way
 RUN set -ex; \
