@@ -10,7 +10,7 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXB_VERSION 2.4.28-1
+ENV PXB_VERSION 2.4.29-1
 ENV PXC_VERSION 5.7.44-31.65.1
 ENV PXC_REPO release
 ENV OS_VER el8
@@ -71,6 +71,7 @@ RUN set -ex; \
         qpress \
         krb5-libs \
         cracklib-dicts \
+        libatomic \
         tar; \
     microdnf update \
         curl \
