@@ -1,10 +1,9 @@
 FROM golang:1.20 AS go_builder
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
-RUN export GO111MODULE=off \
-    && go get k8s.io/apimachinery/pkg/util/sets \
-    && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/v1.13.0/cmd/peer-list/main.go \
-    && go build peer-list.go
+RUN git clone --branch=1.13.0-CUSTOM-150 https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
+RUN go build
+
 
 FROM redhat/ubi9-minimal AS ubi9
 
@@ -59,7 +58,7 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/licenses/percona-haproxy/LICENSE /licenses/LICENSE.haproxy
 
 COPY dockerdir /
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 
 RUN set -ex; \
     chown 1001:1001 /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy-global.cfg /usr/local/bin/check_pxc.sh
