@@ -1,4 +1,4 @@
-FROM golang:1.19 AS go_builder
+FROM golang:1.21 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
 RUN export GO111MODULE=off; \
@@ -10,12 +10,20 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXB_VERSION 2.4.28-1
-ENV PXC_VERSION 5.7.43-31.65.1
+ENV PXB_VERSION 2.4.29-1
+ENV PXC_VERSION 5.7.44-31.65.1
 ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
+ENV PXC_TELEMETRY_VERSION 5.7.44-31.65-1
+
+# Do not report during Docker image creation.
+# Note that doing so, would create telemetry config file
+# which would prevent reporting when new container is started.
+# If we want to track Docker image creation as well,
+# remove telemetry config file after installing packages!
+ARG PERCONA_TELEMETRY_DISABLE=1
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -63,8 +71,13 @@ RUN set -ex; \
         qpress \
         krb5-libs \
         cracklib-dicts \
+        libatomic \
         tar; \
-    microdnf update systemd-libs; \
+    microdnf update \
+        curl \
+        glibc \
+        libnghttp2 \
+        python3; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
@@ -129,6 +142,12 @@ RUN if [[ -n $DEBUG ]] ; then \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum; \
 fi
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx /call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 USER 1001
 
