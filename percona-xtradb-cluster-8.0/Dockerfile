@@ -1,10 +1,8 @@
-FROM golang:1.19 AS go_builder
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
+FROM golang:1.21 AS go_builder
 
-RUN export GO111MODULE=off; \
-    go get k8s.io/apimachinery/pkg/util/sets; \
-    curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go; \
-    go build peer-list.go
+RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
+RUN go build
 
 FROM redhat/ubi8-minimal
 
@@ -104,7 +102,7 @@ RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.ga
     cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
 
 COPY dockerdir /
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 
 RUN set -ex; \
     rmdir /etc/my.cnf.d; \
