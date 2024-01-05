@@ -30,6 +30,7 @@ RUN set -ex; \
         gdb \
         nc \
         telnet \
+        numactl \
         percona-server-mongodb-server-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION} \

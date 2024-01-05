@@ -21,7 +21,7 @@ ENV PERCONA_VERSION 3.4.18-2.16.jessie
 RUN \
         apt-get update \
         && apt-get install -y --force-yes \
-           jq percona-server-mongodb-$PERCONA_MAJOR=$PERCONA_VERSION \
+           jq numactl percona-server-mongodb-$PERCONA_MAJOR=$PERCONA_VERSION \
         && rm -rf /var/lib/apt/lists/* \
         && rm -rf /data/db && mkdir -p /data/db \ 
         && chown -R 1001:0 /data/db
