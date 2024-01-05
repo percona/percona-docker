@@ -1,4 +1,4 @@
-FROM golang:1.19 AS go_builder
+FROM golang:1.21 AS go_builder
 
 RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
@@ -8,7 +8,7 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.34-26.1
+ENV PXC_VERSION 8.0.35-27.1
 ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
