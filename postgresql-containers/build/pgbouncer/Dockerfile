@@ -28,15 +28,18 @@ RUN set -ex; \
         430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A \
         99DB70FAE1D7CE227FB6488205B555B38483C65D \
         94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 \
+        76FD3DB13AB67410B89DB10E82562EA9AD986DA3 \
         736AF5116D9C40E2AF6B074BF9B9FEE7764429E6; \
     gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
     gpg --batch --export --armor 736AF5116D9C40E2AF6B074BF9B9FEE7764429E6 > ${GNUPGHOME}/RPM-GPG-KEY-CentOS-SIG-Cloud; \
+    gpg --batch --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
     rpmkeys --import \
         ${GNUPGHOME}/RPM-GPG-KEY-Percona \
         ${GNUPGHOME}/RPM-GPG-KEY-centosofficial \
         ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8 \
+        ${GNUPGHOME}/RPM-GPG-KEY-oracle \
         ${GNUPGHOME}/RPM-GPG-KEY-CentOS-SIG-Cloud; \
     microdnf install -y findutils; \
     curl -Lf -o /tmp/epel-release.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; \
@@ -53,7 +56,7 @@ RUN set -ex; \
     percona-release enable ppg-${PG_MAJOR} release
 
 RUN set -ex; \
-    curl -Lf -o /tmp/c-ares.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/c-ares-1.13.0-5.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/c-ares.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/c-ares-1.13.0-9.el8_9.1.x86_64.rpm; \
     rpmkeys --checksig /tmp/c-ares.rpm; \
     rpm -i /tmp/c-ares.rpm; \
     rm -rf /tmp/c-ares.rpm; \
