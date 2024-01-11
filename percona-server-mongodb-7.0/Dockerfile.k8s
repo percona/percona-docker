@@ -136,8 +136,7 @@ RUN if [[ -n $DEBUG ]] ; then \
 		    percona-server-mongodb-server-debuginfo-${FULL_PERCONA_VERSION} \
 		    percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION} \
 		    percona-server-mongodb-mongos-debuginfo-${FULL_PERCONA_VERSION} \
-		    percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
-		    percona-server-mongodb-debugsource-${FULL_PERCONA_VERSION}; \
+		    percona-server-mongodb-tools-${FULL_PERCONA_VERSION}; \
         microdnf clean all; \
         rm -rf /var/cache/dnf /var/cache/yum; \
     fi
