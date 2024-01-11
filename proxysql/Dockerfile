@@ -4,7 +4,7 @@ RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-op
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
 RUN go build
 
-FROM redhat/ubi8-minimal AS ubi8
+FROM redhat/ubi8-minimal:8.9-1108 AS ubi8
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="ProxySQL" \
