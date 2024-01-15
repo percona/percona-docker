@@ -34,6 +34,7 @@ RUN set -ex; \
     microdnf -y install  \
         shadow-utils \
         tar \
+        hostname \
         percona-server-client-${PS_VERSION} 
 
 RUN   set -ex; \
