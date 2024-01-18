@@ -1,4 +1,4 @@
-FROM golang:1.20 AS go_builder
+FROM golang:1.21 AS go_builder
 
 RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
 
@@ -8,8 +8,8 @@ RUN go build
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
 RUN go build
 
-ENV MC_VERSION=RELEASE.2023-06-15T15-08-26Z
-ENV MC_SHA256SUM=f9d0cd9fe80306b251d40f967435b14b75bd151af055d1efc9bfc20c6dcce65d
+ENV MC_VERSION=RELEASE.2024-01-16T16-06-34Z
+ENV MC_SHA256SUM=142090f6e5096d27b932c1a4590e07affc60c9fb6dbeacc7e3f770eeed4ac25e
 RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
 	&& chmod +x /go/bin/mc \
 	&& echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
@@ -36,7 +36,8 @@ ENV PXB_VERSION 8.0.35-30.1
 ENV PS_VERSION 8.0.35-27.1
 
 ENV PXC_VERSION 8.0.35-27.1
-ENV PXC_REPO testing
+ENV PXC_REPO release
+
 ENV KUBECTL_VERSION=v1.24.14
 ENV KUBECTL_SHA512SUM=3ec6e321be772291cc6396bd10079f66ac6e690d776108fe2f24724ed51a0557a764228c45aa597a991733c04d052179b220ce8cdedc70c2783621a8925d1945
 ENV OS_VER el9
