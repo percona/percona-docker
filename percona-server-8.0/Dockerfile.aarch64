@@ -7,11 +7,11 @@ FROM arm64v8/oraclelinux:9
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PS_VERSION 8.0.34-26.1
+ENV PS_VERSION 8.0.35-27.1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV PS_REPO release
-ENV PS_TELEMETRY_VERSION 8.0.34-25-1
+ENV PS_TELEMETRY_VERSION 8.0.35-27-1
 
 # It is intentionally used another UID, to have backward compatibility with
 # the previous image versions published on Docker Hub

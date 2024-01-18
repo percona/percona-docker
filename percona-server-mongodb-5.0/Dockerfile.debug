@@ -34,6 +34,7 @@ RUN set -ex; \
         nc \
         telnet \
         cyrus-sasl-gssapi \
+        numactl \
         percona-server-mongodb-server-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-shell-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION} \

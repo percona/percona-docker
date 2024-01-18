@@ -1,10 +1,8 @@
 FROM golang:1.19 AS go_builder
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
-RUN export GO111MODULE=off \
-    && go get k8s.io/apimachinery/pkg/util/sets \
-    && curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go \
-    && go build peer-list.go
+RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
+RUN go build
 
 FROM redhat/ubi8-minimal AS ubi8
 
@@ -96,7 +94,7 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/proxysql2/LICENSE /licenses/LICENSE.proxysql
 
 COPY dockerdir /
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf; \
     chmod 664 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf
 

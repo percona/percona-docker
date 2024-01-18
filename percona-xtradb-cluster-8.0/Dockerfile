@@ -1,19 +1,18 @@
 FROM golang:1.19 AS go_builder
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/src
 
-RUN export GO111MODULE=off; \
-    go get k8s.io/apimachinery/pkg/util/sets; \
-    curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go; \
-    go build peer-list.go
+RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
+WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
+RUN go build
 
 FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.34-26.1
-ENV PXC_REPO release
+ENV PXC_VERSION 8.0.35-27.1
+ENV PXC_REPO testing
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
+ENV PXC_TELEMETRY_VERSION 8.0.35-27-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
@@ -104,7 +103,7 @@ RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.ga
     cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
 
 COPY dockerdir /
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list /usr/bin/
+COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 
 RUN set -ex; \
     rmdir /etc/my.cnf.d; \
@@ -125,16 +124,16 @@ RUN if [[ -n $DEBUG ]] ; then \
     sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf; \
     mv /usr/sbin/mysqld /usr/sbin/mysqld-ps; \
     cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld; \
-    percona-release enable pdpxc-${PXC_VERSION%-*} ${PXC_REPO}; \
+    percona-release enable pdpxc-8.0 ${PXC_REPO}; \
     microdnf install -y \
         net-tools \
         nc \
         percona-toolkit \
         gdb; \
-    percona-release disable pdpxc-${PXC_VERSION%-*} ${PXC_REPO}; \
+    percona-release disable pdpxc-8.0 ${PXC_REPO}; \
     curl -Lf -o /tmp/telnet.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
     curl -Lf -o /tmp/tcpdump.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/tcpdump-4.9.3-2.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/perf.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/perf-4.18.0-477.13.1.el8_8.x86_64.rpm; \
+    curl -Lf -o /tmp/perf.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/perf-4.18.0-513.9.1.el8_9.x86_64.rpm; \
     curl -Lf -o /tmp/strace.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/strace-5.7-3.el8.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
