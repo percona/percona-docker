@@ -14,11 +14,14 @@ USER 0
 
 COPY build/postgres-gis/oracle-linux-ol8.repo /etc/yum.repos.d/
 
+ARG PG_MAJOR=14
+
 RUN set -ex; \
     curl -Lf -o /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle https://yum.oracle.com/RPM-GPG-KEY-oracle-ol8; \
-    microdnf -y install epel-release; \
+    microdnf -y remove epel-release; \
     microdnf -y module disable postgresql; \
-    microdnf -y --enablerepo="epel" install percona-postgis33 percona-postgis33-client
+    microdnf -y install epel-release; \
+    microdnf -y install percona-postgis33_${PG_MAJOR} percona-postgis33_${PG_MAJOR}-client
 
 EXPOSE 5432
 
