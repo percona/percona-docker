@@ -25,6 +25,9 @@ ENV K8S_TOOLS_VERSION "0.5.0"
 LABEL org.label-schema.schema-version=${PSMDB_VERSION}
 LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
+# Do not report during Docker image creation.
+ARG PERCONA_TELEMETRY_DISABLE=1
+
 # check repository package signature in secure way
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -102,6 +105,12 @@ RUN set -ex; \
     echo "45dc3dd03dc07a06705a2c2989b8c7f709013f04bd5386e3279d4e447f07ebd7  /js-yaml.js" | sha256sum -c -; \
     rm -f /tmp/SHA256SUMS; \
     chmod 0755 /usr/local/bin/k8s-mongodb-initiator /usr/local/bin/mongodb-healthcheck
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown 1001:1001 /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 VOLUME ["/data/db"]
 
