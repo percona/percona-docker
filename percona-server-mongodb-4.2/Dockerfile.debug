@@ -21,6 +21,9 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 LABEL org.label-schema.schema-version=${PSMDB_VERSION}
 LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
+# Do not report during Docker image creation.
+ARG PERCONA_TELEMETRY_DISABLE=1
+
 USER 0
 
 RUN set -ex; \
@@ -40,6 +43,12 @@ RUN set -ex; \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION}; \
     dnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown 1001:1001 /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 VOLUME ["/data/db"]
 
