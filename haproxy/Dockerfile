@@ -24,10 +24,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-	&& percona-release setup pdpxc-8.0.34
+	&& percona-release enable pdpxc-8.0.35 testing
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.34-26.1.el9
+ENV PERCONA_VERSION 8.0.35-27.1.el9
 
 RUN set -ex; \
     microdnf install -y \
@@ -40,6 +40,10 @@ RUN set -ex; \
         procps-ng \
         vim-minimal \
         policycoreutils; \
+    microdnf -y update \
+        curl-minimal \
+        glibc \
+        libnghttp2; \
     \
     microdnf clean all; \
     rm -rf /var/cache
