@@ -37,6 +37,14 @@ ENV LC_ALL en_US.utf-8
 ENV LANG en_US.utf-8
 ARG PG_MAJOR=14
 
+RUN if [ "$PG_MAJOR" = "14" ]; then \
+      export PG_MINOR=9; \
+    elif [ "$PG_MAJOR" = "13" ]; then \
+      export PG_MINOR=12; \
+    elif [ "$PG_MAJOR" = "12" ]; then \
+      export PG_MINOR=16; \
+    fi
+
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
@@ -65,7 +73,7 @@ RUN set -ex; \
     rpm -i /tmp/python3-pyparsing.rpm; \
     rm -rf /tmp/python3-pyparsing.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable ppg-${PG_MAJOR} release
+    percona-release enable ppg-${PG_MAJOR}${PG_MINOR:+.$PG_MINOR} release
 
 RUN set -ex; \
     microdnf -y update; \
