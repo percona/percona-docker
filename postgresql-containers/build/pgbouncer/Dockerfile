@@ -21,14 +21,7 @@ RUN set -ex; \
 ENV LC_ALL en_US.utf-8
 ENV LANG en_US.utf-8
 ARG PG_MAJOR=14
-
-RUN if [ "$PG_MAJOR" = "14" ]; then \
-      export PG_MINOR=9; \
-    elif [ "$PG_MAJOR" = "13" ]; then \
-      export PG_MINOR=12; \
-    elif [ "$PG_MAJOR" = "12" ]; then \
-      export PG_MINOR=16; \
-    fi
+ARG PG_MINOR=9
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -61,7 +54,7 @@ RUN set -ex; \
     rpm -i /tmp/python3-pyparsing.rpm; \
     rm -rf /tmp/python3-pyparsing.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable ppg-${PG_MAJOR}${PG_MINOR:+.$PG_MINOR} release
+    percona-release enable ppg-${PG_MAJOR}.${PG_MINOR} release
 
 RUN set -ex; \
     curl -Lf -o /tmp/c-ares.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/c-ares-1.13.0-9.el8_9.1.x86_64.rpm; \

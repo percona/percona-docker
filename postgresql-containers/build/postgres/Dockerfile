@@ -72,7 +72,7 @@ RUN set -ex; \
     rpm -i /tmp/python3-pyparsing.rpm; \
     rm -rf /tmp/python3-pyparsing.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable ppg-${PG_MAJOR}${PG_MINOR:+.$PG_MINOR} release
+    percona-release enable ppg-${PG_MAJOR}.${PG_MINOR} release
 
 RUN set -ex; \
     microdnf -y install \
