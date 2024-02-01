@@ -44,6 +44,8 @@ ENV MYSQL_SHELL_VERSION 8.0.35-1
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
+ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
+ENV CALL_HOME_VERSION 0.1
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
@@ -84,10 +86,15 @@ RUN set -ex; \
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
-ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
-RUN chmod a+rx /call-home.sh
-RUN mkdir -p /usr/local/percona
-RUN chown mysql:mysql /usr/local/percona
+RUN set -eux; \
+    curl -fL "https://github.com/Percona-Lab/telemetry-agent/archive/refs/tags/phase-$CALL_HOME_VERSION.tar.gz" -o "phase-$CALL_HOME_VERSION.tar.gz"; \
+    echo "$CALL_HOME_DOWNLOAD_SHA256 phase-$CALL_HOME_VERSION.tar.gz" | sha256sum --strict --check; \
+    tar -xvf phase-$CALL_HOME_VERSION.tar.gz; \
+    cp telemetry-agent-phase-$CALL_HOME_VERSION/call-home.sh .;\
+    rm -rf telemetry-agent-phase-$CALL_HOME_VERSION phase-$CALL_HOME_VERSION.tar.gz; \
+    chmod a+rx /call-home.sh; \
+    mkdir -p /usr/local/percona; \
+    chown mysql:mysql /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}-openshift"
 
 COPY ps-entry.sh /docker-entrypoint.sh
