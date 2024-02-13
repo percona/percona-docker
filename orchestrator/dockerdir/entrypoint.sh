@@ -19,6 +19,8 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
                 RaftAdvertise:\"$HOSTNAME.$NAMESPACE\",
                 RaftBind:\"$HOSTNAME.$ORC_SERVICE.$NAMESPACE\",
                 RaftEnabled: ${RAFT_ENABLED:-"true"},
+				MySQLTopologyUseMutualTLS: true,
+				MySQLTopologySSLSkipVerify: true,
                 MySQLTopologySSLPrivateKeyFile:\"${ORC_CONF_PATH}/ssl/tls.key\",
                 MySQLTopologySSLCertFile:\"${ORC_CONF_PATH}/ssl/tls.crt\",
                 MySQLTopologySSLCAFile:\"${ORC_CONF_PATH}/ssl/ca.crt\",
