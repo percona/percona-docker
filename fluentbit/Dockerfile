@@ -21,7 +21,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && rpm -i /tmp/percona-release.rpm \
     && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
     && rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-    && percona-release setup pdpxc-8.0.32
+    && percona-release setup pdpxc-8.0.35
 
 # install exact version of PS for repeatability
 ENV PERCONA_VERSION 8.0.35-27.1.el9
