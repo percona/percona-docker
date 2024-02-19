@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal AS ubi8
+FROM registry.access.redhat.com/ubi9/ubi-minimal AS ubi9
 
 LABEL name="Fluent Bit" \
       description="Fluent Bit docker image" \
@@ -24,7 +24,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && percona-release setup pdpxc-8.0.32
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.32-24.1.el9
+ENV PERCONA_VERSION 8.0.35-27.1.el9
 
 # fluentbit does not have el8 repo and the doc suggests installing el7 rpm
 RUN set -ex; \
@@ -35,7 +35,7 @@ RUN set -ex; \
     curl -Lf https://packages.fluentbit.io/centos/9/x86_64/fluent-bit-2.1.5-1.x86_64.rpm -o /tmp/fluent-bit.rpm; \
     rpmkeys --checksig /tmp/fluent-bit.rpm; \
     rpm -i /tmp/fluent-bit.rpm; \
-    rm -rf /var/cache 
+    rm -rf /var/cache
 
 
 RUN groupadd -g 1001 mysql
