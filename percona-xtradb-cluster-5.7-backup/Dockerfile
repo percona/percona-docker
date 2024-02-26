@@ -82,6 +82,7 @@ RUN set -ex; \
 	qpress \
 	tar \
 	cracklib-dicts \
+	libatomic \
 	libaio; \
 	microdnf clean all; \
 	rm -rf /var/cache/dnf /var/cache/yum
