@@ -134,7 +134,7 @@ RUN if [[ -n $DEBUG ]] ; then \
     percona-release disable pdpxc-8.0 ${PXC_REPO}; \
     curl -Lf -o /tmp/telnet.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
     curl -Lf -o /tmp/tcpdump.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/tcpdump-4.9.3-2.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/perf.rpm https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/perf-4.18.0-513.11.1.el8_9.x86_64.rpm; \
+    curl -Lf -o /tmp/perf.rpm https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/perf-4.18.0-513.18.1.el8_9.x86_64.rpm; \
     curl -Lf -o /tmp/strace.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/strace-5.7-3.el8.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
