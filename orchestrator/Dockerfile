@@ -17,8 +17,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-        && percona-release setup pdps-8.0.34 \
-        && percona-release enable-only pdps-8.0.34 release
+        && percona-release setup pdps-8.0.36 \
+        && percona-release enable-only pdps-8.0.36 release
 
 RUN set -ex; \
     microdnf install -y \
