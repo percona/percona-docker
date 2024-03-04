@@ -61,9 +61,10 @@ RUN set -ex; \
 RUN set -ex; \
 	curl -Lf -o /tmp/libev.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/libev-4.33-5.el9.x86_64.rpm; \
 	curl -Lf -o /tmp/pv.rpm https://yum.oracle.com/repo/OracleLinux/OL9/developer/EPEL/x86_64/getPackage/pv-1.6.20-1.el9.x86_64.rpm; \
-	rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm; \
-	rpm -i /tmp/libev.rpm /tmp/pv.rpm; \
-	rm -rf /tmp/libev.rpm /tmp/pv.rpm
+	curl -Lf -o /tmp/boost-program-options.rpm https://yum.oracle.com/repo/OracleLinux/OL9/appstream/x86_64/getPackage/boost-program-options-1.75.0-8.el9.x86_64.rpm; \
+	rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm /tmp/boost-program-options.rpm; \
+	rpm -i /tmp/libev.rpm /tmp/pv.rpm /tmp/boost-program-options.rpm; \
+	rm -rf /tmp/libev.rpm /tmp/pv.rpm /tmp/boost-program-options.rpm
 
 RUN set -ex; \
 	microdnf install -y \
@@ -82,6 +83,7 @@ RUN set -ex; \
 	qpress \
 	tar \
 	cracklib-dicts \
+	libatomic \
 	libaio; \
 	microdnf clean all; \
 	rm -rf /var/cache/dnf /var/cache/yum
