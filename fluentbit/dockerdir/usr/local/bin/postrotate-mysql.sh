@@ -2,10 +2,12 @@
 
 set -o errexit
 
-PXC_SERVER_PORT='3306'
+PXC_SERVER_PORT='33062'
 MONITOR_USER='monitor'
 TIMEOUT=10
-MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER -h127.0.0.1 -P$PXC_SERVER_PORT"
+NODE_IP=$(hostname -I | awk ' { print $1 } ')
+
+MYSQL_CMDLINE="/usr/bin/timeout $TIMEOUT /usr/bin/mysql -nNE -u$MONITOR_USER -h$NODE_IP -P$PXC_SERVER_PORT"
 
 export MYSQL_PWD=${MONITOR_PASSWORD}
 
