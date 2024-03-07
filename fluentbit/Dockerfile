@@ -28,7 +28,7 @@ ENV PERCONA_VERSION 8.0.35-27.1.el9
 
 # fluentbit does not have el8 repo and the doc suggests installing el7 rpm
 RUN set -ex; \
-    microdnf install -y postgresql-libs shadow-utils yum-utils logrotate make libpq procps-ng compat-openssl11 \
+    microdnf install -y hostname postgresql-libs shadow-utils yum-utils logrotate make libpq procps-ng compat-openssl11 \
     percona-xtradb-cluster-client-${PERCONA_VERSION} tar vim-minimal; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
