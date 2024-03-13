@@ -14,7 +14,7 @@ RUN git clone -b $YQ_VERSION https://github.com/mikefarah/yq.git .; \
     CGO_ENABLED=$CGO_ENABLED GOOS=$GOOS GOARCH=$GOARCH \
     make local build
 
-FROM redhat/ubi8-minimal
+FROM redhat/ubi8-minimal:8.9-1108.1705420507
 
 LABEL name="Percona PostgreSQL Distribution" \
     vendor="Percona" \
