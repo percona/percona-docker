@@ -4,7 +4,7 @@ RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-op
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
 RUN go build
 
-FROM redhat/ubi8-minimal
+FROM redhat/ubi8-minimal:8.9-1108.1705420507
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
