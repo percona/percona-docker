@@ -141,15 +141,7 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-ENV PATRONI_VERSION='2.1.4-2'
-
-RUN if [[ "${PG_MAJOR//.}" -le '14' ]]; then \
-        curl -Lf -o /tmp/percona-patroni.rpm https://repo.percona.com/ppg-${PG_MAJOR//.}/yum/release/8/RPMS/x86_64/percona-patroni-${PATRONI_VERSION}.el8.x86_64.rpm; \
-    else \
-        microdnf -y install \
-            --enablerepo="epel" \
-            percona-patroni; \
-    fi; \
+RUN microdnf -y install --enablerepo="epel" percona-patroni; \
     rpmkeys --checksig /tmp/percona-patroni.rpm; \
     rpm -i --nodeps /tmp/percona-patroni.rpm; \
     rm -rf /tmp/percona-patroni.rpm; \
