@@ -69,18 +69,22 @@ if [[ "$testName" == *tls* ]]; then
 		mongodCmdArgs+=(
 			--tlsMode requireTLS
 			--tlsCertificateKeyFile /certs/both.pem
+			--tlsCAFile /certs/ca.crt
 		)
 		mongoArgs+=(
 			--tls
+			--tlsCertificateKeyFile /certs/both.pem
 			--tlsCAFile /certs/ca.crt
 		)
 	else
 		mongodCmdArgs+=(
 			--sslMode requireSSL
 			--sslPEMKeyFile /certs/both.pem
+			--sslCAFile /certs/ca.crt
 		)
 		mongoArgs+=(
 			--ssl
+			--sslPEMKeyFile /certs/both.pem
 			--sslCAFile /certs/ca.crt
 		)
 	fi
