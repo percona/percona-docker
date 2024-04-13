@@ -98,7 +98,7 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
     rpm -i /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
     rm -rf /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm; \
-    microdnf -y install  \
+    microdnf -y --enablerepo=epel install  \
         percona-pgbackrest; \
     microdnf -y clean all
 
