@@ -60,6 +60,8 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/perl-JSON.rpm; \
     rpm -i /tmp/perl-JSON.rpm
 
+ENV PGDATA /data/db
+
 RUN set -ex; \
     microdnf install -y \
         percona-postgresql11-server-${FULL_PERCONA_VERSION} \
@@ -71,8 +73,8 @@ RUN set -ex; \
         percona-pgaudit11_set_user \
         percona-wal2json11; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db /docker-entrypoint-initdb.d; \
-    chown -R 1001:0 /data/db docker-entrypoint-initdb.d
+    rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
+    chown -R 1001:0 $PGDATA docker-entrypoint-initdb.d
 
 RUN set -ex; \
     sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-11/share/postgresql.conf.sample; \
