@@ -48,13 +48,13 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/cache/yum
 
 # kubectl needed for Percona Operator for PSMDB
-ENV KUBECTL_VERSION=v1.19.12
-ENV KUBECTL_MD5SUM=b5d1a7052ba61a2bbd1f009b127c95f7
+ENV KUBECTL_VERSION=v1.28.9
+ENV KUBECTL_SHA512SUM=4faaa4b7b8dc0a5dfa2fd9884ec9f6434dd6b3e74d197a28a4f80a9aa57adec73fd43b06fee9fe901bc5be87bb2854241351cbdedd95ca74f39cd9511b2896b2
 RUN set -ex; \
     curl -Lf -o /usr/bin/kubectl \
         https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/arm64/kubectl; \
     chmod +x /usr/bin/kubectl; \
-    echo "${KUBECTL_MD5SUM} /usr/bin/kubectl" | md5sum -c -; \
+    echo "${KUBECTL_SHA512SUM} /usr/bin/kubectl" | sha512sum -c -; \
     mkdir -p /licenses; \
     curl -Lf  -o /licenses/LICENSE.kubectl \
         https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
