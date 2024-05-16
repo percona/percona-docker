@@ -5,9 +5,13 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 12.17-1
+ENV PPG_VERSION 12.19-1
+ENV PPG_MAJOR_VERSION 12
+ENV PPG_MINOR_VERSION 19
 ENV OS_VER el8
-ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
+ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
+ENV PPG_REPO testing
+ENV PPG_REPO_VERSION "${PPG_MAJOR_VERSION}.${PPG_MINOR_VERSION}"
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
@@ -29,8 +33,8 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    #percona-release setup -y ppg12; \
-    percona-release enable ppg-12.17 testing;
+    #percona-release setup -y ppg${PPG_MAJOR_VERSION}; \
+    percona-release enable ppg-${PPG_REPO_VERSION} ${PPG_REPO};
 
 RUN set -ex; \
     microdnf -y update; \
@@ -64,24 +68,24 @@ ENV PGDATA /data/db
 
 RUN set -ex; \
     microdnf install -y \
-        percona-postgresql12-server-${FULL_PERCONA_VERSION} \
-        percona-postgresql12-contrib-${FULL_PERCONA_VERSION} \
+        percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
+        percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql-common \
-        percona-pg_stat_monitor12 \
-        percona-pg_repack12 \
-        percona-pgaudit12 \
-        percona-pgaudit12_set_user \
-        percona-wal2json12; \
+        percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
+        percona-pg_repack${PPG_MAJOR_VERSION} \
+        percona-pgaudit${PPG_MAJOR_VERSION} \
+        percona-pgaudit${PPG_MAJOR_VERSION}_set_user \
+        percona-wal2json${PPG_MAJOR_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
     chown -R 1001:0 $PGDATA docker-entrypoint-initdb.d
 
 RUN set -ex; \
-    sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-12/share/postgresql.conf.sample; \
-    grep -F "listen_addresses = '*'" /usr/pgsql-12/share/postgresql.conf.sample
+    sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-${PPG_MAJOR_VERSION}/share/postgresql.conf.sample; \
+    grep -F "listen_addresses = '*'" /usr/pgsql-${PPG_MAJOR_VERSION}/share/postgresql.conf.sample
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN cp /usr/share/doc/percona-postgresql12/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
+RUN cp /usr/share/doc/percona-postgresql${PPG_MAJOR_VERSION}/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
 
 ENV GOSU_VERSION=1.11
 RUN set -eux; \
