@@ -37,7 +37,7 @@ RUN set -ex; \
     curl -Lf -o /tmp/percona-release https://raw.githubusercontent.com/percona/percona-repositories/release-1.0-28/scripts/percona-release.sh; \
     mv /tmp/percona-release /usr/bin/; \
     chmod +x /usr/bin/percona-release; \
-    percona-release enable ${PPG_REPO_VERSION} ${PPG_REPO};
+    percona-release enable ppg-${PPG_REPO_VERSION} ${PPG_REPO};
 
 RUN set -ex; \
     dnf -y update; \
