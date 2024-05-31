@@ -1,12 +1,10 @@
 #!/bin/bash
 set -eo pipefail
 shopt -s nullglob
-
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
 fi
-
 # skip setup if they want an option that stops mysqld
 wantHelp=
 for arg; do
@@ -227,7 +225,6 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
   fi
 fi
 
-
 if [ ! -z "${PERCONA_INSTANCE_ID}" ]; then
   CALL_HOME_OPTIONAL_PARAMS+=" -i ${PERCONA_INSTANCE_ID}"
 fi
@@ -248,7 +245,9 @@ else
   CALL_HOME_OPTIONAL_PARAMS+=" -c 2"
 fi
 
-# PERCONA_TELEMETRY_DISABLE is handled at the very beginning of call-home.sh
-/call-home.sh -f "PRODUCT_FAMILY_PS" -v "${PS_TELEMETRY_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
-
-exec "$@"
+if [[ ${PERCONA_TELEMETRY_DISABLE} -ne "0" ]]; then
+  exec "$@" --percona_telemetry_disable=1
+else
+  /usr/bin/telemetry-agent-supervisor.sh &
+  exec "$@"
+fi
