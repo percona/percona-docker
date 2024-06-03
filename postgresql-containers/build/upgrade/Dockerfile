@@ -69,7 +69,7 @@ RUN set -ex; \
 RUN set -ex; \
     microdnf -y install \
         --enablerepo="epel" \
-        percona-pgaudit \
+        percona-pgaudit${PG_MAJOR//.} \
         percona-pgaudit${PG_MAJOR//.}_set_user \
         percona-postgresql${PG_MAJOR//.}-contrib \
         percona-postgresql${PG_MAJOR//.}-server \
@@ -88,7 +88,7 @@ RUN set -ex; \
 RUN for pg_version in 15 14 13 12; do \
         percona-release enable ppg-${pg_version} release; \
         microdnf -y install --nodocs \
-            percona-pgaudit \
+            percona-pgaudit${pg_version} \
             percona-pgaudit${pg_version}_set_user \
             percona-postgresql${pg_version}-contrib \
             percona-postgresql${pg_version}-server \
