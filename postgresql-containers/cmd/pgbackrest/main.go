@@ -92,6 +92,8 @@ func main() {
 	// create the proper pgBackRest command
 	cmd := createPGBackRestCommand(cfg)
 	log.Infof("command to execute is [%s]", strings.Join(cmd, " "))
+	log.Infof("command to execute with config [%v]", cfg)
+	log.Infof("command to execute with config [%v]", cfg.commandOpts)
 
 	var output, stderr string
 	// now run the proper exec command depending on whether or not the config hashes should first
