@@ -74,7 +74,6 @@ RUN set -ex; \
         percona-postgresql${PG_MAJOR//.}-contrib \
         percona-postgresql${PG_MAJOR//.}-server \
         percona-postgresql${PG_MAJOR//.}-libs \
-        percona-postgresql${PG_MAJOR//.}-plpython* \
         percona-postgresql${PG_MAJOR//.}-llvmjit \
         percona-wal2json${PG_MAJOR//.} \
         percona-pg_stat_monitor${PG_MAJOR//.} \
@@ -93,7 +92,6 @@ RUN for pg_version in 15 14 13 12; do \
             percona-postgresql${pg_version}-contrib \
             percona-postgresql${pg_version}-server \
             percona-postgresql${pg_version}-libs \
-            percona-postgresql${pg_version}-plpython* \
             percona-postgresql${pg_version}-llvmjit \
             percona-wal2json${pg_version} \
             percona-pg_stat_monitor${pg_version}; \
