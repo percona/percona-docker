@@ -1,4 +1,4 @@
-FROM redhat/ubi8-minimal
+FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
@@ -7,7 +7,7 @@ RUN microdnf -y update; \
 
 ENV XTRABACKUP_VERSION 8.0.35-31.1
 ENV PS_VERSION 8.0.36-28.1
-ENV OS_VER el8
+ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
 
@@ -41,7 +41,7 @@ RUN groupadd -g 1001 mysql; \
         -c "Default Application User" mysql
 
 RUN set -ex; \
-    curl -Lf -o /tmp/libev.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
     rpm -i /tmp/libev.rpm; \
     rm -rf /tmp/libev.rpm; \
     #dnf --setopt=install_weak_deps=False --best install -y \
