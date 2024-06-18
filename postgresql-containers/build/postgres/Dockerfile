@@ -114,7 +114,6 @@ RUN set -ex; \
         percona-postgresql${PG_MAJOR//.}-contrib \
         percona-postgresql${PG_MAJOR//.}-server \
         percona-postgresql${PG_MAJOR//.}-libs \
-        percona-postgresql${PG_MAJOR//.}-plpython* \
         percona-pg_stat_monitor${PG_MAJOR//.} \
         percona-postgresql${PG_MAJOR//.}-llvmjit \
         percona-wal2json${PG_MAJOR//.} \
@@ -144,9 +143,6 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/cache/yum
 
 RUN microdnf -y install --enablerepo="epel" percona-patroni; \
-    rpmkeys --checksig /tmp/percona-patroni.rpm; \
-    rpm -i --nodeps /tmp/percona-patroni.rpm; \
-    rm -rf /tmp/percona-patroni.rpm; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
