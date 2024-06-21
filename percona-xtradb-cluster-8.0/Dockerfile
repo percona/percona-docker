@@ -1,4 +1,4 @@
-FROM golang:1.19 AS go_builder
+FROM golang:1.22 AS go_builder
 
 RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
@@ -66,6 +66,7 @@ RUN set -ex; \
         pam \
         procps-ng \
         cracklib-dicts \
+        libatomic \
         tar; \
     microdnf update -y libksba; \
     microdnf update -y krb5-libs; \
