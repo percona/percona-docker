@@ -35,40 +35,47 @@ function main() {
         fi
 
         node_name=$(echo "$pxc_host" | cut -d . -f -1)
-        node_id=$(echo $node_name |  awk -F'-' '{print $NF}')
-        NODE_LIST_REPL+=( "server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS" )
+        node_id=$(echo $node_name | awk -F'-' '{print $NF}')
         if [ "x$node_id" == 'x0' ]; then
             main_node="$pxc_host"
             firs_node="server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS on-marked-up shutdown-backup-sessions"
+            firs_node_repl="server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS"
             firs_node_admin="server $node_name $pxc_host:33062 $SERVER_OPTIONS on-marked-up shutdown-backup-sessions"
             firs_node_mysqlx="server $node_name $pxc_host:33060 $SERVER_OPTIONS on-marked-up shutdown-backup-sessions"
             continue
         fi
         NODE_LIST_BACKUP+=("galera-nodes/$node_name" "galera-admin-nodes/$node_name")
-        NODE_LIST+=( "server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS backup" )
-        NODE_LIST_ADMIN+=( "server $node_name $pxc_host:33062 $SERVER_OPTIONS backup" )
-        NODE_LIST_MYSQLX+=( "server $node_name $pxc_host:33060 $send_proxy $SERVER_OPTIONS backup" )
+        NODE_LIST+=("server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS backup")
+        NODE_LIST_REPL+=("server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS")
+        NODE_LIST_ADMIN+=("server $node_name $pxc_host:33062 $SERVER_OPTIONS backup")
+        NODE_LIST_MYSQLX+=("server $node_name $pxc_host:33060 $send_proxy $SERVER_OPTIONS backup")
     done
 
     if [ -n "$firs_node" ]; then
         if [[ "${#NODE_LIST[@]}" -ne 0 ]]; then
-            NODE_LIST=( "$firs_node" "$(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq)" )
-            NODE_LIST_ADMIN=( "$firs_node_admin" "$(printf '%s\n' "${NODE_LIST_ADMIN[@]}" | sort --version-sort -r | uniq)" )
-            NODE_LIST_MYSQLX=( "$firs_node_mysqlx" "$(printf '%s\n' "${NODE_LIST_MYSQLX[@]}" | sort --version-sort -r | uniq)" )
+            NODE_LIST=("$firs_node" "$(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq)")
+            if [ "${REPLICAS_SVC_ONLY_READERS}" == "false" ]; then
+                NODE_LIST_REPL=("$firs_node_repl" "$(printf '%s\n' "${NODE_LIST_REPL[@]}" | sort --version-sort -r | uniq)")
+            fi
+            NODE_LIST_ADMIN=("$firs_node_admin" "$(printf '%s\n' "${NODE_LIST_ADMIN[@]}" | sort --version-sort -r | uniq)")
+            NODE_LIST_MYSQLX=("$firs_node_mysqlx" "$(printf '%s\n' "${NODE_LIST_MYSQLX[@]}" | sort --version-sort -r | uniq)")
         else
-            NODE_LIST=( "$firs_node" )
-            NODE_LIST_ADMIN=( "$firs_node_admin" )
-            NODE_LIST_MYSQLX=( "$firs_node_mysqlx" )
+            NODE_LIST=("$firs_node")
+            if [ "${REPLICAS_SVC_ONLY_READERS}" == "false" ]; then
+                NODE_LIST_REPL=("$firs_node_repl")
+            fi
+            NODE_LIST_ADMIN=("$firs_node_admin")
+            NODE_LIST_MYSQLX=("$firs_node_mysqlx")
         fi
     else
         if [[ "${#NODE_LIST[@]}" -ne 0 ]]; then
-            NODE_LIST=( "$(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq)" )
-            NODE_LIST_ADMIN=( "$(printf '%s\n' "${NODE_LIST_ADMIN[@]}" | sort --version-sort -r | uniq)" )
-            NODE_LIST_MYSQLX=( "$(printf '%s\n' "${NODE_LIST_MYSQLX[@]}" | sort --version-sort -r | uniq)" )
+            NODE_LIST=("$(printf '%s\n' "${NODE_LIST[@]}" | sort --version-sort -r | uniq)")
+            NODE_LIST_ADMIN=("$(printf '%s\n' "${NODE_LIST_ADMIN[@]}" | sort --version-sort -r | uniq)")
+            NODE_LIST_MYSQLX=("$(printf '%s\n' "${NODE_LIST_MYSQLX[@]}" | sort --version-sort -r | uniq)")
         fi
     fi
 
-cat <<-EOF > "$path_to_haproxy_cfg/haproxy.cfg"
+    cat <<-EOF >"$path_to_haproxy_cfg/haproxy.cfg"
     backend galera-nodes
       mode tcp
       option srvtcpka
@@ -78,10 +85,13 @@ cat <<-EOF > "$path_to_haproxy_cfg/haproxy.cfg"
 EOF
 
     log "number of available nodes are ${#NODE_LIST_REPL[@]}"
-    echo "${#NODE_LIST_REPL[@]}" > $path_to_haproxy_cfg/AVAILABLE_NODES
-    ( IFS=$'\n'; echo "${NODE_LIST[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+    echo "${#NODE_LIST_REPL[@]}" >$path_to_haproxy_cfg/AVAILABLE_NODES
+    (
+        IFS=$'\n'
+        echo "${NODE_LIST[*]}"
+    ) >>"$path_to_haproxy_cfg/haproxy.cfg"
 
-cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
+    cat <<-EOF >>"$path_to_haproxy_cfg/haproxy.cfg"
     backend galera-admin-nodes
       mode tcp
       option srvtcpka
@@ -90,9 +100,12 @@ cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
       external-check command /usr/local/bin/check_pxc.sh
 EOF
 
-    ( IFS=$'\n'; echo "${NODE_LIST_ADMIN[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+    (
+        IFS=$'\n'
+        echo "${NODE_LIST_ADMIN[*]}"
+    ) >>"$path_to_haproxy_cfg/haproxy.cfg"
 
-cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
+    cat <<-EOF >>"$path_to_haproxy_cfg/haproxy.cfg"
     backend galera-replica-nodes
       mode tcp
       option srvtcpka
@@ -100,9 +113,12 @@ cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
       option external-check
       external-check command /usr/local/bin/check_pxc.sh
 EOF
-    ( IFS=$'\n'; echo "${NODE_LIST_REPL[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+    (
+        IFS=$'\n'
+        echo "${NODE_LIST_REPL[*]}"
+    ) >>"$path_to_haproxy_cfg/haproxy.cfg"
 
-cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
+    cat <<-EOF >>"$path_to_haproxy_cfg/haproxy.cfg"
     backend galera-mysqlx-nodes
       mode tcp
       option srvtcpka
@@ -110,7 +126,10 @@ cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
       option external-check
       external-check command /usr/local/bin/check_pxc.sh
 EOF
-    ( IFS=$'\n'; echo "${NODE_LIST_MYSQLX[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+    (
+        IFS=$'\n'
+        echo "${NODE_LIST_MYSQLX[*]}"
+    ) >>"$path_to_haproxy_cfg/haproxy.cfg"
 
     SOCKET='/etc/haproxy/pxc/haproxy.sock'
     path_to_custom_global_cnf='/etc/haproxy-custom'
@@ -128,12 +147,12 @@ EOF
     fi
 
     if [ -n "$main_node" ]; then
-         if /usr/local/bin/check_pxc.sh '' '' "$main_node"; then
-             for backup_server in ${NODE_LIST_BACKUP[@]}; do
-                 log "shutdown sessions server $backup_server | socat stdio ${SOCKET}"
-                 echo "shutdown sessions server $backup_server" | socat stdio "${SOCKET}"
-             done
-         fi
+        if /usr/local/bin/check_pxc.sh '' '' "$main_node"; then
+            for backup_server in ${NODE_LIST_BACKUP[@]}; do
+                log "shutdown sessions server $backup_server | socat stdio ${SOCKET}"
+                echo "shutdown sessions server $backup_server" | socat stdio "${SOCKET}"
+            done
+        fi
     fi
 
     if [ -S "$path_to_haproxy_cfg/haproxy-main.sock" ]; then
