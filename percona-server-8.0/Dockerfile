@@ -21,11 +21,10 @@ ENV MYSQL_SHELL_VERSION 8.0.36-1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
-ENV PS_REPO release
+ENV PS_REPO experimental
 ENV PS_TELEMETRY_VERSION 8.0.36-28-1
 ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
 ENV CALL_HOME_VERSION 0.1
-
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
 # which would prevent reporting when new container is started.
@@ -47,7 +46,8 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release disable all; \
     percona-release enable ps-80 ${PS_REPO}; \
-    percona-release enable mysql-shell ${PS_REPO}
+    percona-release enable telemetry ${PS_REPO}; \
+    percona-release enable mysql-shell testing
 
 RUN set -ex; \
     dnf -y install epel-release; \
@@ -59,6 +59,7 @@ RUN set -ex; \
         which \
         cracklib-dicts \
         tar \
+        coreutils \
         policycoreutils; \
     dnf -y update \
         curl \
@@ -108,6 +109,17 @@ RUN set -eux; \
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY ps-entry.sh /docker-entrypoint.sh
+COPY telemetry-agent-supervisor.sh /usr/bin/
+RUN set -ex; \
+    chown  mysql /usr/bin/telemetry-agent-supervisor.sh; \
+    chown  mysql /usr/bin/percona-telemetry-agent; \
+    chown  mysql /usr/local/percona/telemetry/history; \
+    chmod ug+rwx /usr/bin/telemetry-agent-supervisor.sh; \
+    chmod -R go+w /var/log/percona
+ENV PERCONA_TELEMETRY_CHECK_INTERVAL=86400
+ENV PERCONA_TELEMETRY_HISTORY_KEEP_INTERVAL=604800
+ENV PERCONA_TELEMETRY_RESEND_INTERVAL=60
+ENV PERCONA_TELEMETRY_URL=https://check-dev.percona.com/v1/telemetry/GenericReport
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 USER mysql
