@@ -1,13 +1,5 @@
 FROM redhat/ubi9-minimal
 
-ENV MC_VERSION=RELEASE.2024-05-03T11-21-07Z
-ENV MC_SHA256SUM=ff8ae3d45092b8262c8c19e748bf5a077b04cd93d21a2f523d10e90482755ba7
-RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
-	&& chmod +x /go/bin/mc \
-	&& echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
-	&& curl -o /go/bin/LICENSE.mc \
-	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
-
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona XtraBackup" \
 	release="8.0" \
@@ -96,7 +88,7 @@ RUN set -ex; \
 	microdnf clean all; \
 	rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
-COPY percona-docker/percona-xtradb-cluster-8.0-backup/LICENSE /licenses/LICENSE.Dockerfile
+COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-xtrabackup-80/LICENSE /licenses/LICENSE.xtrabackup; \
 	cp /usr/share/doc/percona-xtradb-cluster-garbd-3/COPYING /licenses/LICENSE.garbd
 
@@ -110,10 +102,16 @@ RUN curl -o /usr/bin/kubectl \
 RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 	mkdir /usr/lib/pxc
 
-COPY percona-docker/percona-xtradb-cluster-8.0-backup/lib/pxc /usr/lib/pxc
-COPY percona-docker/percona-xtradb-cluster-8.0-backup/recovery-*.sh percona-docker/percona-xtradb-cluster-8.0-backup/run_backup.sh percona-docker/percona-xtradb-cluster-8.0-backup/backup.sh percona-docker/percona-xtradb-cluster-8.0-backup/get-pxc-state /usr/bin/
-COPY --from=go_builder /go/bin/mc /usr/bin/
-COPY --from=go_builder /go/bin/LICENSE.mc /licenses/LICENSE.mc
+ENV MC_VERSION=RELEASE.2024-05-03T11-21-07Z
+ENV MC_SHA256SUM=ff8ae3d45092b8262c8c19e748bf5a077b04cd93d21a2f523d10e90482755ba7
+RUN curl -o /usr/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
+	&& chmod +x /usr/bin/mc \
+	&& echo "${MC_SHA256SUM} /usr/bin/mc" | sha256sum -c - \
+	&& curl -o /licenses/LICENSE.mc \
+	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
+
+COPY lib/pxc /usr/lib/pxc
+COPY recovery-*.sh run_backup.sh backup.sh get-pxc-state /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001
