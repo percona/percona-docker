@@ -16,13 +16,13 @@ if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
 fi
 
 get_backup_source() {
-	CLUSTER_SIZE=$(peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 \
+	CLUSTER_SIZE=$(/opt/percona/peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 \
 		| grep wsrep_cluster_size \
 		| sort \
 		| tail -1 \
 		| cut -d : -f 12)
 
-	FIRST_NODE=$(peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 \
+	FIRST_NODE=$(/opt/percona/peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 \
 		| grep wsrep_ready:ON:wsrep_connected:ON:wsrep_local_state_comment:Synced:wsrep_cluster_status:Primary \
 		| sort -r \
 		| tail -1 \
@@ -33,7 +33,7 @@ get_backup_source() {
 	if ((${CLUSTER_SIZE:-0} > 1)); then
 		SKIP_FIRST_POD="$FIRST_NODE"
 	fi
-	peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 \
+	/opt/percona/peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE 2>&1 \
 		| grep wsrep_ready:ON:wsrep_connected:ON:wsrep_local_state_comment:Synced:wsrep_cluster_status:Primary \
 		| grep -v $SKIP_FIRST_POD \
 		| sort \
@@ -74,7 +74,7 @@ request_streaming() {
 	local NODE_NAME=$(get_backup_source)
 
 	if [ -z "$NODE_NAME" ]; then
-		peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE
+		/opt/percona/peer-list -on-start=/usr/bin/get-pxc-state -service=$PXC_SERVICE
 		echo "[ERROR] Cannot find node for backup"
 		exit 1
 	fi

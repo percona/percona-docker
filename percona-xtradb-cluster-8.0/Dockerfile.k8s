@@ -1,9 +1,3 @@
-FROM golang:1.19 AS go_builder
-
-RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
-RUN go build
-
 FROM redhat/ubi8-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
@@ -112,7 +106,6 @@ RUN set -ex; \
     echo '!includedir /etc/percona-xtradb-cluster.conf.d/' >> /etc/my.cnf
 
 COPY dockerdir /
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d; \
     chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d; \
     chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d /etc/percona-xtradb-cluster.conf.d

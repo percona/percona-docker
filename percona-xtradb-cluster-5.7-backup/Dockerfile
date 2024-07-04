@@ -1,12 +1,4 @@
-FROM golang:1.21 AS go_builder
-
-RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
-
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
-RUN go build
-
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
-RUN go build
+FROM redhat/ubi9-minimal
 
 ENV MC_VERSION=RELEASE.2024-05-03T11-21-07Z
 ENV MC_SHA256SUM=ff8ae3d45092b8262c8c19e748bf5a077b04cd93d21a2f523d10e90482755ba7
@@ -15,8 +7,6 @@ RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/arch
 	&& echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
 	&& curl -o /go/bin/LICENSE.mc \
 	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
-
-FROM redhat/ubi9-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona XtraBackup" \
@@ -123,8 +113,6 @@ COPY lib/pxc /usr/lib/pxc
 COPY recovery-*.sh backup.sh get-pxc-state /usr/bin/
 COPY --from=go_builder /go/bin/mc /usr/bin/
 COPY --from=go_builder /go/bin/LICENSE.mc /licenses/LICENSE.mc
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr/pitr /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001
