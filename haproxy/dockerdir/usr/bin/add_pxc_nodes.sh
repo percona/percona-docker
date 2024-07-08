@@ -19,6 +19,7 @@ function main() {
     NODE_LIST_BACKUP=()
     firs_node=''
     firs_node_admin=''
+    firs_node_replica=''
     main_node=''
 
     SERVER_OPTIONS=${HA_SERVER_OPTIONS:-'resolvers kubernetes check inter 10000 rise 1 fall 2 weight 1'}
@@ -38,6 +39,7 @@ function main() {
         node_id=$(echo $node_name |  awk -F'-' '{print $NF}')
         NODE_LIST_REPL+=( "server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS" )
         if [ "x$node_id" == 'x0' ]; then
+            firs_node_replica="$pxc_host"
             main_node="$pxc_host"
             firs_node="server $node_name $pxc_host:3306 $send_proxy $SERVER_OPTIONS on-marked-up shutdown-backup-sessions"
             firs_node_admin="server $node_name $pxc_host:33062 $SERVER_OPTIONS on-marked-up shutdown-backup-sessions"
@@ -103,7 +105,12 @@ EOF
     if [ "${REPLICAS_SVC_ONLY_READERS}" == "false" ]; then
         ( IFS=$'\n'; echo "${NODE_LIST_REPL[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
     else
-        ( IFS=$'\n'; echo "${NODE_LIST_REPL[*]:1}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+        if [ -n "$firs_node_replica" ]; then
+            ( IFS=$'\n'; echo "${NODE_LIST_REPL[*]:1}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+        else
+            NODE_LIST_REPL=("$(printf "%s\n" "${NODE_LIST_REPL[@]}" | sort -r | tail -n +2)")
+            ( IFS=$'\n'; echo "${NODE_LIST_REPL[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+        fi
     fi
 
 cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
