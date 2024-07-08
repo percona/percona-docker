@@ -100,7 +100,11 @@ cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
       option external-check
       external-check command /usr/local/bin/check_pxc.sh
 EOF
-    ( IFS=$'\n'; echo "${NODE_LIST_REPL[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+    if [ "${REPLICAS_SVC_ONLY_READERS}" == "false" ]; then
+        ( IFS=$'\n'; echo "${NODE_LIST_REPL[*]}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+    else
+        ( IFS=$'\n'; echo "${NODE_LIST_REPL[*]:1}" ) >> "$path_to_haproxy_cfg/haproxy.cfg"
+    fi
 
 cat <<-EOF >> "$path_to_haproxy_cfg/haproxy.cfg"
     backend galera-mysqlx-nodes
