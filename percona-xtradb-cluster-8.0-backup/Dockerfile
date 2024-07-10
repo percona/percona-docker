@@ -1,21 +1,3 @@
-FROM golang:1.21 AS go_builder
-
-RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
-
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
-RUN go build
-
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr
-RUN go build
-
-ENV MC_VERSION=RELEASE.2024-05-03T11-21-07Z
-ENV MC_SHA256SUM=ff8ae3d45092b8262c8c19e748bf5a077b04cd93d21a2f523d10e90482755ba7
-RUN curl -o /go/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
-	&& chmod +x /go/bin/mc \
-	&& echo "${MC_SHA256SUM} /go/bin/mc" | sha256sum -c - \
-	&& curl -o /go/bin/LICENSE.mc \
-	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
-
 FROM redhat/ubi9-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
@@ -32,18 +14,18 @@ LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high ava
 	helps enterprises avoid downtime and outages and meet expected customer experience."
 LABEL org.opencontainers.image.license="GPL"
 
-ENV PXB_VERSION 8.0.35-30.1
-ENV PS_VERSION 8.0.36-28.1
+ENV PXB_VERSION=8.0.35-30.1
+ENV PS_VERSION=8.0.36-28.1
 
-ENV PXC_VERSION 8.0.36-28.1
-ENV PXC_REPO release
+ENV PXC_VERSION=8.0.36-28.1
+ENV PXC_REPO=release
 
-ENV KUBECTL_VERSION=v1.28.9
-ENV KUBECTL_SHA512SUM=bd29135df60205900c8857fa097c99bd9a4c66ed97a94be47c020cb6221ddc4a8cac59d49885a02e23b184a7ea4bf2026ce99346ffd2478e16400ada515ab7a8
-ENV OS_VER el9
-ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
-ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
-ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
+ENV KUBECTL_VERSION=v1.30.2
+ENV KUBECTL_SHA512SUM=0e1c51cf19254d8615abb0c2cbc6ed980ee41d0874a90ef47705ee0f2cc787b476fd32d56a926564334f4a01aa34ec480a4edcf60cd1b7fe1d734b2cc805774b
+ENV OS_VER=el9
+ENV FULL_PERCONA_VERSION="$PS_VERSION.$OS_VER"
+ENV FULL_PERCONA_XTRABACKUP_VERSION="$PXB_VERSION.$OS_VER"
+ENV FULL_PERCONA_XTRADBCLUSTER_VERSION="$PXC_VERSION.$OS_VER"
 LABEL org.label-schema.schema-version=${PXC_VERSION}
 LABEL org.opencontainers.image.version=${PXC_VERSION}
 
@@ -110,22 +92,28 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-xtrabackup-80/LICENSE /licenses/LICENSE.xtrabackup; \
 	cp /usr/share/doc/percona-xtradb-cluster-garbd-3/COPYING /licenses/LICENSE.garbd
 
-RUN curl -o /usr/bin/kubectl \
-	https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl; \
-	chmod +x /usr/bin/kubectl; \
+RUN set -ex; \
+    curl -o /usr/bin/kubectl -LO  \
+    https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl; \
 	echo "${KUBECTL_SHA512SUM} /usr/bin/kubectl" | sha512sum -c -; \
+	chmod +x /usr/bin/kubectl; \
 	curl -o /licenses/LICENSE.kubectl \
 	https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
 
 RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 	mkdir /usr/lib/pxc
 
+ENV MC_VERSION=RELEASE.2024-07-08T20-59-24Z
+ENV MC_SHA256SUM=e111d2b4bea05aadbffaa3fc8d2436a3fefedf030cd1318568bccb72810024f0
+RUN set -ex; \
+    curl -o /usr/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
+	&& chmod +x /usr/bin/mc \
+	&& echo "${MC_SHA256SUM} /usr/bin/mc" | sha256sum -c - \
+	&& curl -o /licenses/LICENSE.mc \
+	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
+
 COPY lib/pxc /usr/lib/pxc
 COPY recovery-*.sh run_backup.sh backup.sh get-pxc-state /usr/bin/
-COPY --from=go_builder /go/bin/mc /usr/bin/
-COPY --from=go_builder /go/bin/LICENSE.mc /licenses/LICENSE.mc
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/pitr/pitr /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001
