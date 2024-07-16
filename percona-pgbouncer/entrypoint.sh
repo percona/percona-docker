@@ -60,7 +60,7 @@ DATABASES_HOST=${DATABASES_HOST:=localhost}
 DATABASES_PORT=${DATABASES_PORT:=5432}
 DATABASES_USER=${DATABASES_USER:=postgres}
 DATABASES_PASSWORD=${DATABASES_PASSWORD:=postgres}
-DATABASES_DBNAME=${DATABASES_DBNAME:=testdb}
+DATABASES_DBNAME=${DATABASES_DBNAME:=postgres}
 AUTH_TYPE=${AUTH_TYPE:-md5}
 
 # Update or add database connection settings in pgbouncer.ini under [databases] section
