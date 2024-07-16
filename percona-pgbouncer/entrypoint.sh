@@ -44,16 +44,29 @@ update_database_config() {
     mv "$temp_file" "$file"
 }
 
+update_auth_type() {
+    local auth_type="$1"
+    local file="/etc/pgbouncer/pgbouncer.ini"
+
+    if grep -q "^auth_type" "$file"; then
+        sed -i "s/^auth_type.*/auth_type = $auth_type/" "$file"
+    else
+        echo "auth_type = $auth_type" >> "$file"
+    fi
+}
+
 # Default values
-: ${DATABASES_HOST:=localhost}
-: ${DATABASES_PORT:=6432}
-: ${DATABASES_USER:=test}
-: ${DATABASES_PASSWORD:=testing}
-: ${DATABASES_DBNAME:=testdb}
-: ${AUTH_TYPE:-md5}
+DATABASES_HOST=${DATABASES_HOST:=localhost}
+DATABASES_PORT=${DATABASES_PORT:=5432}
+DATABASES_USER=${DATABASES_USER:=postgres}
+DATABASES_PASSWORD=${DATABASES_PASSWORD:=postgres}
+DATABASES_DBNAME=${DATABASES_DBNAME:=testdb}
+AUTH_TYPE=${AUTH_TYPE:-md5}
 
 # Update or add database connection settings in pgbouncer.ini under [databases] section
 update_database_config "$DATABASES_DBNAME" "$DATABASES_HOST" "$DATABASES_PORT" "$DATABASES_USER" "$DATABASES_PASSWORD" "$AUTH_TYPE"
+
+update_auth_type "$AUTH_TYPE"
 
 # Start pgBouncer
 exec /usr/bin/pgbouncer /etc/pgbouncer/pgbouncer.ini
