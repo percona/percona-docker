@@ -16,11 +16,11 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-ENV PSMDB_VERSION 7.0.5-1
+ENV PSMDB_VERSION 7.0.12-7
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
-ENV PSMDB_REPO experimental
+ENV PSMDB_REPO release
 
 # Do not report during Docker image creation.
 ARG PERCONA_TELEMETRY_DISABLE=1
