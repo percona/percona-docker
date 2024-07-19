@@ -64,6 +64,7 @@ RUN set -ex; \
         curl \
         glibc \
         libnghttp2 \
+        openssh \
         python3; \
     \
     dnf -y install \
