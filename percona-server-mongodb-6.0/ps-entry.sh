@@ -487,6 +487,9 @@ else
   CALL_HOME_OPTIONAL_PARAMS+=" -c 2"
 fi
 
-/call-home.sh -f "PRODUCT_FAMILY_PSMDB" -v "${PSMDB_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
-
-exec "$@"
+if [[ ${PERCONA_TELEMETRY_DISABLE} -ne "0" ]]; then
+  exec "$@" --setParameter perconaTelemetry=false
+else
+  /usr/bin/telemetry-agent-supervisor.sh &
+  exec "$@"
+fi
