@@ -16,17 +16,18 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-ENV PSMDB_VERSION 5.0.27-23
+ENV PSMDB_VERSION 5.0.28-24
 ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
-ENV PSMDB_REPO release
+ENV PSMDB_REPO testing
 
 # Do not report during Docker image creation.
 ARG PERCONA_TELEMETRY_DISABLE=1
 
 RUN set -ex; \
     percona-release enable psmdb-50 ${PSMDB_REPO}; \
+    percona-release enable telemetry ${PSMDB_REPO}; \
     dnf config-manager --enable ol8_u4_security_validation; \
     dnf -y update bind-export-libs; \
     dnf -y update glibc; \
@@ -86,6 +87,19 @@ RUN chown 1001:1001 /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY ps-entry.sh /entrypoint.sh
+COPY telemetry-agent-supervisor.sh /usr/bin/
+RUN set -ex; \
+    chown  mongodb /usr/bin/telemetry-agent-supervisor.sh; \
+    chown  mongodb /usr/bin/percona-telemetry-agent; \
+    chown  mongodb /usr/local/percona/telemetry/history; \
+    chown  mongodb:percona-telemetry /usr/local/percona/telemetry/psmdb; \
+    chown  mongodb:percona-telemetry /usr/local/percona/telemetry/psmdbs; \
+    chmod ug+rwx /usr/bin/telemetry-agent-supervisor.sh; \
+    chmod -R go+w /var/log/percona
+ENV PERCONA_TELEMETRY_CHECK_INTERVAL=86400
+ENV PERCONA_TELEMETRY_HISTORY_KEEP_INTERVAL=604800
+ENV PERCONA_TELEMETRY_RESEND_INTERVAL=60
+ENV PERCONA_TELEMETRY_URL=https://check.percona.com/v1/telemetry/GenericReport
 
 ENTRYPOINT ["/entrypoint.sh"]
 
