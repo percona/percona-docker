@@ -21,10 +21,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && rpm -i /tmp/percona-release.rpm \
     && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
     && rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-    && percona-release setup pdpxc-8.0.35
+    && percona-release setup pdpxc-8.0.36
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.35-27.1.el9
+ENV PERCONA_VERSION 8.0.36-28.1.el9
 
 # fluentbit does not have el8 repo and the doc suggests installing el7 rpm
 RUN set -ex; \
@@ -32,7 +32,7 @@ RUN set -ex; \
     percona-xtradb-cluster-client-${PERCONA_VERSION} tar vim-minimal; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
-    curl -Lf https://packages.fluentbit.io/centos/9/x86_64/fluent-bit-2.1.10-1.x86_64.rpm -o /tmp/fluent-bit.rpm; \
+    curl -Lf https://packages.fluentbit.io/centos/9/x86_64/fluent-bit-3.1.4-1.x86_64.rpm -o /tmp/fluent-bit.rpm; \
     rpmkeys --checksig /tmp/fluent-bit.rpm; \
     rpm -i /tmp/fluent-bit.rpm; \
     rm -rf /var/cache
