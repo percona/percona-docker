@@ -5,9 +5,9 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN dnf -y update; \
     dnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 15.7-1
+ENV PPG_VERSION 15.8-1
 ENV PPG_MAJOR_VERSION 15
-ENV PPG_MINOR_VERSION 7
+ENV PPG_MINOR_VERSION 8
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO testing
