@@ -48,8 +48,8 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/cache/yum
 
 # kubectl needed for Percona Operator for PSMDB
-ENV KUBECTL_VERSION=v1.28.9
-ENV KUBECTL_SHA512SUM=4faaa4b7b8dc0a5dfa2fd9884ec9f6434dd6b3e74d197a28a4f80a9aa57adec73fd43b06fee9fe901bc5be87bb2854241351cbdedd95ca74f39cd9511b2896b2
+ENV KUBECTL_VERSION=v1.28.11
+ENV KUBECTL_SHA512SUM=53b1e51953ace6030978e1c14a3dcc3ea1ffe1778abe911bc17c827a8f907b7f0942743c59f68e666add98d23638d7d517b482089d9f7474a8fcf391c299493f
 RUN set -ex; \
     curl -Lf -o /usr/bin/kubectl \
         https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/arm64/kubectl; \
