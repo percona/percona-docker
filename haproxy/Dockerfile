@@ -41,6 +41,7 @@ RUN set -ex; \
         procps-ng \
         vim-minimal \
         policycoreutils; \
+    microdnf update -y glibc; \
     \
     microdnf clean all; \
     rm -rf /var/cache
