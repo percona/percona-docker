@@ -41,10 +41,11 @@ RUN set -ex; \
     percona-release enable pdpxc-8.0 ${PXC_REPO}
 
 RUN set -ex; \
-    curl -Lf -o /tmp/libev.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.24-6.el8.x86_64.rpm; \
     curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
     rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm; \
-    rpm -i /tmp/libev.rpm /tmp/pv.rpm; \
+    rpm -i /tmp/pv.rpm; \
+    rpm -i /tmp/libev.rpm; \
     rm -rf /tmp/libev.rpm /tmp/pv.rpm
 
 RUN set -ex; \
