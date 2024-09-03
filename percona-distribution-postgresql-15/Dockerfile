@@ -34,6 +34,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #percona-release setup -y ppg${PPG_MAJOR_VERSION}; \
+    percona-release enable telemetry ${PPG_REPO}; \
     percona-release enable ppg-${PPG_REPO_VERSION} ${PPG_REPO};
 
 RUN set -ex; \
@@ -101,6 +102,18 @@ RUN chmod a+rx call-home.sh
 RUN mkdir -p /usr/local/percona
 RUN chown 1001:0 /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
+
+COPY telemetry-agent-supervisor.sh /usr/bin/
+RUN set -ex; \
+    chown  1001:0 /usr/bin/telemetry-agent-supervisor.sh; \
+    chown  1001:0 /usr/bin/percona-telemetry-agent; \
+    chown  1001:0 /usr/local/percona/telemetry/history; \
+    chown -R 1001:0 /var/log/percona/telemetry-agent; \
+    chmod ug+rwx /usr/bin/telemetry-agent-supervisor.sh;
+ENV PERCONA_TELEMETRY_CHECK_INTERVAL=86400
+ENV PERCONA_TELEMETRY_HISTORY_KEEP_INTERVAL=604800
+ENV PERCONA_TELEMETRY_RESEND_INTERVAL=60
+ENV PERCONA_TELEMETRY_URL=https://check.percona.com/v1/telemetry/GenericReport
 
 VOLUME ["/data/db"]
 
