@@ -409,7 +409,9 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	fi
 fi
 
-# PERCONA_TELEMETRY_DISABLE is handled at the very beginning of call-home.sh
-/call-home.sh -f "PRODUCT_FAMILY_PXC" -v "${PXC_TELEMETRY_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
-
-exec "$@" $wsrep_start_position_opt
+if [[ ${PERCONA_TELEMETRY_DISABLE} -ne "0" ]]; then
+  exec "$@" $wsrep_start_position_opt --percona_telemetry_disable=1
+else
+  /usr/bin/telemetry-agent-supervisor.sh &
+  exec "$@" $wsrep_start_position_opt
+fi

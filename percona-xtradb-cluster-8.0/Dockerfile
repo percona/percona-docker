@@ -8,11 +8,11 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.36-28.1
-ENV PXC_REPO release
+ENV PXC_VERSION 8.0.37-29.1
+ENV PXC_REPO testing
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-ENV PXC_TELEMETRY_VERSION 8.0.36-28-1
+ENV PXC_TELEMETRY_VERSION 8.0.37-29-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
@@ -38,6 +38,7 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    percona-release enable telemetry ${PXC_REPO}; \
     percona-release enable pdpxc-8.0 ${PXC_REPO}
 
 RUN set -ex; \
@@ -68,6 +69,7 @@ RUN set -ex; \
         pam \
         procps-ng \
         cracklib-dicts \
+        percona-telemetry-agent \
         libatomic \
         tar; \
     microdnf update -y libksba; \
@@ -154,6 +156,17 @@ RUN mkdir -p /usr/local/percona
 RUN chown mysql:mysql /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
+COPY telemetry-agent-supervisor.sh /usr/bin/
+RUN set -ex; \
+    chown  mysql /usr/bin/telemetry-agent-supervisor.sh; \
+    chown  mysql /usr/bin/percona-telemetry-agent; \
+    chown  mysql /usr/local/percona/telemetry/history; \
+    chown -R mysql /var/log/percona/telemetry-agent; \
+    chmod ug+rwx /usr/bin/telemetry-agent-supervisor.sh
+ENV PERCONA_TELEMETRY_CHECK_INTERVAL=86400
+ENV PERCONA_TELEMETRY_HISTORY_KEEP_INTERVAL=604800
+ENV PERCONA_TELEMETRY_RESEND_INTERVAL=60
+ENV PERCONA_TELEMETRY_URL=https://check.percona.com/v1/telemetry/GenericReport
 USER 1001
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
