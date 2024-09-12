@@ -5,7 +5,7 @@
 
 # phase-1 telemetry
 for i in {1..3}; do
-    /usr/bin/percona-telemetry-agent >> /var/log/percona/telemetry-agent/telemetry-agent.log 2>> /var/log/percona/telemetry-agent/telemetry-agent-error.log
+    /usr/bin/percona-telemetry-agent >> /var/log/percona/telemetry-agent.log 2>> /var/log/percona/telemetry-agent-error.log
     if [ $? -eq 0 ]; then
       break
     fi

@@ -161,7 +161,7 @@ RUN set -ex; \
     chown  mysql /usr/bin/telemetry-agent-supervisor.sh; \
     chown  mysql /usr/bin/percona-telemetry-agent; \
     chown  mysql /usr/local/percona/telemetry/history; \
-    chown -R mysql /var/log/percona/telemetry-agent; \
+    chown -R mysql /var/log/percona; \
     chmod ug+rwx /usr/bin/telemetry-agent-supervisor.sh
 ENV PERCONA_TELEMETRY_CHECK_INTERVAL=86400
 ENV PERCONA_TELEMETRY_HISTORY_KEEP_INTERVAL=604800
