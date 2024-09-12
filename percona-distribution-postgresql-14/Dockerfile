@@ -114,7 +114,7 @@ RUN set -ex; \
     chown  1001:0 /usr/bin/telemetry-agent-supervisor.sh; \
     chown  1001:0 /usr/bin/percona-telemetry-agent; \
     chown  1001:0 /usr/local/percona/telemetry/history; \
-    chown -R 1001:0 /var/log/percona/telemetry-agent; \
+    chown -R 1001:0 /var/log/percona; \
     chmod ug+rwx /usr/bin/telemetry-agent-supervisor.sh;
 ENV PERCONA_TELEMETRY_CHECK_INTERVAL=86400
 ENV PERCONA_TELEMETRY_HISTORY_KEEP_INTERVAL=604800
