@@ -102,15 +102,8 @@ RUN set -ex; \
         percona-pgbackrest; \
     microdnf -y clean all
 
-# only PG16 is affected PG-794
-RUN if [[ "${PG_MAJOR//.}" -le '15' ]]; then \
-        groupadd postgres -g 26; \
-        useradd postgres -u 26 -g 26; \
-    else \
-        usermod -d /home/postgres postgres; \
-    fi
-
 RUN set -ex; \
+    usermod -d /home/postgres postgres; \
     mkdir -p /opt/crunchy/bin /opt/crunchy/conf /pgdata /backrestrepo \
              /var/log/pgbackrest
 

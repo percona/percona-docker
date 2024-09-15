@@ -111,15 +111,8 @@ COPY --from=go_builder /licenses /licenses
 COPY bin/common /opt/crunchy/bin
 COPY bin/pgbackrest-common /opt/crunchy/bin
 
-# only PG16 is affected PG-794
-RUN if [[ "${PG_MAJOR//.}" -le '15' ]]; then \
-        groupadd postgres -g 26; \
-        useradd postgres -u 26 -g 26; \
-    else \
-        usermod -d /home/postgres postgres; \
-    fi
-
 RUN set -ex; \
+    usermod -d /home/postgres postgres; \
     groupadd pgbackrest -g 2000; \
     useradd pgbackrest -u 2000 -g 2000
 
