@@ -17,7 +17,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& microdnf install -y findutils \
 	&& gpg --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F 4D1BB29D63D98E422B2113B19334A25F8507EFA5\
 	&& gpg --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY \
-    && gpg --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY \
+        && gpg --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY \
 	&& gpg --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle \
 	&& rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-oracle ${GNUPGHOME}/PERCONA-PACKAGING-KEY\
 	&& curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
@@ -25,10 +25,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-	&& percona-release setup pdpxc-8.0.35
+	&& percona-release enable pdpxc-8.0.37 testing
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.35-27.1.el9
+ENV PERCONA_VERSION 8.0.37-29.1.el9
 
 RUN set -ex; \
     microdnf install -y \
