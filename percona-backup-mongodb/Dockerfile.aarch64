@@ -1,4 +1,4 @@
-FROM redhat/ubi9-minimal
+FROM redhat/ubi8-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona Backup for MongoDB" \
@@ -15,8 +15,8 @@ LABEL org.opencontainers.image.title="Percona Backup for MongoDB" \
     org.opencontainers.image.authors="info@percona.com"
 
 ENV PBM_VERSION 2.6.0-1
-ENV PBM_REPO_CH experimental
-ENV OS_VER el9
+ENV PBM_REPO_CH release
+ENV OS_VER el8
 ENV FULL_PBM_VERSION "$PBM_VERSION.$OS_VER"
 
 # check repository package signature in secure way
