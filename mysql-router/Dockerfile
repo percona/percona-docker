@@ -6,8 +6,8 @@ LABEL name="mysql-router" \
       summary="MySQL Router is lightweight middleware that provides transparent routing between your application and back-end MySQL Servers" \
       org.opencontainers.image.authors="info@percona.com"
 
-ENV ROUTE_VERSION 8.0.37-29.1
-ENV MYSQL_SHELL_VERSION 8.0.37-1
+ENV ROUTE_VERSION 8.0.39-30.1
+ENV MYSQL_SHELL_VERSION 8.0.38-1
 ENV OS_VER el9
 ENV FULL_ROUTE_VERSION "$ROUTE_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
@@ -34,7 +34,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 	&& rpm -i /tmp/percona-release.rpm \
 	&& rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
 	&& rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-        && percona-release enable ps-80 testing
+        && percona-release enable ps-80 testing \
+        && percona-release enable mysql-shell testing
 
 RUN set -ex; \
     microdnf install -y \
