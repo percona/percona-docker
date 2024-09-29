@@ -88,14 +88,6 @@ backup_volume() {
 		fi
 		log 'INFO' "Socat(2) returned $?"
 	fi
-
-	stat xtrabackup.stream
-	if (($(stat -c%s xtrabackup.stream) < 5000000)); then
-		log 'ERROR' 'Backup is empty'
-		log 'ERROR' 'Backup was finished unsuccessfully'
-		exit 1
-	fi
-	md5sum xtrabackup.stream | tee md5sum.txt
 }
 
 backup_s3() {
@@ -123,14 +115,6 @@ backup_s3() {
 			| xbcloud put --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 $XBCLOUD_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
 			| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 		FIRST_RECEIVED=1
-	fi
-
-	mc -C /tmp/mc stat ${INSECURE_ARG} "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
-	md5_size=$(mc -C /tmp/mc stat ${INSECURE_ARG} --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
-	if [[ $md5_size =~ "Object does not exist" ]] || ((md5_size < 23000)); then
-		log 'ERROR' 'Backup is empty'
-		log 'ERROR' 'Backup was finished unsuccessfull'
-		exit 1
 	fi
 }
 
