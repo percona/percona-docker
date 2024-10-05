@@ -108,7 +108,7 @@ RUN set -ex; \
 RUN set -ex; \
     microdnf -y install \
         --enablerepo="epel" \
-        percona-pgaudit \
+        percona-pgaudit${PG_MAJOR//.} \
         percona-pgaudit${PG_MAJOR//.}_set_user \
         percona-pgbackrest \
         percona-postgresql${PG_MAJOR//.}-contrib \
