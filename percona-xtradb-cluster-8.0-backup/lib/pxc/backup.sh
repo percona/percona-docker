@@ -4,11 +4,14 @@ set -o errexit
 
 SST_INFO_NAME=sst_info
 XBCLOUD_ARGS="--curl-retriable-errors=7 $XBCLOUD_EXTRA_ARGS"
+export AWS_SHARED_CREDENTIALS_FILE='/tmp/aws-credfile'
+export AWS_ENDPOINT_URL="${ENDPOINT:-https://s3.amazonaws.com}"
 
 INSECURE_ARG=""
+
 if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
-	INSECURE_ARG="--insecure"
-	XBCLOUD_ARGS="${INSECURE_ARG} ${XBCLOUD_ARGS}"
+	AWS_S3_NO_VERIFY_SSL='--no-verify-ssl'
+	XBCLOUD_ARGS="--insecure ${XBCLOUD_ARGS}"
 fi
 
 S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
@@ -28,15 +31,17 @@ is_object_exist() {
 	local bucket="$1"
 	local object="$2"
 
-	if [[ -n "$(mc -C /tmp/mc ${INSECURE_ARG} --json ls "dest/$bucket/$object" | jq '.status')" ]]; then
+	aws $AWS_S3_NO_VERIFY_SSL s3api head-object  --bucket $bucket --key "$object" || NOT_EXIST=true
+	if [[ -z "$NOT_EXIST" ]]; then
 		return 1
 	fi
 }
 
 mc_add_bucket_dest() {
-	echo "+ mc -C /tmp/mc ${INSECURE_ARG} config host add dest ${ENDPOINT:-https://s3.amazonaws.com} ACCESS_KEY_ID SECRET_ACCESS_KEY "
+#	echo "+ mc -C /tmp/mc ${INSECURE_ARG} config host add dest ${ENDPOINT:-https://s3.amazonaws.com} ACCESS_KEY_ID SECRET_ACCESS_KEY "
 	{ set +x; } 2>/dev/null
-	mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
+	aws configure set aws_access_key_id "$ACCESS_KEY_ID"
+	aws configure set aws_secret_access_key "$SECRET_ACCESS_KEY"
 	set -x
 }
 

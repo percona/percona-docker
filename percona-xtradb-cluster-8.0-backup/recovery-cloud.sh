@@ -9,20 +9,20 @@ LIB_PATH='/usr/lib/pxc'
 
 # temporary fix for PXB-2784
 XBCLOUD_ARGS="--curl-retriable-errors=7 $XBCLOUD_EXTRA_ARGS"
-
-MC_ARGS='-C /tmp/mc'
+export AWS_SHARED_CREDENTIALS_FILE='/tmp/aws-credfile'
+export AWS_ENDPOINT_URL="${ENDPOINT:-https://s3.amazonaws.com}"
 
 if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
 	XBCLOUD_ARGS="--insecure ${XBCLOUD_ARGS}"
-	MC_ARGS="${MC_ARGS} --insecure"
+	AWS_S3_NO_VERIFY_SSL='--no-verify-ssl'
 fi
 
 if [ -n "$S3_BUCKET_URL" ]; then
 	{ set +x; } 2>/dev/null
-	echo "+ mc ${MC_ARGS} config host add dest ${ENDPOINT:-https://s3.amazonaws.com} ACCESS_KEY_ID SECRET_ACCESS_KEY"
-	mc ${MC_ARGS} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
+	aws configure set aws_access_key_id "$ACCESS_KEY_ID"
+	aws configure set aws_secret_access_key "$SECRET_ACCESS_KEY"
 	set -x
-	mc ${MC_ARGS} ls "dest/${S3_BUCKET_URL}"
+	aws $AWS_S3_NO_VERIFY_SSL s3 ls "${S3_BUCKET_URL}"
 elif [ -n "${BACKUP_PATH}" ]; then
 	XBCLOUD_ARGS="${XBCLOUD_ARGS} --storage=azure"
 fi
