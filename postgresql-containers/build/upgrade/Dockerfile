@@ -16,7 +16,7 @@ RUN set -ex; \
 
 ENV LC_ALL en_US.utf-8
 ENV LANG en_US.utf-8
-ARG PG_MAJOR=16
+ARG PG_MAJOR=17
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -84,7 +84,7 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-RUN for pg_version in 15 14 13 12; do \
+RUN for pg_version in 16 15 14 13 12; do \
         percona-release enable ppg-${pg_version} release; \
         microdnf -y install --nodocs \
             percona-pgaudit${pg_version} \
