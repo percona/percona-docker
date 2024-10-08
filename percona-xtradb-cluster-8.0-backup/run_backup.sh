@@ -89,7 +89,6 @@ backup_volume() {
 		fi
 		log 'INFO' "Socat(2) returned $?"
 	fi
-
 }
 
 backup_s3() {

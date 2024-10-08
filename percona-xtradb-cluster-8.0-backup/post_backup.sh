@@ -7,7 +7,7 @@ set -m
 LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/vault.sh
 . ${LIB_PATH}/backup.sh
-. ${LIB_PATH/aws.sh
+. ${LIB_PATH}/aws.sh
 
 handle_sigterm() {
     log 'INFO' 'Post recv script was finished'
