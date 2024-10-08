@@ -7,6 +7,7 @@ set -m
 LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/vault.sh
 . ${LIB_PATH}/backup.sh
+. ${LIB_PATH}/aws.sh
 
 SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
 

@@ -2,15 +2,14 @@
 
 set -o errexit
 
+LIB_PATH='/usr/lib/pxc'
+. ${LIB_PATH}/aws.sh
+
 SST_INFO_NAME=sst_info
 XBCLOUD_ARGS="--curl-retriable-errors=7 $XBCLOUD_EXTRA_ARGS"
-export AWS_SHARED_CREDENTIALS_FILE='/tmp/aws-credfile'
-export AWS_ENDPOINT_URL="${ENDPOINT:-https://s3.amazonaws.com}"
-
 INSECURE_ARG=""
 
 if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
-	AWS_S3_NO_VERIFY_SSL='--no-verify-ssl'
 	XBCLOUD_ARGS="--insecure ${XBCLOUD_ARGS}"
 fi
 
@@ -24,24 +23,6 @@ log() {
 	local now=$(date '+%F %H:%M:%S')
 
 	echo "${now} [${level}] ${message}"
-	set -x
-}
-
-is_object_exist() {
-	local bucket="$1"
-	local object="$2"
-
-	aws $AWS_S3_NO_VERIFY_SSL s3api head-object  --bucket $bucket --key "$object" || NOT_EXIST=true
-	if [[ -z "$NOT_EXIST" ]]; then
-		return 1
-	fi
-}
-
-mc_add_bucket_dest() {
-#	echo "+ mc -C /tmp/mc ${INSECURE_ARG} config host add dest ${ENDPOINT:-https://s3.amazonaws.com} ACCESS_KEY_ID SECRET_ACCESS_KEY "
-	{ set +x; } 2>/dev/null
-	aws configure set aws_access_key_id "$ACCESS_KEY_ID"
-	aws configure set aws_secret_access_key "$SECRET_ACCESS_KEY"
 	set -x
 }
 

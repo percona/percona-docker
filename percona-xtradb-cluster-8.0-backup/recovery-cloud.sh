@@ -6,21 +6,18 @@ set -o xtrace
 LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/check-version.sh
 . ${LIB_PATH}/vault.sh
+. ${LIB_PATH}/aws.sh
 
 # temporary fix for PXB-2784
 XBCLOUD_ARGS="--curl-retriable-errors=7 $XBCLOUD_EXTRA_ARGS"
-export AWS_SHARED_CREDENTIALS_FILE='/tmp/aws-credfile'
-export AWS_ENDPOINT_URL="${ENDPOINT:-https://s3.amazonaws.com}"
 
 if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
 	XBCLOUD_ARGS="--insecure ${XBCLOUD_ARGS}"
-	AWS_S3_NO_VERIFY_SSL='--no-verify-ssl'
 fi
 
 if [ -n "$S3_BUCKET_URL" ]; then
 	{ set +x; } 2>/dev/null
-	aws configure set aws_access_key_id "$ACCESS_KEY_ID"
-	aws configure set aws_secret_access_key "$SECRET_ACCESS_KEY"
+	mc_add_bucket_dest
 	set -x
 	aws $AWS_S3_NO_VERIFY_SSL s3 ls "${S3_BUCKET_URL}"
 elif [ -n "${BACKUP_PATH}" ]; then
