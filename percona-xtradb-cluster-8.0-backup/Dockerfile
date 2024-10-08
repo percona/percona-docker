@@ -113,7 +113,7 @@ RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 	mkdir /usr/lib/pxc
 
 COPY lib/pxc /usr/lib/pxc
-COPY recovery-*.sh run_backup.sh backup.sh get-pxc-state /usr/bin/
+COPY recovery-*.sh run_backup.sh backup.sh post_backup.sh get-pxc-state /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001
