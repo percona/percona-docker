@@ -17,7 +17,7 @@ fi
 
 if [ -n "$S3_BUCKET_URL" ]; then
 	{ set +x; } 2>/dev/null
-	mc_add_bucket_dest
+	s3_add_bucket_dest
 	set -x
 	aws $AWS_S3_NO_VERIFY_SSL s3 ls "${S3_BUCKET_URL}"
 elif [ -n "${BACKUP_PATH}" ]; then

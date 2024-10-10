@@ -92,7 +92,7 @@ backup_volume() {
 }
 
 backup_s3() {
-	mc_add_bucket_dest
+	s3_add_bucket_dest
 
 	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp $XBSTREAM_EXTRA_ARGS &
 	wait $!
@@ -117,7 +117,6 @@ backup_s3() {
 			| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 		FIRST_RECEIVED=1
 	fi
-
 }
 
 backup_azure() {
