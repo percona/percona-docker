@@ -5,6 +5,7 @@ set -o xtrace
 
 LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/vault.sh
+. ${LIB_PATH}/aws.sh
 
 GARBD_OPTS=""
 SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
@@ -141,22 +142,12 @@ backup_volume() {
 	echo '[INFO] Backup was finished successfully'
 }
 
-is_object_exist() {
-	local bucket="$1"
-	local object="$2"
-
-	if [[ -n "$(mc -C /tmp/mc ${INSECURE_ARG} --json ls "dest/$bucket/$object" | jq '.status')" ]]; then
-		return 1
-	fi
-}
-
 backup_s3() {
 	S3_BUCKET_PATH=${S3_BUCKET_PATH:-$PXC_SERVICE-$(date +%F-%H-%M)-xtrabackup.stream}
 
 	echo "[INFO] Backup to s3://$S3_BUCKET/$S3_BUCKET_PATH started"
 	{ set +x; } 2>/dev/null
-	echo "+ mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" ACCESS_KEY_ID SECRET_ACCESS_KEY"
-	mc -C /tmp/mc ${INSECURE_ARG} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
+	s3_add_bucket_dest
 	set -x
 	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
 	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
@@ -176,8 +167,8 @@ backup_s3() {
 		| xbcloud put --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
-	mc -C /tmp/mc ${INSECURE_ARG} stat "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
-	md5_size=$(mc -C /tmp/mc ${INSECURE_ARG} stat --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
+	aws $AWS_S3_NO_VERIFY_SSL s3 ls s3://$S3_BUCKET/$S3_BUCKET_PATH.md5
+	md5_size=$(aws $AWS_S3_NO_VERIFY_SSL --output json s3api list-objects --bucket "$S3_BUCKET" --prefix "$S3_BUCKET_PATH.md5" --query 'Contents[0].Size' | sed -e 's/.*"size":\([0-9]*\).*/\1/')
 	if [[ $md5_size =~ "Object does not exist" ]] || ((md5_size < 23000)); then
 		echo '[ERROR] Backup is empty'
 		echo '[ERROR] Backup was finished unsuccessfully'
