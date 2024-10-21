@@ -23,6 +23,7 @@ ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
 ENV PSMDB_REPO release
+ENV GLIBC_TUNABLES=glibc.pthread.rseq=0
 LABEL org.label-schema.schema-version=${PSMDB_VERSION}
 LABEL org.opencontainers.image.version=${PSMDB_VERSION}
 
