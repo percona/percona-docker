@@ -51,6 +51,9 @@ RUN useradd -u 1001 -r -g 0 -m -s /sbin/nologin \
             -c "Default Application User" mongodb;
 USER 1001
 
+COPY LICENSE /licenses/LICENSE.Dockerfile
+COPY LICENSE /licenses/LICENSE.Percona-Backup-for-MongoDB
+
 # Containers should be started either with --mongodb-uri flag or with PBM_MONGODB_URI env variable
 # Also, one can map volume to /etc (/etc/sysconfig/pbm-agent, /etc/pbm-storage.conf)
 CMD ["pbm-agent"]
