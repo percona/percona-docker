@@ -60,7 +60,8 @@ RUN set -ex; \
         krb5-libs \
         cpio \
         tar; \
-    microdnf update -y glibc; \
+    microdnf update -y glibc \
+        krb5-libs; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
