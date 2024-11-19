@@ -34,6 +34,7 @@ RUN set -ex; \
     microdnf -y update \
         curl-minimal \
         glibc \
+        krb5-libs \
         libnghttp2; \
     \
     microdnf clean all; \

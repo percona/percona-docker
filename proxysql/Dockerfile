@@ -23,7 +23,7 @@ LABEL org.opencontainers.image.license="GPL+"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXC_VERSION 8.0.37-29.1
-ENV PROXYSQL_VERSION 2.7.1-1.1
+ENV PROXYSQL_VERSION 2.7.1-1.2
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
 ENV FULL_PROXYSQL_VERSION "$PROXYSQL_VERSION.$OS_VER"
@@ -45,7 +45,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release setup pxc80; \
-    percona-release enable tools testing
+    percona-release enable proxysql testing
 
 RUN set -ex; \
     microdnf install -y jq \
