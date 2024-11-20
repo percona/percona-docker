@@ -8,11 +8,11 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.37-29.1
-ENV PXC_REPO testing
+ENV PXC_VERSION 8.4.0-1.1
+ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-ENV PXC_TELEMETRY_VERSION 8.0.37-29-1
+ENV PXC_TELEMETRY_VERSION 8.4.0-1-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
@@ -39,7 +39,9 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable telemetry ${PXC_REPO}; \
-    percona-release enable pdpxc-8.0 ${PXC_REPO}; 
+    percona-release enable pdpxc-8.0 ${PXC_REPO}; \
+    percona-release enable pxc-84-lts ${PXC_REPO};
+
 
 RUN set -ex; \
     curl -Lf -o /tmp/epel-release.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; \
@@ -94,11 +96,11 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/nss-pam-ldapd.rpm; \
     rpm -iv /tmp/nss-pam-ldapd.rpm --nodeps; \
     rm -rf /tmp/nss-pam-ldapd.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/experimental/8/RPMS/aarch64/percona-xtradb-cluster-server-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm https://repo.percona.com/pxc-80/yum/experimental/8/RPMS/aarch64/percona-xtradb-cluster-shared-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/8/RPMS/aarch64/percona-xtradb-cluster-client-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/experimental/8/RPMS/aarch64/percona-xtradb-cluster-shared-compat-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-icu-data-files.rpm https://repo.percona.com/pxc-80/yum/experimental/8/RPMS/aarch64/percona-xtradb-cluster-icu-data-files-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-84-lts/yum/testing/8/RPMS/aarch64/percona-xtradb-cluster-server-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm https://repo.percona.com/pxc-84-lts/yum/testing/8/RPMS/aarch64/percona-xtradb-cluster-shared-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-84-lts/yum/testing/8/RPMS/aarch64/percona-xtradb-cluster-client-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-84-lts/yum/testing/8/RPMS/aarch64/percona-xtradb-cluster-shared-compat-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-icu-data-files.rpm https://repo.percona.com/pxc-84-lts/yum/testing/8/RPMS/aarch64/percona-xtradb-cluster-icu-data-files-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
     rpmkeys --checksig /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm; \
     rpm -iv /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-icu-data-files.rpm --nodeps; \
     microdnf clean all; \
@@ -134,6 +136,7 @@ RUN if [[ -n $DEBUG ]] ; then \
     mv /usr/sbin/mysqld /usr/sbin/mysqld-ps; \
     cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld; \
     percona-release enable pdpxc-8.0 ${PXC_REPO}; \
+    percona-release enable pxc-84-lts ${PXC_REPO}; \
     microdnf install -y \
         net-tools \
         nc \
