@@ -7,6 +7,7 @@ set -m
 LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/vault.sh
 . ${LIB_PATH}/backup.sh
+. ${LIB_PATH}/aws.sh
 
 SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
 
@@ -91,7 +92,7 @@ backup_volume() {
 }
 
 backup_s3() {
-	mc_add_bucket_dest
+	s3_add_bucket_dest
 
 	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp $XBSTREAM_EXTRA_ARGS &
 	wait $!
