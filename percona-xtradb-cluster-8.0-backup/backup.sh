@@ -89,11 +89,16 @@ function request_streaming() {
         EXID_CODE=$?
 
     if [ -f '/tmp/backup-is-completed' ]; then
-        log 'INFO' 'Backup was finished successfully'
-        exit 0
+        if [[ $EXID_CODE == 0 ]]; then
+            log 'INFO' 'Backup was finished successfully'
+            exit 0
+        else
+            log 'ERROR' 'Backup was finished successfully but post-recv-script has failed.'
+            exit $EXID_CODE
+        fi
     fi
 
-    log 'ERROR' 'Backup was finished unsuccessfull'
+    log 'ERROR' 'Backup was finished unsuccessful'
 
     exit $EXID_CODE
 }
