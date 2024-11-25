@@ -1,4 +1,3 @@
-Dockerfile
 FROM redhat/ubi9-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
