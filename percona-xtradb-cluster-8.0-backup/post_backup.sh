@@ -24,10 +24,13 @@ backup_volume() {
                 exit 1
         fi
         md5sum xtrabackup.stream | tee md5sum.txt
+
+        log 'INFO' 'Backup is OK'
 }
 
 backup_s3() {
         log 'INFO' 'Checking backup in S3'
+
         mc -C /tmp/mc stat ${INSECURE_ARG} "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
         md5_size=$(mc -C /tmp/mc stat ${INSECURE_ARG} --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
         if [[ $md5_size =~ "Object does not exist" ]] || ((md5_size < 23000)); then
@@ -35,10 +38,13 @@ backup_s3() {
                 log 'ERROR' 'Backup was finished unsuccessfull'
                 exit 1
         fi
+
+        log 'INFO' 'Backup is OK'
 }
 
 backup_azure() {
         log 'INFO' 'Checking backup in Azure'
+        log 'INFO' 'Skipping... Checking backups in Azure is not supported.'
 }
 
 trap 'handle_sigterm' 15
