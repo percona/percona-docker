@@ -113,7 +113,7 @@ RUN set -ex; \
 	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
 
 COPY lib/pxc /usr/lib/pxc
-COPY recovery-*.sh run_backup.sh backup.sh post_backup.sh get-pxc-state /usr/bin/
+COPY recovery-*.sh run_backup.sh backup.sh get-pxc-state /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001
