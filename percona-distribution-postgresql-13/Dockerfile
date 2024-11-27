@@ -76,6 +76,7 @@ RUN set -ex; \
         percona-pg_repack${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION}_set_user \
+	percona-pgvector_${PPG_MAJOR_VERSION} \
         percona-wal2json${PPG_MAJOR_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
