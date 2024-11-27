@@ -71,6 +71,7 @@ RUN set -ex; \
         percona-pg_repack16 \
         percona-pgaudit16 \
         percona-pgaudit16_set_user \
+	percona-pgvector_16 \
         percona-wal2json16; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
