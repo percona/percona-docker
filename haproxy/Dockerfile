@@ -42,6 +42,7 @@ RUN set -ex; \
         vim-minimal \
         policycoreutils; \
     microdnf update -y glibc \
+             pam \
              krb5-libs; \
     \
     microdnf clean all; \
