@@ -8,11 +8,11 @@ FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.37-29.1
+ENV PXC_VERSION 8.0.39-30.1
 ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-ENV PXC_TELEMETRY_VERSION 8.0.37-29-1
+ENV PXC_TELEMETRY_VERSION 8.0.39-30-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
@@ -72,10 +72,12 @@ RUN set -ex; \
         percona-telemetry-agent \
         libatomic \
         tar; \
-    microdnf update -y libksba; \
-    microdnf update -y krb5-libs; \
-    microdnf update -y libnghttp2; \
-    microdnf update -y glibc; \
+    microdnf update -y \
+        libksba \
+        krb5-libs \
+        libnghttp2 \
+        glibc \
+        pam; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 

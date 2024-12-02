@@ -66,6 +66,8 @@ RUN set -ex; \
         libnghttp2 \
         openssh \
         python3-setuptools-wheel \
+        krb5-libs \
+        pam \
         python3; \
     \
     dnf -y install \
