@@ -78,22 +78,21 @@ function request_streaming() {
 
     set +o errexit
     log 'INFO' 'Garbd was started'
-        garbd \
-            --address "gcomm://$NODE_NAME.$PXC_SERVICE?gmcast.listen_addr=tcp://0.0.0.0:4567" \
-            --donor "$NODE_NAME" \
-            --group "$PXC_SERVICE" \
-            --options "$GARBD_OPTS" \
-            --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
-            --recv-script="/usr/bin/run_backup.sh" \
-            --post-recv-script="/usr/bin/post_backup.sh"
-        EXID_CODE=$?
+    garbd \
+        --address "gcomm://$NODE_NAME.$PXC_SERVICE?gmcast.listen_addr=tcp://0.0.0.0:4567" \
+        --donor "$NODE_NAME" \
+        --group "$PXC_SERVICE" \
+        --options "$GARBD_OPTS" \
+        --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
+        --recv-script="/usr/bin/run_backup.sh"
+    EXID_CODE=$?
 
     if [ -f '/tmp/backup-is-completed' ]; then
         log 'INFO' 'Backup was finished successfully'
         exit 0
     fi
 
-    log 'ERROR' 'Backup was finished unsuccessfull'
+    log 'ERROR' 'Backup was finished unsuccessful'
 
     exit $EXID_CODE
 }
