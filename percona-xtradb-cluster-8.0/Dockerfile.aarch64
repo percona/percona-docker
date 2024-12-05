@@ -9,7 +9,7 @@ FROM redhat/ubi8-minimal
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXC_VERSION 8.0.37-29.1
-ENV PXC_REPO testing
+ENV PXC_REPO release
 ENV OS_VER el8
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 ENV PXC_TELEMETRY_VERSION 8.0.37-29-1
@@ -24,13 +24,14 @@ ARG PERCONA_TELEMETRY_DISABLE=1
 # check repository package signature in secure way
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 5E9B8F5617B5066CE92057C3488FCF7C3ABB34F8; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 5E9B8F5617B5066CE92057C3488FCF7C3ABB34F8 BC5EDDCADF502C077F1582882AE81E8ACED7258B; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
     gpg --batch --export --armor 5E9B8F5617B5066CE92057C3488FCF7C3ABB34F8 > ${GNUPGHOME}/RPM-GPG-KEY-AlmaLinux; \
+    gpg --batch --export --armor BC5EDDCADF502C077F1582882AE81E8ACED7258B > ${GNUPGHOME}/RPM-GPG-KEY-AlmaLinux2; \
     gpg --batch --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8 ${GNUPGHOME}/RPM-GPG-KEY-AlmaLinux ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8 ${GNUPGHOME}/RPM-GPG-KEY-AlmaLinux ${GNUPGHOME}/RPM-GPG-KEY-AlmaLinux2 ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
     microdnf -y update; \
     microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
@@ -39,7 +40,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable telemetry ${PXC_REPO}; \
-    percona-release enable pdpxc-8.0 ${PXC_REPO}; 
+    percona-release enable pdpxc-8.0 ${PXC_REPO};
 
 RUN set -ex; \
     curl -Lf -o /tmp/epel-release.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; \
@@ -94,11 +95,11 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/nss-pam-ldapd.rpm; \
     rpm -iv /tmp/nss-pam-ldapd.rpm --nodeps; \
     rm -rf /tmp/nss-pam-ldapd.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/experimental/8/RPMS/aarch64/percona-xtradb-cluster-server-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm https://repo.percona.com/pxc-80/yum/experimental/8/RPMS/aarch64/percona-xtradb-cluster-shared-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/experimental/8/RPMS/aarch64/percona-xtradb-cluster-client-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/experimental/8/RPMS/aarch64/percona-xtradb-cluster-shared-compat-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-icu-data-files.rpm https://repo.percona.com/pxc-80/yum/experimental/8/RPMS/aarch64/percona-xtradb-cluster-icu-data-files-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/aarch64/percona-xtradb-cluster-server-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/aarch64/percona-xtradb-cluster-shared-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/aarch64/percona-xtradb-cluster-client-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-shared-compat.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/aarch64/percona-xtradb-cluster-shared-compat-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-icu-data-files.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/aarch64/percona-xtradb-cluster-icu-data-files-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
     rpmkeys --checksig /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm; \
     rpm -iv /tmp/percona-xtradb-cluster-shared-compat.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-icu-data-files.rpm --nodeps; \
     microdnf clean all; \
@@ -134,6 +135,8 @@ RUN if [[ -n $DEBUG ]] ; then \
     mv /usr/sbin/mysqld /usr/sbin/mysqld-ps; \
     cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld; \
     percona-release enable pdpxc-8.0 ${PXC_REPO}; \
+    percona-release enable pt ${PXC_REPO}; \
+    percona-release enable pxc-80 ${PXC_REPO}; \
     microdnf install -y \
         net-tools \
         nc \
@@ -142,7 +145,7 @@ RUN if [[ -n $DEBUG ]] ; then \
     percona-release disable pdpxc-8.0 ${PXC_REPO}; \
     curl -Lf -o /tmp/telnet.rpm https://repo.almalinux.org/almalinux/8.10/AppStream/aarch64/os/Packages/telnet-0.17-76.el8.aarch64.rpm; \
     curl -Lf -o /tmp/tcpdump.rpm https://repo.almalinux.org/almalinux/8.10/AppStream/aarch64/os/Packages/tcpdump-4.9.3-5.el8.aarch64.rpm; \
-    curl -Lf -o /tmp/perf.rpm https://repo.almalinux.org/almalinux/8/BaseOS/aarch64/os/Packages/perf-4.18.0-553.16.1.el8_10.aarch64.rpm; \
+    curl -Lf -o /tmp/perf.rpm https://repo.almalinux.org/almalinux/8/BaseOS/aarch64/os/Packages/perf-4.18.0-553.27.1.el8_10.aarch64.rpm; \
     curl -Lf -o /tmp/strace.rpm https://repo.almalinux.org/almalinux/8/BaseOS/aarch64/os/Packages/strace-5.18-2.el8.aarch64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/aarch64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/8/RPMS/aarch64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
