@@ -2,7 +2,7 @@ ARG PG_MAJOR=14
 ARG PGO_TAG=main
 ARG ORG_NAME=perconalab
 
-FROM ${ORG_NAME}/percona-postgresql-operator:${PGO_TAG}-ppg${PG_MAJOR}-postgres-ubi9
+FROM ${ORG_NAME}/percona-postgresql-operator:${PGO_TAG}-ppg${PG_MAJOR}-postgres
 
 LABEL name="Percona PostgreSQL Distribution" \
     vendor="Percona" \
