@@ -59,7 +59,18 @@ RUN set -ex; \
     percona-release enable ppg-${PG_MAJOR} release
 
 RUN set -ex; \
-    yum-config-manager --disable ol9_developer_EPEL ol9_UEKR7 ol9_baseos_latest ol9_appstream; \
+    yum-config-manager --disable ol9_appstream; \
+    microdnf --disablerepo="ubi-9-appstream-rpms" -y install \
+        llvm; \
+    microdnf -y clean all
+
+RUN set -ex; \
+    microdnf --enablerepo="ol9_appstream" -y install \
+        annobin-12.31-2.el9.x86_64; \
+    microdnf -y clean all
+
+RUN set -ex; \
+    yum-config-manager --disable ol9_developer_EPEL ol9_UEKR7 ol9_baseos_latest; \
     microdnf -y install \
         bind-utils \
         gettext \
@@ -74,7 +85,6 @@ RUN set -ex; \
     sed -i 's/install_langs C.utf8/install_langs all/' /etc/rpm/macros.image-language-conf; \
     microdnf -y install \
         libpq \
-        llvm \
         glibc-all-langpacks \
         percona-postgresql${PG_MAJOR//.}; \
     microdnf -y clean all
