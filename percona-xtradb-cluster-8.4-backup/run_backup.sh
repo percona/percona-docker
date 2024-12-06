@@ -88,6 +88,7 @@ backup_volume() {
 	fi
 
 	trap '' 15
+	stat xtrabackup.stream
 	if (($(stat -c%s xtrabackup.stream) < 5000000)); then
 		log 'ERROR' 'Backup is empty'
 		log 'ERROR' 'Backup was finished unsuccessfully'
