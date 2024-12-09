@@ -97,7 +97,7 @@ RUN set -ex; \
         --enablerepo="ol9_developer_EPEL" \
         percona-pgaudit${PG_MAJOR//.} \
         percona-pgaudit${PG_MAJOR//.}_set_user \
-        percona-pgbackrest-2.53 \
+        percona-pgbackrest-2.53* \
         percona-postgresql${PG_MAJOR//.}-contrib \
         percona-postgresql${PG_MAJOR//.}-server \
         percona-postgresql${PG_MAJOR//.}-libs \
