@@ -7,7 +7,7 @@ Read more about Dockerfiles [here](https://docs.docker.com/engine/reference/buil
 
 See individual directories for instructions on how to build and run Percona software.
 
-You can find images that we build in Docker Hub registry. We have two organizations:
+The images we build can be found in the Docker Hub registry. We have two organizations:
 
 - [percona](https://hub.docker.com/u/percona) - repository with production-grade images that are widely used by the community and customers.
 - [perconalab](https://hub.docker.com/u/perconalab) - experiments, alpha/beta versions, nightly builds images. Not recommended for production.
