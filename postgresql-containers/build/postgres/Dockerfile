@@ -59,6 +59,7 @@ RUN set -ex; \
     percona-release enable ppg-${PG_MAJOR} release
 
 RUN set -ex; \
+    microdnf -y install perl-DBI perl-DBD-Pg perl-XML-Parser; \
     yum-config-manager --disable ol9_appstream; \
     microdnf --disablerepo="ubi-9-appstream-rpms" -y install \
         llvm; \
@@ -97,7 +98,7 @@ RUN set -ex; \
         --enablerepo="ol9_developer_EPEL" \
         percona-pgaudit${PG_MAJOR//.} \
         percona-pgaudit${PG_MAJOR//.}_set_user \
-        percona-pgbackrest-2.53* \
+        percona-pgbackrest \
         percona-postgresql${PG_MAJOR//.}-contrib \
         percona-postgresql${PG_MAJOR//.}-server \
         percona-postgresql${PG_MAJOR//.}-libs \
@@ -129,7 +130,11 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-RUN microdnf -y install --enablerepo="ol9_developer_EPEL" percona-patroni; \
+RUN if [[ "${PG_MAJOR//.}" -le '16' ]]; then \
+        microdnf -y install --enablerepo="ol9_developer_EPEL" percona-patroni-3*; \
+    else \
+        microdnf -y install --enablerepo="ol9_developer_EPEL" percona-patroni; \
+    fi; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
