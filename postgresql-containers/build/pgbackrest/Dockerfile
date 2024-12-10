@@ -79,7 +79,7 @@ RUN set -ex; \
 
 RUN set -ex; \
     microdnf -y install \
-        percona-pgbackrest-2.53*; \
+        percona-pgbackrest; \
     microdnf -y clean all
 
 RUN set -ex; \
