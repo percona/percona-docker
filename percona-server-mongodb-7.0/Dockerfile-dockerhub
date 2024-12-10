@@ -22,6 +22,8 @@ ENV OS_VER el8
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
 ENV PSMDB_REPO release
+ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
+ENV CALL_HOME_VERSION 0.1
 
 # Do not report during Docker image creation.
 ARG PERCONA_TELEMETRY_DISABLE=1
@@ -81,10 +83,15 @@ RUN set -ex; \
     curl -fSL https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js -o /js-yaml.js; \
     echo "45dc3dd03dc07a06705a2c2989b8c7f709013f04bd5386e3279d4e447f07ebd7  /js-yaml.js" | sha256sum -c -
 
-ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
-RUN chmod a+rx call-home.sh
-RUN mkdir -p /usr/local/percona
-RUN chown 1001:1001 /usr/local/percona
+RUN set -eux; \
+    curl -fL "https://github.com/percona/telemetry-agent/archive/refs/tags/phase-$CALL_HOME_VERSION.tar.gz" -o "phase-$CALL_HOME_VERSION.tar.gz"; \
+    echo "$CALL_HOME_DOWNLOAD_SHA256 phase-$CALL_HOME_VERSION.tar.gz" | sha256sum --strict --check; \
+    tar -xvf phase-$CALL_HOME_VERSION.tar.gz; \
+    cp telemetry-agent-phase-$CALL_HOME_VERSION/call-home.sh .;\
+    rm -rf telemetry-agent-phase-$CALL_HOME_VERSION phase-$CALL_HOME_VERSION.tar.gz; \
+    chmod a+rx /call-home.sh; \
+    mkdir -p /usr/local/percona; \
+    chown 1001:1001 /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY ps-entry.sh /entrypoint.sh
