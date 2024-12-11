@@ -1,4 +1,4 @@
-FROM redhat/ubi8-minimal
+FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
@@ -7,7 +7,7 @@ RUN microdnf -y update; \
 
 ENV XTRABACKUP_VERSION 2.4.29-1
 ENV PS_VERSION 5.7.44-48.1
-ENV OS_VER el8
+ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
 
@@ -25,10 +25,11 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #microdnf -y module disable mysql perl-DBD-MySQL; \
-    percona-release enable tools testing
+    percona-release enable tools testing; \
+    percona-release enable ps-57 testing
 
 RUN set -ex; \
-    curl -Lf -o /tmp/libev.rpm https://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
     rpm -i /tmp/libev.rpm; \
     rm -rf /tmp/libev.rpm; \
     #dnf --setopt=install_weak_deps=False install -y \
