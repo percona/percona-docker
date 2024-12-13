@@ -43,7 +43,7 @@ RUN set -ex; \
 RUN set -ex; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
     rpm --import RPM-GPG-KEY-EPEL-9; \
-    microdnf --setopt=install_weak_deps=0 --best install -y numactl-libs socat onigurum; \
+    microdnf --setopt=install_weak_deps=0 --best install -y numactl-libs socat oniguruma; \
     curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
     curl -Lf -o /tmp/jq.rpm https://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/jq-1.6-14.el9.x86_64.rpm; \
     curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/p/pv-1.6.20-1.el9.x86_64.rpm; \
