@@ -43,20 +43,18 @@ RUN set -ex; \
 RUN set -ex; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
     rpm --import RPM-GPG-KEY-EPEL-9; \
-    curl -Lf -o /tmp/numactl-libs.rpm https://downloads.percona.com/downloads/packaging/numactl-libs-2.0.18-2.el9.x86_64.rpm; \
+    microdnf --setopt=install_weak_deps=0 --best install -y numactl-libs socat onigurum; \
     curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
     curl -Lf -o /tmp/jq.rpm https://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/jq-1.6-14.el9.x86_64.rpm; \
     curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/p/pv-1.6.20-1.el9.x86_64.rpm; \
-    rpmkeys --checksig /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/pv.rpm; \
-    rpm -i /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/pv.rpm; \
-    rm -rf /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/pv.rpm
+    rpmkeys --checksig /tmp/libev.rpm /tmp/jq.rpm /tmp/pv.rpm; \
+    rpm -i /tmp/libev.rpm /tmp/jq.rpm /tmp/pv.rpm; \
+    rm -rf /tmp/libev.rpm /tmp/jq.rpm /tmp/pv.rpm
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
     microdnf --setopt=install_weak_deps=0 --best install -y \
         openssl \
-        socat \
-        oniguruma \
         shadow-utils \
         hostname \
         tzdata \
