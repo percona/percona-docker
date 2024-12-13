@@ -1,9 +1,3 @@
-FROM golang:1.22 AS go_builder
-
-RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
-RUN go build
-
 FROM redhat/ubi9-minimal AS ubi9
 
 LABEL name="HAproxy" \
