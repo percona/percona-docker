@@ -81,7 +81,6 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/proxysql2/LICENSE /licenses/LICENSE.proxysql
 
 COPY dockerdir /
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf; \
     chmod 664 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf
 

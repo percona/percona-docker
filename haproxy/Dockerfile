@@ -55,7 +55,6 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/licenses/percona-haproxy/LICENSE /licenses/LICENSE.haproxy
 
 COPY dockerdir /
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 
 RUN set -ex; \
     chown 1001:1001 /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy-global.cfg /usr/local/bin/check_pxc.sh
