@@ -110,10 +110,7 @@ RUN set -eux; \
     chown mysql:mysql /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
-COPY ps-entry.sh /docker-entrypoint.sh
-RUN sed -i '/^if \[\[ \${PERCONA_TELEMETRY_DISABLE}/,/^fi$/c \
-   /call-home.sh -f "PRODUCT_FAMILY_PS" -v "${PS_TELEMETRY_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :\
-   \nexec "$@"' /docker-entrypoint.sh
+COPY ps-entry-dockerhub.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 USER mysql
