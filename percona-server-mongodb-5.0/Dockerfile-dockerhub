@@ -93,10 +93,7 @@ RUN set -eux; \
     chown 1001:1001 /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
-COPY ps-entry.sh /entrypoint.sh
-RUN sed -i '/^if \[\[ \${PERCONA_TELEMETRY_DISABLE}/,/^fi$/c \
-   /call-home.sh -f "PRODUCT_FAMILY_PSMDB" -v "${PSMDB_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :\
-   \nexec "$@"' /entrypoint.sh
+COPY ps-entry-dockerhub.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 27017
