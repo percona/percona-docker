@@ -1,9 +1,3 @@
-FROM golang:1.22 AS go_builder
-
-RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
-RUN go build
-
 FROM redhat/ubi8-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
@@ -111,7 +105,6 @@ RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.ga
     cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
 
 COPY dockerdir /
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 
 RUN set -ex; \
     rmdir /etc/my.cnf.d; \
