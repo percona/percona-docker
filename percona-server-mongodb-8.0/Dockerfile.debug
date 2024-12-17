@@ -28,7 +28,7 @@ USER 0
 
 RUN set -ex; \
     sed -i 's/exec "$@"/exec "$@" -vvv || sleep infinity/' /entrypoint.sh; \
-    microdnf -y install \
+    dnf -y install \
         net-tools \
         gdb \
         nc \
@@ -40,7 +40,7 @@ RUN set -ex; \
         percona-server-mongodb-mongos-debuginfo-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-debugsource-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION}; \
-    microdnf clean all; \
+    dnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
 ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
