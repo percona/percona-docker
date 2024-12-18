@@ -18,9 +18,9 @@ RUN set -ex; \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9; \
     gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8 ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9 ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
     microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
@@ -30,7 +30,11 @@ RUN set -ex; \
     percona-release enable psmdb-80 ${PSMDB_REPO}
 
 RUN set -ex; \
-    microdnf install -y jq
+    curl -Lf -o /tmp/jq.rpm https://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/jq-1.6-14.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/oniguruma.rpm https://downloads.percona.com/downloads/packaging/oniguruma-6.9.6-1.el9.6.x86_64.rpm; \
+    rpmkeys --checksig /tmp/jq.rpm /tmp/oniguruma.rpm; \
+    rpm -i /tmp/oniguruma.rpm /tmp/jq.rpm; \
+    rm -rf /tmp/jq.rpm /tmp/oniguruma.rpm
 
 RUN set -ex; \
     microdnf -y install \
@@ -44,8 +48,10 @@ RUN set -ex; \
         cyrus-sasl-gssapi \
         policycoreutils; \
         \
+    curl -O https://download.rockylinux.org/pub/rocky/RPM-GPG-KEY-Rocky-9; \
+    rpm --import RPM-GPG-KEY-Rocky-9; \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-80/yum/${PSMDB_REPO}/9/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-    curl -Lf -o /tmp/numactl.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/numactl-2.0.16-1.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/numactl.rpm https://download.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/n/numactl-2.0.18-2.${OS_VER}.x86_64.rpm; \
     rpmkeys --checksig /tmp/numactl.rpm /tmp/Percona-Server-MongoDB-server.rpm; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
     rpm -i /tmp/numactl.rpm; \
