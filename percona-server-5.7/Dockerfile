@@ -1,4 +1,4 @@
-FROM redhat/ubi8-minimal
+FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
@@ -20,7 +20,7 @@ RUN set -ex; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    microdnf install -y findutils; \
+    microdnf install -y findutils numactl-libs; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     rpm -i /tmp/percona-release.rpm; \
@@ -28,13 +28,15 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #microdnf -y module disable mysql; \
-    curl -Lf -o /tmp/numactl-libs.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
-    rpmkeys --checksig /tmp/numactl-libs.rpm; \
-    rpm -i /tmp/numactl-libs.rpm; \
-    rm -rf /tmp/numactl-libs.rpm
+    curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
+    rpm --import RPM-GPG-KEY-EPEL-9; \
+    curl -Lf -o /tmp/jemalloc.rpm https://rpmfind.net/linux/epel/9/Everything/x86_64/Packages/j/jemalloc-5.2.1-2.el9.x86_64.rpm; \
+    rpmkeys --checksig /tmp/jemalloc.rpm; \
+    rpm -i /tmp/jemalloc.rpm; \
+    rm -f /tmp/jemalloc.rpm
 
 ENV PS_VERSION 5.7.44-48.1
-ENV OS_VER el8
+ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV PS_TELEMETRY_VERSION 5.7.44-48-1
 ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
