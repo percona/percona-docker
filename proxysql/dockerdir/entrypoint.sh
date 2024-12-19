@@ -2,13 +2,15 @@
 
 set -o xtrace
 
-PROXY_CFG=/etc/proxysql/proxysql.cnf
+PROXY_CFG_SRC=/etc/proxysql/proxysql.cnf
+PROXY_CFG=/etc/proxysql.cnf
 PROXY_ADMIN_CFG=/etc/proxysql-admin.cnf
 
 MYSQL_INTERFACES='0.0.0.0:3306;0.0.0.0:33062'
 CLUSTER_PORT='33062'
 sed "s/#export WRITERS_ARE_READERS=.*$/export WRITERS_ARE_READERS='yes'/g" ${PROXY_ADMIN_CFG} 1<>${PROXY_ADMIN_CFG}
 
+cp ${PROXY_CFG_SRC} ${PROXY_CFG}
 sed "s/interfaces=\"0.0.0.0:3306\"/interfaces=\"${MYSQL_INTERFACES:-0.0.0.0:3306}\"/g" ${PROXY_CFG} 1<>${PROXY_CFG}
 sed "s/stacksize=1048576/stacksize=${MYSQL_STACKSIZE:-1048576}/g" ${PROXY_CFG} 1<>${PROXY_CFG}
 sed "s/threads=2/threads=${MYSQL_THREADS:-2}/g" ${PROXY_CFG} 1<>${PROXY_CFG}

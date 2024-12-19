@@ -92,4 +92,4 @@ VOLUME /var/lib/proxysql
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 3306 6032
-CMD ["/usr/bin/proxysql", "-f", "-c", "/etc/proxysql/proxysql.cnf", "--reload"]
+CMD ["/usr/bin/proxysql", "-f", "-c", "/etc/proxysql.cnf", "--reload"]
