@@ -3,15 +3,15 @@
 # https://github.com/docker-library/official-images:
 # No official images can be derived from, or depend on, non-official images
 # with the following notable exceptions...
-FROM oraclelinux:8
+FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 # It is intentionally used another UID, to have backward compatibility with
 # the previous image versions published on Docker Hub
 RUN set -ex; \
-    groupdel ssh_keys; \
-    userdel systemd-coredump; \
+    #groupdel ssh_keys; \
+    #userdel systemd-coredump; \
     groupadd -g 999 mysql; \
     useradd -u 999 -r -g 999 -s /sbin/nologin \
         -c "Default Application User" mysql
@@ -25,13 +25,21 @@ RUN set -ex; \
     rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
+    microdnf install -y findutils; \
     rpm -i /tmp/percona-release.rpm; \
+    percona-release enable-only ps-57 testing; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    dnf -y module disable mysql
+    #microdnf -y module disable mysql; \
+    curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
+    rpm --import RPM-GPG-KEY-EPEL-9; \
+    curl -Lf -o /tmp/jemalloc.rpm https://rpmfind.net/linux/epel/9/Everything/x86_64/Packages/j/jemalloc-5.2.1-2.el9.x86_64.rpm; \
+    rpmkeys --checksig /tmp/jemalloc.rpm; \
+    rpm -i /tmp/jemalloc.rpm; \
+    rm -f /tmp/jemalloc.rpm
 
 ENV PS_VERSION 5.7.44-48.1
-ENV OS_VER el8
+ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV PS_TELEMETRY_VERSION 5.7.44-48-1
 ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
@@ -46,20 +54,21 @@ ARG PERCONA_TELEMETRY_DISABLE=1
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
-    dnf config-manager --enable ol8_u4_security_validation; \
-    dnf -y install \
+    #microdnf config-manager --enable ol8_u4_security_validation; \
+    microdnf -y install \
         tzdata \
         jemalloc \
         which \
+	tar \
         cracklib-dicts \
         policycoreutils; \
     \
-    dnf -y install \
+    microdnf -y install \
         Percona-Server-server-57-${FULL_PERCONA_VERSION} \
         Percona-Server-devel-57-${FULL_PERCONA_VERSION} \
         Percona-Server-tokudb-57-${FULL_PERCONA_VERSION} \
         Percona-Server-rocksdb-57-${FULL_PERCONA_VERSION}; \
-    dnf clean all; \
+    microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership
