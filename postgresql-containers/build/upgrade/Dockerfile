@@ -97,6 +97,8 @@ RUN for pg_version in 16 15 14 13 12; do \
             percona-postgresql${pg_version}-libs \
             percona-postgresql${pg_version}-llvmjit \
             percona-wal2json${pg_version} \
+            percona-pgvector_${pg_version}-llvmjit \
+            percona-pgvector_${pg_version} \
             percona-pg_stat_monitor${pg_version}; \
     done
 
