@@ -1,13 +1,22 @@
-FROM oraclelinux:9
+FROM oraclelinux:9 AS downloader
+
+RUN yum install -y epel-release; \
+	yum config-manager --set-enabled ol9_codeready_builder; \
+	yum install -y --downloadonly perl-JSON; \
+	mkdir -p downloaded-packages; \
+	cp -rp /var/cache/dnf/ol9_appstream-*/packages/*.rpm downloaded-packages; \
+	tar -cvzf downloaded-packages.tar.gz downloaded-packages
+
+FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-RUN dnf -y update; \
-    dnf -y install glibc-langpack-en
+RUN microdnf -y update; \
+    microdnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 16.4-1
+ENV PPG_VERSION 16.6-1
 ENV PPG_MAJOR_VERSION 16
-ENV PPG_MINOR_VERSION 4
+ENV PPG_MINOR_VERSION 6
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO testing
@@ -27,19 +36,18 @@ RUN set -ex; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    dnf install -y findutils; \
+    microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    #percona-release setup -y ppg${PPG_MAJOR_VERSION}; \
     percona-release enable telemetry ${PPG_REPO}; \
     percona-release enable ppg-${PPG_REPO_VERSION} ${PPG_REPO};
 
 RUN set -ex; \
-    dnf -y update; \
-    dnf -y install \
+    microdnf -y update; \
+    microdnf -y install \
         bind-utils \
         gettext \
         hostname \
@@ -48,12 +56,12 @@ RUN set -ex; \
         bzip2 \
         lz4 \
         procps-ng; \
-    dnf -y install  \
+    microdnf -y install  \
         nss_wrapper \
         shadow-utils \
         libpq \
         libedit; \
-    dnf clean all
+    microdnf clean all
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
@@ -61,8 +69,17 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
 
 ENV PGDATA /data/db
 
+COPY --from=downloader /downloaded-packages.tar.gz .
+RUN tar -xvzf downloaded-packages.tar.gz; \
+	cd downloaded-packages; \
+        rpm -ivh perl-*.rpm; \
+        rpm -ivh perl-JSON*.rpm; \
+	rm -f /downloaded-packages.tar.gz; \
+	cd -; \
+	rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
+
 RUN set -ex; \
-    dnf install -y \
+    microdnf install -y \
         percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql-common \
@@ -72,7 +89,7 @@ RUN set -ex; \
         percona-pgaudit${PPG_MAJOR_VERSION}_set_user \
 	percona-pgvector_${PPG_MAJOR_VERSION} \
         percona-wal2json${PPG_MAJOR_VERSION}; \
-    dnf clean all; \
+    microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
     chown -R 1001:0 $PGDATA docker-entrypoint-initdb.d
 
