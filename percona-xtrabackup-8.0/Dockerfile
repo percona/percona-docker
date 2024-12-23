@@ -5,8 +5,8 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV XTRABACKUP_VERSION 8.0.35-31.1
-ENV PS_VERSION 8.0.36-28.1
+ENV XTRABACKUP_VERSION 8.0.35-32.1
+ENV PS_VERSION 8.0.39-30.1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
@@ -27,8 +27,9 @@ RUN set -ex; \
     #microdnf -y module disable mysql perl-DBD-MySQL; \
     percona-release disable all; \
     #percona-release setup -y ps-80; \
-    percona-release enable ps-80 release; \
-    percona-release enable tools testing
+    percona-release enable ps-80; \
+    percona-release enable tools testing; \
+    percona-release enable pxb-80 testing
 
 RUN set -ex; \
     microdnf -y install \
@@ -40,8 +41,13 @@ RUN groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -c "Default Application User" mysql
 
+RUN if [ "$(uname -m)" = "x86_64" ]; then \
+        curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
+    else \
+        curl -Lf -o /tmp/libev.rpm https://mirror.stream.centos.org/9-stream/BaseOS/aarch64/os/Packages/libev-4.33-5.el9.aarch64.rpm; \
+    fi
+
 RUN set -ex; \
-    curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
     rpm -i /tmp/libev.rpm; \
     rm -rf /tmp/libev.rpm; \
     #dnf --setopt=install_weak_deps=False --best install -y \
