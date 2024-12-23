@@ -10,8 +10,8 @@ LABEL name="Percona Toolkit" \
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV PS_VERSION 8.0.35-27.1.el9
-ENV PT_VERSION 3.5.7-1.el9
+ENV PS_VERSION 8.0.39-30.1.el9
+ENV PT_VERSION 3.7.0-1.el9
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -27,7 +27,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable ps-80 release; \
-    percona-release enable tools release
+    percona-release enable pt release
 
 RUN set -ex; \
     microdnf -y update; \
