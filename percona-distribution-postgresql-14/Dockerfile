@@ -1,14 +1,23 @@
-FROM redhat/ubi8-minimal
+FROM oraclelinux:9 AS downloader
+
+RUN yum install -y epel-release; \
+        yum config-manager --set-enabled ol9_codeready_builder; \
+        yum install -y --downloadonly perl-JSON; \
+        mkdir -p downloaded-packages; \
+        cp -rp /var/cache/dnf/ol9_appstream-*/packages/*.rpm downloaded-packages; \
+        tar -cvzf downloaded-packages.tar.gz downloaded-packages
+
+FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 14.13-1
+ENV PPG_VERSION 14.15-1
 ENV PPG_MAJOR_VERSION 14
-ENV PPG_MINOR_VERSION 13
-ENV OS_VER el8
+ENV PPG_MINOR_VERSION 15
+ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO testing
 ENV PPG_REPO_VERSION "${PPG_MAJOR_VERSION}.${PPG_MINOR_VERSION}"
@@ -33,7 +42,6 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    #percona-release setup -y ppg${PPG_MAJOR_VERSION}; \
     percona-release enable telemetry ${PPG_REPO}; \
     percona-release enable ppg-${PPG_REPO_VERSION} ${PPG_REPO};
 
@@ -59,13 +67,16 @@ RUN set -ex; \
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" postgres
 
-RUN set -ex; \
-    export GNUPGHOME="$(mktemp -d)"; \
-    curl -Lf -o /tmp/perl-JSON.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-JSON-2.97.001-2.el8.noarch.rpm; \
-    rpmkeys --checksig /tmp/perl-JSON.rpm; \
-    rpm -i /tmp/perl-JSON.rpm
-
 ENV PGDATA /data/db
+
+COPY --from=downloader /downloaded-packages.tar.gz .
+RUN tar -xvzf downloaded-packages.tar.gz; \
+        cd downloaded-packages; \
+        rpm -ivh perl-*.rpm; \
+        rpm -ivh perl-JSON*.rpm; \
+        rm -f /downloaded-packages.tar.gz; \
+        cd -; \
+        rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
 
 RUN set -ex; \
     microdnf install -y \
