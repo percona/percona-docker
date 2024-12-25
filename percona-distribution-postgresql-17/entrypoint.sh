@@ -262,6 +262,12 @@ pg_setup_percona_pg_telemetry() {
 	EOSQL
 }
 
+pg_setup_percona_pg_tde() {
+        docker_process_sql --dbname postgres <<-'EOSQL'
+                alter system set shared_preload_libraries=pg_stat_monitor,percona_pg_telemetry,pg_tde ;
+	EOSQL
+}
+
 # check arguments for an option that would cause postgres to stop
 # return true if there is one
 _pg_want_help() {
@@ -321,6 +327,7 @@ _main() {
                                 /usr/bin/telemetry-agent-supervisor.sh &
                         else
                                 pg_setup_pg_stat_monitor
+				pg_setup_percona_pg_tde
                         fi
 
 			docker_temp_server_stop
