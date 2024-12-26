@@ -251,14 +251,22 @@ docker_temp_server_stop() {
 
 
 pg_setup_pg_stat_monitor_and_pg_tde() {
-	docker_process_sql --dbname postgres <<-'EOSQL'
-		alter system set shared_preload_libraries=pg_stat_monitor,pg_tde ;
+	libraries='pg_stat_monitor'
+	if [[ -n "${ENABLE_PG_TDE}" && "${ENABLE_PG_TDE}" != "0" ]]; then
+		libraries='pg_stat_monitor,pg_tde'
+	fi
+	docker_process_sql --dbname postgres <<-EOSQL
+		alter system set shared_preload_libraries=${libraries} ;
 	EOSQL
 }
 
 pg_setup_percona_pg_telemetry() {
-        docker_process_sql --dbname postgres <<-'EOSQL'
-                alter system set shared_preload_libraries=pg_stat_monitor,percona_pg_telemetry,pg_tde ;
+	libraries='pg_stat_monitor,percona_pg_telemetry'
+	if [[ -n "${ENABLE_PG_TDE}" && "${ENABLE_PG_TDE}" != "0" ]]; then
+		libraries='pg_stat_monitor,percona_pg_telemetry,pg_tde'
+	fi
+	docker_process_sql --dbname postgres <<-EOSQL
+		alter system set shared_preload_libraries= ${libraries};
 	EOSQL
 }
 
