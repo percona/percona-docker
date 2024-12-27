@@ -75,7 +75,6 @@ RUN set -ex; \
 	microdnf clean all; \
 	unzip -q /tmp/awscliv2.zip -d /tmp/; \
 	/tmp/aws/install; \
-	aws --version; \
 	rm -rf /var/cache/dnf /var/cache/yum /tmp/awscliv2.zip /tmp/awscliv2.sig /tmp/aws
 
 # create mysql user/group before mysql installation

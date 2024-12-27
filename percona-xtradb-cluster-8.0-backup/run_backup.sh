@@ -124,8 +124,8 @@ backup_s3() {
 	fi
 
 	trap '' 15
-	mc -C /tmp/mc stat ${INSECURE_ARG} "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
-	md5_size=$(mc -C /tmp/mc stat ${INSECURE_ARG} --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
+	aws $AWS_S3_NO_VERIFY_SSL s3 ls s3://$S3_BUCKET/$S3_BUCKET_PATH.md5
+	md5_size=$(aws $AWS_S3_NO_VERIFY_SSL --output json s3api list-objects --bucket "$S3_BUCKET" --prefix "$S3_BUCKET_PATH.md5" --query 'Contents[0].Size' | sed -e 's/.*"size":\([0-9]*\).*/\1/')
 	if [[ $md5_size =~ "Object does not exist" ]] || ((md5_size < 23000)); then
 		log 'ERROR' 'Backup is empty'
 		log 'ERROR' 'Backup was finished unsuccessfull'
