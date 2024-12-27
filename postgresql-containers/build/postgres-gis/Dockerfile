@@ -12,15 +12,10 @@ LABEL name="Percona PostgreSQL Distribution" \
 
 USER 0
 
-COPY build/postgres-gis/oracle-linux-ol8.repo /etc/yum.repos.d/
-
 ARG PG_MAJOR=14
 
 RUN set -ex; \
-    curl -Lf -o /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle https://yum.oracle.com/RPM-GPG-KEY-oracle-ol8; \
-    microdnf -y remove epel-release; \
-    microdnf -y module disable postgresql; \
-    microdnf -y install epel-release; \
+    yum-config-manager --enable ol9_codeready_builder ol9_developer_EPEL ol9_baseos_latest ol9_appstream; \
     microdnf -y install percona-postgis33_${PG_MAJOR} percona-postgis33_${PG_MAJOR}-client
 
 EXPOSE 5432

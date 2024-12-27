@@ -79,9 +79,7 @@ backup_volume() {
 	vault_store $BACKUP_DIR/${SST_INFO_NAME}
 
 	if (($SST_FAILED == 0)); then
-		FIRST_RECEIVED=0
 		socat -u "$SOCAT_OPTS" stdio >xtrabackup.stream
-		FIRST_RECEIVED=1
 		if [[ $? -ne 0 ]]; then
 			log 'ERROR' 'Socat(2) failed'
 			log 'ERROR' 'Backup was finished unsuccessfully'
@@ -89,6 +87,15 @@ backup_volume() {
 		fi
 		log 'INFO' "Socat(2) returned $?"
 	fi
+
+	trap '' 15
+	stat xtrabackup.stream
+	if (($(stat -c%s xtrabackup.stream) < 5000000)); then
+		log 'ERROR' 'Backup is empty'
+		log 'ERROR' 'Backup was finished unsuccessfully'
+		exit 1
+	fi
+	md5sum xtrabackup.stream | tee md5sum.txt
 }
 
 backup_s3() {
@@ -111,11 +118,18 @@ backup_s3() {
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	if (($SST_FAILED == 0)); then
-		FIRST_RECEIVED=0
 		socat -u "$SOCAT_OPTS" stdio \
 			| xbcloud put --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 $XBCLOUD_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
 			| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
-		FIRST_RECEIVED=1
+	fi
+
+	trap '' 15
+	mc -C /tmp/mc stat ${INSECURE_ARG} "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5"
+	md5_size=$(mc -C /tmp/mc stat ${INSECURE_ARG} --json "dest/$S3_BUCKET/$S3_BUCKET_PATH.md5" | sed -e 's/.*"size":\([0-9]*\).*/\1/')
+	if [[ $md5_size =~ "Object does not exist" ]] || ((md5_size < 23000)); then
+		log 'ERROR' 'Backup is empty'
+		log 'ERROR' 'Backup was finished unsuccessfull'
+		exit 1
 	fi
 }
 
@@ -144,11 +158,9 @@ backup_azure() {
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	if (($SST_FAILED == 0)); then
-		FIRST_RECEIVED=0
 		socat -u "$SOCAT_OPTS" stdio \
 			| xbcloud put --parallel="$(grep -c processor /proc/cpuinfo)" $XBCLOUD_ARGS --storage=azure "$BACKUP_PATH" 2>&1 \
 			| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
-		FIRST_RECEIVED=1
 	fi
 }
 
@@ -167,4 +179,6 @@ fi
 if (($SST_FAILED == 0)); then
 	touch /tmp/backup-is-completed
 fi
+
+log 'INFO' 'Backup finished'
 exit $SST_FAILED

@@ -3,26 +3,26 @@
 # https://github.com/docker-library/official-images:
 # No official images can be derived from, or depend on, non-official images
 # with the following notable exceptions...
-FROM oraclelinux:9
+FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 # It is intentionally used another UID, to have backward compatibility with
 # the previous image versions published on Docker Hub
 RUN set -ex; \
-    groupdel input; \
-    userdel systemd-coredump; \
+    #groupdel input; \
+    #userdel systemd-coredump; \
     groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -m -c "Default Application User" mysql
 
-ENV PS_VERSION 8.0.39-30.1
-ENV MYSQL_SHELL_VERSION 8.0.38-1
+ENV PS_VERSION 8.0.40-31.1
+ENV MYSQL_SHELL_VERSION 8.0.40-1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
 ENV PS_REPO testing
-ENV PS_TELEMETRY_VERSION 8.0.39-30-1
+ENV PS_TELEMETRY_VERSION 8.0.40-31-1
 ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
 ENV CALL_HOME_VERSION 0.1
 # Do not report during Docker image creation.
@@ -41,18 +41,27 @@ RUN set -ex; \
     rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
+    microdnf install -y findutils; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release disable all; \
     percona-release enable ps-80 ${PS_REPO}; \
     percona-release enable telemetry ${PS_REPO}; \
-    percona-release enable mysql-shell ${PS_REPO}
+    percona-release enable mysql-shell ${PS_REPO}; \
+    curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
+    rpm --import RPM-GPG-KEY-EPEL-9; \
+    curl -Lf -o /tmp/jemalloc.rpm https://rpmfind.net/linux/epel/9/Everything/x86_64/Packages/j/jemalloc-5.2.1-2.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/gflags.rpm https://rpmfind.net/linux/epel/9/Everything/x86_64/Packages/g/gflags-2.2.2-9.el9.x86_64.rpm; \
+    rpmkeys --checksig /tmp/gflags.rpm /tmp/jemalloc.rpm; \
+    rpm -i /tmp/jemalloc.rpm; \
+    rpm -i /tmp/gflags.rpm; \
+    rm -f /tmp/gflags.rpm /tmp/jemalloc.rpm
 
 RUN set -ex; \
-    dnf -y install epel-release; \
+    #microdnf -y install epel-release; \
     rpm -e --nodeps tzdata; \
-    dnf -y install \
+    microdnf -y install \
         hostname \
         tzdata \
         jemalloc \
@@ -60,22 +69,23 @@ RUN set -ex; \
         cracklib-dicts \
         tar \
         policycoreutils; \
-    dnf -y update \
-        curl \
-        glibc \
+    microdnf -y update \
+        #glibc \
         libnghttp2 \
         openssh \
         python3-setuptools-wheel \
+        krb5-libs \
+        pam \
         python3; \
     \
-    dnf -y install \
+    microdnf -y install \
         percona-server-server-${FULL_PERCONA_VERSION} \
         #percona-server-tokudb-${FULL_PERCONA_VERSION} \
         percona-server-devel-${FULL_PERCONA_VERSION} \
         percona-server-rocksdb-${FULL_PERCONA_VERSION} \
         percona-icu-data-files-${FULL_PERCONA_VERSION} \
         percona-mysql-shell-${FULL_MYSQL_SHELL_VERSION}; \
-    dnf clean all; \
+    microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
 # purge and re-create /var/lib/mysql with appropriate ownership

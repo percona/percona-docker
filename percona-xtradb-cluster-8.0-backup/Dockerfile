@@ -15,13 +15,13 @@ LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high ava
 LABEL org.opencontainers.image.license="GPL"
 
 ENV PXB_VERSION=8.0.35-31.1
-ENV PS_VERSION=8.0.37-29.1
+ENV PS_VERSION=8.0.39-30.1
 
-ENV PXC_VERSION=8.0.37-29.1
+ENV PXC_VERSION=8.0.39-30.1
 ENV PXC_REPO=release
 
-ENV KUBECTL_VERSION=v1.30.2
-ENV KUBECTL_SHA512SUM=0e1c51cf19254d8615abb0c2cbc6ed980ee41d0874a90ef47705ee0f2cc787b476fd32d56a926564334f4a01aa34ec480a4edcf60cd1b7fe1d734b2cc805774b
+ENV KUBECTL_VERSION=v1.30.8
+ENV KUBECTL_SHA512SUM=30f65522a55e1545fcdc344ef080313015a4afa8655cb62d4c3a3c3cf831addc03b7023c727a1b2e68388a0318374d5c74e7c32a9e21b68707787f97b6d41dc5
 ENV OS_VER=el9
 ENV FULL_PERCONA_VERSION="$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION="$PXB_VERSION.$OS_VER"
@@ -113,7 +113,7 @@ RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 	mkdir /usr/lib/pxc
 
 COPY lib/pxc /usr/lib/pxc
-COPY recovery-*.sh run_backup.sh backup.sh post_backup.sh get-pxc-state /usr/bin/
+COPY recovery-*.sh run_backup.sh backup.sh get-pxc-state /usr/bin/
 
 VOLUME ["/backup"]
 USER 1001

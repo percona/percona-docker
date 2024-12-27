@@ -1,17 +1,11 @@
-FROM golang:1.22 AS go_builder
-
-RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
-RUN go build
-
-FROM redhat/ubi8-minimal
+FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXB_VERSION 2.4.29-1
 ENV PXC_VERSION 5.7.44-31.65.1
 ENV PXC_REPO release
-ENV OS_VER el8
+ENV OS_VER el9
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
 ENV PXC_TELEMETRY_VERSION 5.7.44-31.65-1
@@ -29,9 +23,8 @@ RUN set -ex; \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 76FD3DB13AB67410B89DB10E82562EA9AD986DA3; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
-    gpg --batch --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8 ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9; \
     microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
@@ -42,24 +35,22 @@ RUN set -ex; \
     percona-release enable pxc-57 ${PXC_REPO}
 
 RUN set -ex; \
-    curl -Lf -o /tmp/numactl-libs.rpm http://vault.centos.org/centos/8/BaseOS/x86_64/os/Packages/numactl-libs-2.0.12-13.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/libev.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/libev-4.24-6.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/jq.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/jq-1.5-12.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/oniguruma.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/oniguruma-6.8.2-2.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pv-1.6.6-7.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/socat.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/socat-1.7.4.1-1.el8.x86_64.rpm; \
-    rpmkeys --checksig /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
-    rpm -i /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm; \
-    rm -rf /tmp/socat.rpm /tmp/numactl-libs.rpm /tmp/libev.rpm /tmp/jq.rpm /tmp/oniguruma.rpm /tmp/pv.rpm
+    curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
+    rpm --import RPM-GPG-KEY-EPEL-9; \
+    microdnf --setopt=install_weak_deps=0 --best install -y numactl-libs socat oniguruma; \
+    curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/jq.rpm https://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/jq-1.6-14.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/p/pv-1.6.20-1.el9.x86_64.rpm; \
+    rpmkeys --checksig /tmp/libev.rpm /tmp/jq.rpm /tmp/pv.rpm; \
+    rpm -i /tmp/libev.rpm /tmp/jq.rpm /tmp/pv.rpm; \
+    rm -rf /tmp/libev.rpm /tmp/jq.rpm /tmp/pv.rpm
 
 RUN set -ex; \
     rpm -e --nodeps tzdata; \
     microdnf --setopt=install_weak_deps=0 --best install -y \
-        jemalloc \
         openssl \
         shadow-utils \
         hostname \
-        curl \
         tzdata \
         diffutils \
         libaio \
@@ -73,7 +64,6 @@ RUN set -ex; \
         tar; \
     microdnf update \
         curl \
-        glibc \
         libnghttp2 \
         python3; \
     microdnf clean all; \
@@ -87,14 +77,14 @@ RUN groupadd -g 1001 mysql; \
 # we need licenses from docs
 RUN set -ex; \
     # systemd is required for nss-pam-ldap
-    curl -Lf -o /tmp/nss-pam-ldapd.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/nss-pam-ldapd-0.9.9-3.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/nss-pam-ldapd.rpm https://downloads.percona.com/downloads/packaging/nss-pam-ldapd-0.9.10-13.el9.x86_64.rpm; \
     rpmkeys --checksig /tmp/nss-pam-ldapd.rpm; \
     rpm -iv /tmp/nss-pam-ldapd.rpm --nodeps; \
     rm -rf /tmp/nss-pam-ldapd.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/8/RPMS/x86_64/Percona-XtraDB-Cluster-server-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/8/RPMS/x86_64/Percona-XtraDB-Cluster-shared-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/8/RPMS/x86_64/Percona-XtraDB-Cluster-client-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-    curl -Lf -o /tmp/percona-xtrabackup-24.rpm https://repo.percona.com/pxb-24/yum/${PXC_REPO}/8/RPMS/x86_64/percona-xtrabackup-24-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-server.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/9/RPMS/x86_64/Percona-XtraDB-Cluster-server-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/9/RPMS/x86_64/Percona-XtraDB-Cluster-shared-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/9/RPMS/x86_64/Percona-XtraDB-Cluster-client-57-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtrabackup-24.rpm https://repo.percona.com/pxb-24/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtrabackup-24-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/percona-xtrabackup-24.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm; \
     rpm -iv /tmp/percona-xtrabackup-24.rpm /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm --nodeps; \
     microdnf clean all; \
@@ -108,7 +98,6 @@ RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.ga
     cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
 
 COPY dockerdir /
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 
 RUN set -ex; \
     rm -rf /etc/my.cnf.d; \
@@ -131,9 +120,9 @@ RUN if [[ -n $DEBUG ]] ; then \
         net-tools \
         nc \
         gdb; \
-    curl -Lf -o /tmp/telnet.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/telnet-0.17-76.el8.x86_64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/8/RPMS/x86_64/Percona-XtraDB-Cluster-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/8/RPMS/x86_64/Percona-XtraDB-Cluster-server-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/telnet.rpm http://vault.centos.org/centos/9/AppStream/x86_64/os/Packages/telnet-0.17-76.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/9/RPMS/x86_64/Percona-XtraDB-Cluster-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/9/RPMS/x86_64/Percona-XtraDB-Cluster-server-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/telnet.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm; \
     rpm -i /tmp/telnet.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm --nodeps; \
     rm -rf /tmp/telnet.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm; \

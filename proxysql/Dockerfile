@@ -1,9 +1,3 @@
-FROM golang:1.22 AS go_builder
-
-RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
-WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
-RUN go build
-
 FROM redhat/ubi9-minimal AS ubi9
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
@@ -22,8 +16,8 @@ All the while getting the unlimited freedom that comes with a GPL license."
 LABEL org.opencontainers.image.license="GPL+"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.37-29.1
-ENV PROXYSQL_VERSION 2.6.5-1.1
+ENV PXC_VERSION 8.0.39-30.1
+ENV PROXYSQL_VERSION 2.7.1-1.2
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
 ENV FULL_PROXYSQL_VERSION "$PROXYSQL_VERSION.$OS_VER"
@@ -45,7 +39,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release setup pxc80; \
-    percona-release enable tools testing
+    percona-release enable proxysql testing
 
 RUN set -ex; \
     microdnf install -y jq \
@@ -60,7 +54,9 @@ RUN set -ex; \
         krb5-libs \
         cpio \
         tar; \
-    microdnf update -y glibc; \
+    microdnf update -y glibc \
+        pam \
+        krb5-libs; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
@@ -86,7 +82,6 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/proxysql2/LICENSE /licenses/LICENSE.proxysql
 
 COPY dockerdir /
-COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
 RUN chown 1001:1001 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf; \
     chmod 664 /etc/proxysql/proxysql.cnf /etc/proxysql-admin.cnf
 

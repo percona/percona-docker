@@ -7,6 +7,18 @@ Read more about Dockerfiles [here](https://docs.docker.com/engine/reference/buil
 
 See individual directories for instructions on how to build and run Percona software.
 
+The images we build can be found in the Docker Hub registry. We have two organizations:
+
+- [percona](https://hub.docker.com/u/percona) - repository with production-grade images that are widely used by the community and customers.
+- [perconalab](https://hub.docker.com/u/perconalab) - experiments, alpha/beta versions, nightly builds images. Not recommended for production.
+
+# Need help?
+
+**Commercial Support**  | **Community Support** |
+:-: | :-: |
+| <br/>Enterprise-grade assistance for your mission-critical database deployments in containers and Kubernetes. Get expert guidance for complex tasks like multi-cloud replication, database migration and building platforms.<br/><br/>  | <br/>Connect with our engineers and fellow users for general questions, troubleshooting, and sharing feedback and ideas.<br/><br/>  | 
+| **[Get Percona Support](https://hubs.ly/Q02ZTHbG0)** | **[Visit our Forum](https://forums.percona.com/)** |
+
 # Contributing
 
 Percona welcomes and encourages community contributions to help improve our projects.

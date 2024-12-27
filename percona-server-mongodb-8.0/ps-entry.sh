@@ -399,7 +399,7 @@ if [ "$originalArgOne" = 'mongod' ]; then
 	fi
 
 	MONGODB_VERSION=$(mongod --version  | head -1 | awk '{print $3}' | awk -F'.' '{print $1"."$2}')
-	if [ "$MONGODB_VERSION" == 'v4.2' ] || [ "$MONGODB_VERSION" == 'v4.4' ] || [ "$MONGODB_VERSION" == 'v5.0' ] || [ "$MONGODB_VERSION" == 'v6.0' ]; then
+	if [ "$MONGODB_VERSION" == 'v5.0' ] || [ "$MONGODB_VERSION" == 'v6.0' ] || [ "$MONGODB_VERSION" == 'v7.0' ] || [ "$MONGODB_VERSION" == 'v8.0' ]; then
 		_mongod_hack_rename_arg_save_val --sslMode --tlsMode "${mongodHackedArgs[@]}"
 
 		if _mongod_hack_have_arg '--tlsMode' "${mongodHackedArgs[@]}"; then
@@ -487,6 +487,9 @@ else
   CALL_HOME_OPTIONAL_PARAMS+=" -c 2"
 fi
 
-/call-home.sh -f "PRODUCT_FAMILY_PSMDB" -v "${PSMDB_VERSION}" -d "DOCKER" ${CALL_HOME_OPTIONAL_PARAMS} &> /dev/null || :
-
-exec "$@"
+if [[ ${PERCONA_TELEMETRY_DISABLE} -ne "0" ]]; then
+  exec "$@" --setParameter perconaTelemetry=false
+else
+  /usr/bin/telemetry-agent-supervisor.sh &
+  exec "$@"
+fi

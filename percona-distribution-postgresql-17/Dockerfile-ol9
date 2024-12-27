@@ -65,6 +65,7 @@ RUN set -ex; \
         percona-pg_repack17 \
         percona-pgaudit \
         percona-pgaudit17_set_user \
+	percona-pgvector_17 \
         percona-wal2json17; \
     dnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \

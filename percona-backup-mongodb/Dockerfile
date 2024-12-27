@@ -1,4 +1,4 @@
-FROM redhat/ubi8-minimal
+FROM redhat/ubi9-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona Backup for MongoDB" \
@@ -14,11 +14,11 @@ LABEL org.opencontainers.image.title="Percona Backup for MongoDB" \
     low-impact solution for achieving consistent backups of MongoDB Sharded Clusters and Replica Sets." \
     org.opencontainers.image.authors="info@percona.com"
 
-ENV PBM_VERSION 2.6.0-1
+ENV PBM_VERSION 2.8.0-1
 ENV PBM_REPO_CH release
-ENV PSMDB_REPO psmdb-42
+ENV PSMDB_REPO psmdb-60
 ENV PSMDB_REPO_CH release
-ENV OS_VER el8
+ENV OS_VER el9
 ENV FULL_PBM_VERSION "$PBM_VERSION.$OS_VER"
 
 # check repository package signature in secure way
@@ -27,8 +27,8 @@ RUN set -ex; \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
-    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9; \
     microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
@@ -53,6 +53,9 @@ RUN set -ex; \
 RUN useradd -u 1001 -r -g 0 -m -s /sbin/nologin \
             -c "Default Application User" mongodb;
 USER 1001
+
+COPY LICENSE /licenses/LICENSE.Dockerfile
+COPY LICENSE /licenses/LICENSE.Percona-Backup-for-MongoDB
 
 # Containers should be started either with --mongodb-uri flag or with PBM_MONGODB_URI env variable
 # Also, one can map volume to /etc (/etc/sysconfig/pbm-agent, /etc/pbm-storage.conf)
