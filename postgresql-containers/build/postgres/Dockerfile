@@ -106,6 +106,8 @@ RUN set -ex; \
         percona-postgresql${PG_MAJOR//.}-llvmjit \
         percona-wal2json${PG_MAJOR//.} \
         percona-pg_repack${PG_MAJOR//.} \
+        percona-pgvector_${PG_MAJOR//.} \
+        percona-pgvector_${PG_MAJOR//.}-llvmjit \
         psmisc \
         rsync \
         perl \
@@ -132,11 +134,10 @@ RUN set -ex; \
 
 RUN if [[ "${PG_MAJOR//.}" -le '16' ]]; then \
         microdnf -y install --enablerepo="ol9_developer_EPEL" \
-        percona-pgvector_${PG_MAJOR//.} \
-        percona-pgvector_${PG_MAJOR//.}-llvmjit \
         percona-patroni-3*; \
     else \
-        microdnf -y install --enablerepo="ol9_developer_EPEL" percona-patroni; \
+        microdnf -y install --enablerepo="ol9_developer_EPEL" \
+        percona-patroni; \
     fi; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
