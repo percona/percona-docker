@@ -80,6 +80,8 @@ RUN set -ex; \
         percona-postgresql${PG_MAJOR//.}-llvmjit \
         percona-wal2json${PG_MAJOR//.} \
         percona-pg_stat_monitor${PG_MAJOR//.} \
+        percona-pgvector_${PG_MAJOR//.} \
+        percona-pgvector_${PG_MAJOR//.}-llvmjit \
         nss_wrapper \
         lz4 \
         unzip; \
