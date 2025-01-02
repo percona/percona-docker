@@ -98,11 +98,11 @@ RUN for pg_version in 16 15 14 13 12; do \
             percona-postgresql${pg_version}-llvmjit \
             percona-wal2json${pg_version} \
             percona-pg_stat_monitor${pg_version}; \
-    done
 
-#    && microdnf -y clean all; \
-#            microdnf clean all; \
-#            rm -rf /var/cache/dnf /var/cache/yum
+        if [[ "${pg_version}" -gt 12 ]]; then \
+            microdnf -y install --nodocs percona-pgvector_${pg_version} percona-pgvector_${pg_version}-llvmjit; \
+        fi; \
+    done && microdnf -y clean all && rm -rf /var/cache/dnf /var/cache/yum
 
 RUN mkdir -p /opt/crunchy/bin /pgolddata /pgnewdata /opt/crunchy/conf
 COPY bin/upgrade/ /opt/crunchy/bin
