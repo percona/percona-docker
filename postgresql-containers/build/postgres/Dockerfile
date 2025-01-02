@@ -30,7 +30,7 @@ RUN set -ex; \
 
 ENV LC_ALL en_US.utf-8
 ENV LANG en_US.utf-8
-ARG PG_MAJOR=14
+ARG PG_MAJOR=17.2
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -56,7 +56,7 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
     rpm -i /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpmm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
-    percona-release enable ppg-${PG_MAJOR} release
+    percona-release enable ppg-${PG_MAJOR} testing
 
 RUN set -ex; \
     microdnf -y install perl-DBI perl-DBD-Pg perl-XML-Parser; \
@@ -87,25 +87,27 @@ RUN set -ex; \
     microdnf -y install \
         libpq \
         glibc-all-langpacks \
-        percona-postgresql${PG_MAJOR//.}; \
+        percona-postgresql${PG_MAJOR%.*}; \
     microdnf -y clean all
 
 # Preserving PGVERSION out of paranoia
-ENV PGROOT="/usr/pgsql-${PG_MAJOR}" PGVERSION="${PG_MAJOR}"
+ENV PGROOT="/usr/pgsql-${PG_MAJOR%.*}" PGVERSION="${PG_MAJOR}"
 
 RUN set -ex; \
     microdnf -y install \
         --enablerepo="ol9_developer_EPEL" \
-        percona-pgaudit${PG_MAJOR//.} \
-        percona-pgaudit${PG_MAJOR//.}_set_user \
+        percona-pgaudit${PG_MAJOR%.*} \
+        percona-pgaudit${PG_MAJOR%.*}_set_user \
         percona-pgbackrest \
-        percona-postgresql${PG_MAJOR//.}-contrib \
-        percona-postgresql${PG_MAJOR//.}-server \
-        percona-postgresql${PG_MAJOR//.}-libs \
-        percona-pg_stat_monitor${PG_MAJOR//.} \
-        percona-postgresql${PG_MAJOR//.}-llvmjit \
-        percona-wal2json${PG_MAJOR//.} \
-        percona-pg_repack${PG_MAJOR//.} \
+        percona-postgresql${PG_MAJOR%.*}-contrib \
+        percona-postgresql${PG_MAJOR%.*}-server \
+        percona-postgresql${PG_MAJOR%.*}-libs \
+        percona-pg_stat_monitor${PG_MAJOR%.*} \
+        percona-postgresql${PG_MAJOR%.*}-llvmjit \
+        percona-wal2json${PG_MAJOR%.*} \
+        percona-pg_repack${PG_MAJOR%.*} \
+        percona-postgresql-client-common \
+        percona-postgresql-server-dev-all \
         psmisc \
         rsync \
         perl \
@@ -130,7 +132,7 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-RUN if [[ "${PG_MAJOR//.}" -le '16' ]]; then \
+RUN if [[ "${PG_MAJOR%.*}" -le '16' ]]; then \
         microdnf -y install --enablerepo="ol9_developer_EPEL" percona-patroni-3*; \
     else \
         microdnf -y install --enablerepo="ol9_developer_EPEL" percona-patroni; \
@@ -143,7 +145,7 @@ ENV PATH="${PGROOT}/bin:${PATH}"
 RUN set -ex; \
     mkdir -p /opt/crunchy/bin /opt/crunchy/conf /pgdata /pgwal /pgconf /backrestrepo /tablespaces; \
     chown -R postgres:postgres /opt/crunchy /var/lib/pgsql \
-        /pgdata /pgwal /pgconf /backrestrepo /tablespaces /usr/pgsql-${PG_MAJOR//.}; \
+        /pgdata /pgwal /pgconf /backrestrepo /tablespaces /usr/pgsql-${PG_MAJOR%.*}; \
     chmod -R g=u /opt/crunchy /var/lib/pgsql \
         /pgdata /pgwal /pgconf /backrestrepo /tablespaces
 
