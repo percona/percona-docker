@@ -269,9 +269,6 @@ if [ "$originalArgOne" = 'mongod' ]; then
 
 	if [ -n "$shouldPerformInitdb" ]; then
 		mongodHackedArgs=( "$@" )
-		if _parse_config "$@"; then
-			_mongod_hack_ensure_arg_val --config "$tempConfigFile" "${mongodHackedArgs[@]}"
-		fi
 		_mongod_hack_ensure_arg_val --bind_ip 127.0.0.1 "${mongodHackedArgs[@]}"
 		_mongod_hack_ensure_arg_val --port 27017 "${mongodHackedArgs[@]}"
 		_mongod_hack_ensure_no_arg --bind_ip_all "${mongodHackedArgs[@]}"
