@@ -30,7 +30,8 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable telemetry ${PXC_REPO}; \
-    percona-release enable pdpxc-8.0 ${PXC_REPO}
+    percona-release enable pdpxc-8.0 ${PXC_REPO}; \
+    percona-release enable pxc-80 ${PXC_REPO};
 
 RUN set -ex; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
