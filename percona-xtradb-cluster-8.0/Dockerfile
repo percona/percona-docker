@@ -18,11 +18,12 @@ ARG PERCONA_TELEMETRY_DISABLE=1
 # check repository package signature in secure way
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 BC5EDDCADF502C077F1582882AE81E8ACED7258B 6A2FAEA2352C64E5; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 BC5EDDCADF502C077F1582882AE81E8ACED7258B 6A2FAEA2352C64E5 8d8b756f; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     gpg --batch --export --armor 6A2FAEA2352C64E5 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9; \
-    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9; \
+    gpg --batch --export --armor 8d8b756f > ${GNUPGHOME}/ORACLE-LINUX-RELEASE-KEY; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9 ${GNUPGHOME}/ORACLE-LINUX-RELEASE-KEY; \
     microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
@@ -130,10 +131,10 @@ RUN if [[ -n $DEBUG ]] ; then \
         percona-toolkit \
         gdb; \
     percona-release disable pdpxc-8.0 ${PXC_REPO}; \
-    curl -Lf -o /tmp/telnet.rpm https://downloads.percona.com/downloads/packaging/telnet-0.17-76.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/tcpdump.rpm https://downloads.percona.com/downloads/packaging/tcpdump-4.9.3-2.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/perf.rpm https://downloads.percona.com/downloads/packaging/perf-4.18.0-553.16.1.el9_10.x86_64.rpm; \
-    curl -Lf -o /tmp/strace.rpm https://downloads.percona.com/downloads/packaging/strace-5.7-3.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/telnet.rpm https://downloads.percona.com/downloads/packaging/telnet-0.17-85.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/tcpdump.rpm https://downloads.percona.com/downloads/packaging/tcpdump-4.99.0-9.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/perf.rpm https://downloads.percona.com/downloads/packaging/perf-5.14.0-503.16.1.el9_5.x86_64.rpm; \
+    curl -Lf -o /tmp/strace.rpm https://downloads.percona.com/downloads/packaging/strace-6.12-1.el9.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/telnet.rpm /tmp/tcpdump.rpm /tmp/perf.rpm /tmp/strace.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm; \
