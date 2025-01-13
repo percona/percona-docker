@@ -128,17 +128,8 @@ RUN set -ex; \
         python3-urllib3 \
         python3-pyyaml \
         python3-click \
-        ydiff; \
-    microdnf clean all; \
-    rm -rf /var/cache/dnf /var/cache/yum
-
-RUN if [[ "${PG_MAJOR//.}" -le '16' ]]; then \
-        microdnf -y install --enablerepo="ol9_developer_EPEL" \
-        percona-patroni-3*; \
-    else \
-        microdnf -y install --enablerepo="ol9_developer_EPEL" \
+        ydiff \
         percona-patroni; \
-    fi; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
