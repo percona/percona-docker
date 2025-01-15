@@ -3,7 +3,7 @@ FROM redhat/ubi9-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona XtraBackup" \
-      release="8.0" \
+      release="8.4" \
       vendor="Percona" \
       summary="Percona XtraBackup is an open-source hot backup utility for MySQL - based servers that doesn’t lock your database during the backup" \
       description="Percona XtraBackup works with MySQL, MariaDB, and Percona Server. It supports completely non-blocking backups of InnoDB, XtraDB, and HailDB storage engines. In addition, it can back up the following storage engines by briefly pausing writes at the end of the backup: MyISAM, Merge, and Archive, including partitioned tables, triggers, and database options." \
@@ -41,8 +41,8 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable telemetry ${PXC_REPO}; \
-    percona-release enable pdpxc-8.0 ${PXC_REPO}; \
-    percona-release enable pxc-80 ${PXC_REPO}
+    percona-release enable pdpxc-84-lts ${PXC_REPO}; \
+    percona-release enable pxc-84-lts ${PXC_REPO}
 
 RUN set -ex; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
@@ -119,13 +119,13 @@ RUN if [[ -n $DEBUG ]] ; then \
     sed -i '/\[mysqld\]/a wsrep_log_conflicts\nlog_error_verbosity=3\nwsrep_debug=1' /etc/mysql/node.cnf; \
     mv /usr/sbin/mysqld /usr/sbin/mysqld-ps; \
     cp /usr/local/bin/mysqld-debug /usr/sbin/mysqld; \
-    percona-release enable pdpxc-8.0 release; \
+    percona-release enable pdpxc-84-lts release; \
     microdnf install -y \
         net-tools \
         nc \
         percona-toolkit \
         gdb; \
-    percona-release disable pdpxc-8.0 release; \
+    percona-release disable pdpxc-84-lts release; \
     curl -Lf -o /tmp/telnet.rpm https://downloads.percona.com/downloads/packaging/telnet-0.17-85.el9.x86_64.rpm; \
     curl -Lf -o /tmp/tcpdump.rpm https://downloads.percona.com/downloads/packaging/tcpdump-4.99.0-9.el9.x86_64.rpm; \
     curl -Lf -o /tmp/perf.rpm https://downloads.percona.com/downloads/packaging/perf-5.14.0-503.21.1.0.1.el9_5.x86_64.rpm; \
