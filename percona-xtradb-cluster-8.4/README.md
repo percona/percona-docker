@@ -1,7 +1,7 @@
 Percona XtraDB Cluster docker image
 ===================================
 
-The docker image is available right now at `percona/percona-xtradb-cluster:8.0`.
+The docker image is available right now at `percona/percona-xtradb-cluster:8.4`.
 The image supports work in Docker Network, including overlay networks,
 so that you can install Percona XtraDB Cluster nodes on different boxes.
 There is an initial support for the etcd discovery service.
