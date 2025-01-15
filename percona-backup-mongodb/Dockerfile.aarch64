@@ -2,6 +2,7 @@ FROM redhat/ubi9-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona Backup for MongoDB" \
+    maintainer="Percona Development <info@percona.com>" \
     vendor="Percona" \
     summary="Percona Backup for MongoDB" \
     description="Percona Backup for MongoDB is a distributed, \
