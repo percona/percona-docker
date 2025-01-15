@@ -11,7 +11,7 @@ services:
         - "6032:6032"
       env_file: .env
     percona-xtradb-cluster:
-      image: percona/percona-xtradb-cluster:8.0
+      image: percona/percona-xtradb-cluster:8.4
       networks:
         - Theistareykjarbunga
       ports:

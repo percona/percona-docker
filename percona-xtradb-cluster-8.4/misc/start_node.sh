@@ -12,7 +12,7 @@ docker run -d -p 3306 --net=$NETWORK_NAME \
 	 -e DISCOVERY_SERVICE=${ETCD_HOST}:2379 \
 	 -e CLUSTER_NAME=${CLUSTER_NAME} \
 	 -e XTRABACKUP_PASSWORD=Theistare \
-	 percona/percona-xtradb-cluster:8.0
+	 percona/percona-xtradb-cluster:8.4
 #--general-log=1 --general_log_file=/var/lib/mysql/general.log
 #--wsrep_cluster_address="gcomm://$QCOMM"
 echo "Started $(docker ps -l -q)"
