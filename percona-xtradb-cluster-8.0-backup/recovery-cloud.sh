@@ -6,23 +6,20 @@ set -o xtrace
 LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/check-version.sh
 . ${LIB_PATH}/vault.sh
+. ${LIB_PATH}/aws.sh
 
 # temporary fix for PXB-2784
 XBCLOUD_ARGS="--curl-retriable-errors=7 $XBCLOUD_EXTRA_ARGS"
 
-MC_ARGS='-C /tmp/mc'
-
 if [ -n "$VERIFY_TLS" ] && [[ $VERIFY_TLS == "false" ]]; then
 	XBCLOUD_ARGS="--insecure ${XBCLOUD_ARGS}"
-	MC_ARGS="${MC_ARGS} --insecure"
 fi
 
 if [ -n "$S3_BUCKET_URL" ]; then
 	{ set +x; } 2>/dev/null
-	echo "+ mc ${MC_ARGS} config host add dest ${ENDPOINT:-https://s3.amazonaws.com} ACCESS_KEY_ID SECRET_ACCESS_KEY"
-	mc ${MC_ARGS} config host add dest "${ENDPOINT:-https://s3.amazonaws.com}" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"
+	s3_add_bucket_dest
 	set -x
-	mc ${MC_ARGS} ls "dest/${S3_BUCKET_URL}"
+	aws $AWS_S3_NO_VERIFY_SSL s3 ls "${S3_BUCKET_URL}"
 elif [ -n "${BACKUP_PATH}" ]; then
 	XBCLOUD_ARGS="${XBCLOUD_ARGS} --storage=azure"
 fi

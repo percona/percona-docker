@@ -27,13 +27,17 @@ LABEL org.opencontainers.image.version=${PXC_VERSION}
 # check repository package signature in secure way
 RUN set -ex; \
 	export GNUPGHOME="$(mktemp -d)"; \
-	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F; \
+	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F FB5DB77FD5C118B80511ADA8A6310ACC4672475C; \
 	gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
 	gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-	rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY  ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+	gpg --batch --export --armor FB5DB77FD5C118B80511ADA8A6310ACC4672475C > ${GNUPGHOME}/RPM-GPG-KEY-aws; \
+	rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-oracle ${GNUPGHOME}/RPM-GPG-KEY-aws; \
 	microdnf install -y findutils; \
 	curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
 	rpmkeys --checksig /tmp/percona-release.rpm; \
+	curl -o /tmp/awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip;  \
+	curl -o /tmp/awscliv2.sig https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip.sig; \
+	gpg --verify /tmp/awscliv2.sig /tmp/awscliv2.zip; \
 	rpm -i /tmp/percona-release.rpm; \
 	rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
 	rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
@@ -61,6 +65,7 @@ RUN set -ex; \
 	iputils \
 	procps-ng \
 	util-linux \
+	unzip \
 	procps-ng \
 	qpress \
 	tar \
@@ -68,7 +73,9 @@ RUN set -ex; \
 	libatomic \
 	libaio; \
 	microdnf clean all; \
-	rm -rf /var/cache/dnf /var/cache/yum
+	unzip -q /tmp/awscliv2.zip -d /tmp/; \
+	/tmp/aws/install; \
+	rm -rf /var/cache/dnf /var/cache/yum /tmp/awscliv2.zip /tmp/awscliv2.sig /tmp/aws
 
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql; \
@@ -101,15 +108,6 @@ RUN set -ex; \
 
 RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 	mkdir /usr/lib/pxc
-
-ENV MC_VERSION=RELEASE.2024-11-17T19-35-25Z
-ENV MC_SHA256SUM=544d2d11c32cb4ed11b27338935a9cc434e15b692ff3d1529a624d341fe2ffc5
-RUN set -ex; \
-    curl -o /usr/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
-	&& chmod +x /usr/bin/mc \
-	&& echo "${MC_SHA256SUM} /usr/bin/mc" | sha256sum -c - \
-	&& curl -o /licenses/LICENSE.mc \
-	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
 
 COPY lib/pxc /usr/lib/pxc
 COPY recovery-*.sh backup.sh get-pxc-state /usr/bin/
