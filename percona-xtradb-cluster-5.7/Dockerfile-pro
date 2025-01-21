@@ -1,4 +1,4 @@
-FROM golang:1.22 AS go_builder
+FROM golang:1.23 AS go_builder
 
 RUN git clone --branch=main https://github.com/percona/percona-xtradb-cluster-operator.git /go/src/github.com/percona/percona-xtradb-cluster-operator/
 WORKDIR /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list
@@ -9,12 +9,12 @@ FROM redhat/ubi9-minimal
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXB_VERSION 2.4.29-1
-ENV PXC_VERSION 5.7.44-31.65.2
+ENV PXC_VERSION 5.7.44-31.65.5
 ENV PXC_REPO release
 ENV OS_VER el9
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$PXB_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-ENV PXC_TELEMETRY_VERSION 5.7.44-31.65-2
+ENV PXC_TELEMETRY_VERSION 5.7.44-31.65-5
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
