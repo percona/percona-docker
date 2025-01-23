@@ -56,14 +56,26 @@ echo "+ xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare ${XB_E
 xtrabackup ${XB_USE_MEMORY+--use-memory=$XB_USE_MEMORY} --prepare ${transition_option:+"$transition_option"} ${XB_EXTRA_ARGS} --rollback-prepared-trx \
 	--xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin "--target-dir=$tmp"
 
-echo "+ xtrabackup --defaults-group=mysqld --datadir=/datadir --move-back ${XB_EXTRA_ARGS} \
-    --force-non-empty-directories $master_key_options \
+sed -i '/innodb_undo_directory/d' ${tmp}/backup-my.cnf
+echo "using defaults-file ${tmp}/backup-my.cnf"
+cat ${tmp}/backup-my.cnf
+
+echo "+ xtrabackup  --defaults-file=${tmp}/backup-my.cnf --defaults-group=mysqld --datadir=/datadir --move-back ${XB_EXTRA_ARGS} \
+    --force-non-empty-directories $master_key_options ${transition_option:+"$transition_option"} \
     --keyring-vault-config=/etc/mysql/vault-keyring-secret/keyring_vault.conf --early-plugin-load=keyring_vault.so \
     --xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin --target-dir=$tmp"
 
-xtrabackup --defaults-group=mysqld --datadir=/datadir --move-back ${XB_EXTRA_ARGS} \
-	--force-non-empty-directories ${transition_option:+"$transition_option"} $master_key_options \
-	--keyring-vault-config=/etc/mysql/vault-keyring-secret/keyring_vault.conf --early-plugin-load=keyring_vault.so \
-	--xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin "--target-dir=$tmp"
+xtrabackup \
+	--defaults-file=${tmp}/backup-my.cnf \
+	--defaults-group=mysqld \
+	--datadir=/datadir \
+	--move-back ${XB_EXTRA_ARGS} \
+	--force-non-empty-directories \
+	$master_key_options \
+	${transition_option:+"$transition_option"} \
+	--keyring-vault-config=/etc/mysql/vault-keyring-secret/keyring_vault.conf \
+	--early-plugin-load=keyring_vault.so \
+	--xtrabackup-plugin-dir=/usr/lib64/xtrabackup/plugin \
+	--target-dir=$tmp
 
 rm -rf "$tmp"
