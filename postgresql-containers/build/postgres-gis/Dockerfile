@@ -16,7 +16,7 @@ ARG PG_MAJOR=14
 
 RUN set -ex; \
     yum-config-manager --enable ol9_codeready_builder ol9_developer_EPEL ol9_baseos_latest ol9_appstream; \
-    microdnf -y install percona-postgis33_${PG_MAJOR} percona-postgis33_${PG_MAJOR}-client
+    microdnf -y install percona-postgis33_${PG_MAJOR%%.*} percona-postgis33_${PG_MAJOR%%.*}-client
 
 EXPOSE 5432
 
