@@ -87,27 +87,27 @@ RUN set -ex; \
     microdnf -y install \
         libpq \
         glibc-all-langpacks \
-        percona-postgresql${PG_MAJOR//.}; \
+        percona-postgresql${PG_MAJOR%%.*}; \
     microdnf -y clean all
 
 # Preserving PGVERSION out of paranoia
-ENV PGROOT="/usr/pgsql-${PG_MAJOR}" PGVERSION="${PG_MAJOR}"
+ENV PGROOT="/usr/pgsql-${PG_MAJOR%%.*}" PGVERSION="${PG_MAJOR%%.*}"
 
 RUN set -ex; \
     microdnf -y install \
         --enablerepo="ol9_developer_EPEL" \
-        percona-pgaudit${PG_MAJOR//.} \
-        percona-pgaudit${PG_MAJOR//.}_set_user \
+        percona-pgaudit${PG_MAJOR%%.*} \
+        percona-pgaudit${PG_MAJOR%%.*}_set_user \
         percona-pgbackrest \
-        percona-postgresql${PG_MAJOR//.}-contrib \
-        percona-postgresql${PG_MAJOR//.}-server \
-        percona-postgresql${PG_MAJOR//.}-libs \
-        percona-pg_stat_monitor${PG_MAJOR//.} \
-        percona-postgresql${PG_MAJOR//.}-llvmjit \
-        percona-wal2json${PG_MAJOR//.} \
-        percona-pg_repack${PG_MAJOR//.} \
-        percona-pgvector_${PG_MAJOR//.} \
-        percona-pgvector_${PG_MAJOR//.}-llvmjit \
+        percona-postgresql${PG_MAJOR%%.*}-contrib \
+        percona-postgresql${PG_MAJOR%%.*}-server \
+        percona-postgresql${PG_MAJOR%%.*}-libs \
+        percona-pg_stat_monitor${PG_MAJOR%%.*} \
+        percona-postgresql${PG_MAJOR%%.*}-llvmjit \
+        percona-wal2json${PG_MAJOR%%.*} \
+        percona-pg_repack${PG_MAJOR%%.*} \
+        percona-pgvector_${PG_MAJOR%%.*} \
+        percona-pgvector_${PG_MAJOR%%.*}-llvmjit \
         psmisc \
         rsync \
         perl \
@@ -138,7 +138,7 @@ ENV PATH="${PGROOT}/bin:${PATH}"
 RUN set -ex; \
     mkdir -p /opt/crunchy/bin /opt/crunchy/conf /pgdata /pgwal /pgconf /backrestrepo /tablespaces; \
     chown -R postgres:postgres /opt/crunchy /var/lib/pgsql \
-        /pgdata /pgwal /pgconf /backrestrepo /tablespaces /usr/pgsql-${PG_MAJOR//.}; \
+        /pgdata /pgwal /pgconf /backrestrepo /tablespaces /usr/pgsql-${PG_MAJOR%%.*}; \
     chmod -R g=u /opt/crunchy /var/lib/pgsql \
         /pgdata /pgwal /pgconf /backrestrepo /tablespaces
 
