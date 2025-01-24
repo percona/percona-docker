@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile-upstream:master
+
 FROM golang:1.22 AS go_builder
 WORKDIR /go/src/github.com/mikefarah/yq
 
@@ -91,8 +93,7 @@ RUN set -ex; \
     microdnf -y clean all
 
 # Preserving PGVERSION out of paranoia
-ARG PGVERSION="${PG_MAJOR%%.*}"
-ENV PGROOT="/usr/pgsql-$PGVERSION" PGVERSION="$PGVERSION"
+ENV PGROOT="/usr/pgsql-${PG_MAJOR%%.*}" PGVERSION="${PG_MAJOR%%.*}"
 
 RUN set -ex; \
     microdnf -y install \
