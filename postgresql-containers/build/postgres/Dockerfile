@@ -91,7 +91,8 @@ RUN set -ex; \
     microdnf -y clean all
 
 # Preserving PGVERSION out of paranoia
-ENV PGROOT="/usr/pgsql-${PG_MAJOR%%.*}" PGVERSION="${PG_MAJOR%%.*}"
+ARG PGVERSION="${PG_MAJOR%%.*}"
+ENV PGROOT="/usr/pgsql-$PGVERSION" PGVERSION="$PGVERSION"
 
 RUN set -ex; \
     microdnf -y install \
@@ -106,8 +107,6 @@ RUN set -ex; \
         percona-postgresql${PG_MAJOR%%.*}-llvmjit \
         percona-wal2json${PG_MAJOR%%.*} \
         percona-pg_repack${PG_MAJOR%%.*} \
-        percona-pgvector_${PG_MAJOR%%.*} \
-        percona-pgvector_${PG_MAJOR%%.*}-llvmjit \
         psmisc \
         rsync \
         perl \
@@ -130,6 +129,15 @@ RUN set -ex; \
         python3-click \
         ydiff \
         percona-patroni; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
+
+RUN if [[ "${PG_MAJOR%%.*}" -ge '13' ]]; then \
+        microdnf -y install \
+            --enablerepo="ol9_developer_EPEL" \
+            percona-pgvector_${PG_MAJOR%%.*} \
+            percona-pgvector_${PG_MAJOR%%.*}-llvmjit; \
+    fi; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
