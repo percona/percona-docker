@@ -86,7 +86,7 @@ RUN set -ex; \
         systemd \
         libpq \
         nss_wrapper \
-        percona-postgresql${PG_MAJOR}-libs \
+        percona-postgresql${PG_MAJOR%%.*}-libs \
         libedit; \
     microdnf -y clean all
 

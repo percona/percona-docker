@@ -21,7 +21,7 @@ RUN set -ex; \
     microdnf -y remove epel-release; \
     microdnf -y module disable postgresql; \
     microdnf -y install epel-release; \
-    microdnf -y install percona-postgis33_${PG_MAJOR} percona-postgis33_${PG_MAJOR}-client
+    microdnf -y install percona-postgis33_${PG_MAJOR%%.*} percona-postgis33_${PG_MAJOR%%.*}-client
 
 EXPOSE 5432
 
