@@ -36,7 +36,7 @@ docker build --platform x86_64 --no-cache --progress plain \
 To build a pgBouncer image using Percona Distribution for PostgreSQL v16.6:
 
 1. Set the `--build-arg` option with `PG_MAJOR=16.6` to specify the exact version.
-2. Use `PG_MAJOR=16` in `--build-arg` for the latest available minor version of PostgreSQL 16.
+2. To build the latest available minor version of pgBouncer, use `PG_MAJOR=16` in `--build-arg`.
 
 Example command:
 
@@ -53,7 +53,7 @@ docker build --platform x86_64 --no-cache --progress plain \
 To build a pgBackRest image using Percona Distribution for PostgreSQL v16.6:
 
 1. Set the `--build-arg` option with `PG_MAJOR=16.6` to specify the exact version.
-2. Use `PG_MAJOR=16` in `--build-arg` for the latest available minor version of PostgreSQL 16.
+2. To build the latest available minor version of pgBackRest, use `PG_MAJOR=16` in `--build-arg`.
 
 Example command:
 
