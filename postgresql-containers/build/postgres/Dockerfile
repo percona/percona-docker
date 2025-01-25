@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile-upstream:master
+# syntax=docker/dockerfile:1
 
 FROM golang:1.22 AS go_builder
 WORKDIR /go/src/github.com/mikefarah/yq
