@@ -120,7 +120,7 @@ RUN if [[ -n $DEBUG ]] ; then \
         net-tools \
         nc \
         gdb; \
-    curl -Lf -o /tmp/telnet.rpm http://vault.centos.org/centos/9/AppStream/x86_64/os/Packages/telnet-0.17-76.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/telnet.rpm https://downloads.percona.com/downloads/packaging/telnet-0.17-85.el9.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/9/RPMS/x86_64/Percona-XtraDB-Cluster-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-57/yum/${PXC_REPO}/9/RPMS/x86_64/Percona-XtraDB-Cluster-server-57-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/telnet.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm; \
