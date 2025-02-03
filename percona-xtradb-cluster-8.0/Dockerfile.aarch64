@@ -2,11 +2,11 @@ FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.39-30.1
+ENV PXC_VERSION 8.0.40-31.1
 ENV PXC_REPO release
 ENV OS_VER el9
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-ENV PXC_TELEMETRY_VERSION 8.0.39-30-1
+ENV PXC_TELEMETRY_VERSION 8.0.40-31-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file

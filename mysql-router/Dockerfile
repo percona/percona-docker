@@ -6,8 +6,8 @@ LABEL name="mysql-router" \
       summary="MySQL Router is lightweight middleware that provides transparent routing between your application and back-end MySQL Servers" \
       org.opencontainers.image.authors="info@percona.com"
 
-ENV ROUTE_VERSION 8.0.39-30.1
-ENV MYSQL_SHELL_VERSION 8.0.38-1
+ENV ROUTE_VERSION 8.0.40-31.1
+ENV MYSQL_SHELL_VERSION 8.0.40-1
 ENV OS_VER el9
 ENV FULL_ROUTE_VERSION "$ROUTE_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
