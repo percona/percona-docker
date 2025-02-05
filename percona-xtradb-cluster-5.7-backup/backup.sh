@@ -149,8 +149,14 @@ backup_s3() {
 	{ set +x; } 2>/dev/null
 	s3_add_bucket_dest
 	set -x
-	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
-	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+
+	if [[ -z $SKIP_FAILED_BACKUP_CLEANUP ]]; then
+		is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
+		is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+	else
+		is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || true
+		is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || true
+	fi
 	request_streaming
 
 	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp $XBSTREAM_EXTRA_ARGS
@@ -219,8 +225,14 @@ backup_azure() {
 
 	echo "[INFO] Backup to $ENDPOINT/$AZURE_CONTAINER_NAME/$BACKUP_PATH"
 
-	is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
-	is_object_exist_azure "$BACKUP_PATH/" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=azure "$BACKUP_PATH"
+	if [[ -z $SKIP_FAILED_BACKUP_CLEANUP ]]; then
+		is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
+		is_object_exist_azure "$BACKUP_PATH/" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=azure "$BACKUP_PATH"
+	else
+		is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || true
+		is_object_exist_azure "$BACKUP_PATH/" || true
+	fi
+
 	request_streaming
 
 	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp $XBSTREAM_EXTRA_ARGS
