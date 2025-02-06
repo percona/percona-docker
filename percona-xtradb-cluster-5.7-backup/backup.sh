@@ -149,6 +149,9 @@ backup_s3() {
 	{ set +x; } 2>/dev/null
 	s3_add_bucket_dest
 	set -x
+	# The existing backup must be deleted before creating a new one.
+	# xbcloud does not support overwriting backups and will fail with an error:
+	# https://github.com/percona/percona-xtrabackup/blob/a99dce574690616b296b8a8cc7c590deb937f7d3/storage/innobase/xtrabackup/src/xbcloud/xbcloud.cc#L956
 	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
 	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 	request_streaming
@@ -219,6 +222,9 @@ backup_azure() {
 
 	echo "[INFO] Backup to $ENDPOINT/$AZURE_CONTAINER_NAME/$BACKUP_PATH"
 
+	# The existing backup must be deleted before creating a new one.
+	# xbcloud does not support overwriting backups and will fail with an error:
+	# https://github.com/percona/percona-xtrabackup/blob/a99dce574690616b296b8a8cc7c590deb937f7d3/storage/innobase/xtrabackup/src/xbcloud/xbcloud.cc#L956
 	is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
 	is_object_exist_azure "$BACKUP_PATH/" || xbcloud delete ${INSECURE_ARG} $XBCLOUD_EXTRA_ARGS --storage=azure "$BACKUP_PATH"
 	request_streaming

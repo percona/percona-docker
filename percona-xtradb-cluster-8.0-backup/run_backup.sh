@@ -40,7 +40,7 @@ check_ssl() {
 FIRST_RECEIVED=0
 SST_FAILED=0
 handle_sigterm() {
-	if (($FIRST_RECEIVED == 0)); then
+	if ((FIRST_RECEIVED == 0)); then
 		pid_s=$(ps -C socat -o pid= || true)
 		if [ -n "${pid_s}" ]; then
 			log 'ERROR' 'SST request failed'
@@ -78,7 +78,7 @@ backup_volume() {
 	echo "[IINFO] Socat(1) returned $?"
 	vault_store $BACKUP_DIR/${SST_INFO_NAME}
 
-	if (($SST_FAILED == 0)); then
+	if ((SST_FAILED == 0)); then
 		socat -u "$SOCAT_OPTS" stdio >xtrabackup.stream
 		if [[ $? -ne 0 ]]; then
 			log 'ERROR' 'Socat(2) failed'
@@ -117,7 +117,7 @@ backup_s3() {
 		| xbcloud put --parallel="$(grep -c processor /proc/cpuinfo)" --storage=s3 --md5 $XBCLOUD_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
-	if (($SST_FAILED == 0)); then
+	if ((SST_FAILED == 0)); then
 		socat -u "$SOCAT_OPTS" stdio \
 			| xbcloud put --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 $XBCLOUD_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
 			| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
@@ -138,6 +138,9 @@ backup_azure() {
 
 	log 'INFO' "Backup to $ENDPOINT/$AZURE_CONTAINER_NAME/$BACKUP_PATH"
 
+	# The existing backup must be deleted before creating a new one.
+	# xbcloud does not support overwriting backups and will fail with an error:
+	# https://github.com/percona/percona-xtrabackup/blob/a99dce574690616b296b8a8cc7c590deb937f7d3/storage/innobase/xtrabackup/src/xbcloud/xbcloud.cc#L956
 	is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete $XBCLOUD_ARGS --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
 	is_object_exist_azure "$BACKUP_PATH/" || xbcloud delete $XBCLOUD_ARGS --storage=azure "$BACKUP_PATH"
 
@@ -157,7 +160,7 @@ backup_azure() {
 		| xbcloud put --parallel="$(grep -c processor /proc/cpuinfo)" $XBCLOUD_ARGS --storage=azure "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
 		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
-	if (($SST_FAILED == 0)); then
+	if ((SST_FAILED == 0)); then
 		socat -u "$SOCAT_OPTS" stdio \
 			| xbcloud put --parallel="$(grep -c processor /proc/cpuinfo)" $XBCLOUD_ARGS --storage=azure "$BACKUP_PATH" 2>&1 \
 			| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
@@ -176,7 +179,7 @@ else
 	backup_volume
 fi
 
-if (($SST_FAILED == 0)); then
+if ((SST_FAILED == 0)); then
 	touch /tmp/backup-is-completed
 fi
 

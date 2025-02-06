@@ -29,6 +29,9 @@ log() {
 clean_backup_s3() {
 	s3_add_bucket_dest
 
+	# The existing backup must be deleted before creating a new one.
+	# xbcloud does not support overwriting backups and will fail with an error:
+	# https://github.com/percona/percona-xtrabackup/blob/a99dce574690616b296b8a8cc7c590deb937f7d3/storage/innobase/xtrabackup/src/xbcloud/xbcloud.cc#L956
 	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
 	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH/" || xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 }
