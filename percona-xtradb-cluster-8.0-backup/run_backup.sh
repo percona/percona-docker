@@ -138,7 +138,7 @@ backup_azure() {
 
 	log 'INFO' "Backup to $ENDPOINT/$AZURE_CONTAINER_NAME/$BACKUP_PATH"
 
-	# The existing backup must be deleted before creating a new one.
+	# The previous failed backup must be deleted before making a new attempt.
 	# xbcloud does not support overwriting backups and will fail with an error:
 	# https://github.com/percona/percona-xtrabackup/blob/a99dce574690616b296b8a8cc7c590deb937f7d3/storage/innobase/xtrabackup/src/xbcloud/xbcloud.cc#L956
 	is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete $XBCLOUD_ARGS --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
