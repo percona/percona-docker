@@ -29,13 +29,8 @@ log() {
 clean_backup_s3() {
 	s3_add_bucket_dest
 
-	if [[ -z $SKIP_FAILED_BACKUP_CLEANUP ]]; then
-		is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
-		is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH/" || xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
-	else
-		is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || true
-		is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH/" || true
-	fi
+	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
+	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH/" || xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 }
 
 azure_auth_header_file() {
