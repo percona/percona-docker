@@ -8,11 +8,11 @@ or
 
 Tag image
   
-  `docker tag <NNNNN> percona/percona-server:8.0`
+  `docker tag <NNNNN> percona/percona-server:8.4`
 
 Push to hub
 
-  `docker push percona/percona-server:8.0`
+  `docker push percona/percona-server:8.4`
   
 Usage
 =====
