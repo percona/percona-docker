@@ -1,0 +1,128 @@
+# This Dockerfile should be used for docker official repo
+
+# https://github.com/docker-library/official-images:
+# No official images can be derived from, or depend on, non-official images
+# with the following notable exceptions...
+FROM redhat/ubi9-minimal
+
+LABEL org.opencontainers.image.authors="info@percona.com"
+
+# It is intentionally used another UID, to have backward compatibility with
+# the previous image versions published on Docker Hub
+RUN set -ex; \
+    #groupdel input; \
+    #userdel systemd-coredump; \
+    groupadd -g 1001 mysql; \
+    useradd -u 1001 -r -g 1001 -s /sbin/nologin \
+        -m -c "Default Application User" mysql
+
+ENV PS_VERSION 8.4.3-3.1
+ENV MYSQL_SHELL_VERSION 8.4.3-1
+ENV OS_VER el9
+ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
+ENV PS_REPO testing
+ENV PS_TELEMETRY_VERSION 8.4.3-3-1
+ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
+ENV KEY_RPM_DOWNLOAD_SHA256 fcf0eab4f05a1c0de6363ac4b707600a27a9d774e9b491059e59e6921b255a84
+ENV CALL_HOME_VERSION 0.1
+# Do not report during Docker image creation.
+# Note that doing so, would create telemetry config file
+# which would prevent reporting when new container is started.
+# If we want to track Docker image creation as well,
+# remove telemetry config file after installing packages!
+ARG PERCONA_TELEMETRY_DISABLE=1
+
+# check repository package signature in secure way
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D; \
+    gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
+    gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+    rpmkeys --checksig /tmp/percona-release.rpm; \
+    microdnf install -y findutils; \
+    rpm -i /tmp/percona-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    percona-release disable all; \
+    percona-release enable ps-84-lts ${PS_REPO}; \
+    percona-release enable mysql-shell ${PS_REPO}; \
+    curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
+    echo "$KEY_RPM_DOWNLOAD_SHA256 RPM-GPG-KEY-EPEL-9" | sha256sum --strict --check; \
+    rpm --import RPM-GPG-KEY-EPEL-9; \
+    curl -Lf -o /tmp/jemalloc.rpm https://rpmfind.net/linux/epel/9/Everything/x86_64/Packages/j/jemalloc-5.2.1-2.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/gflags.rpm https://rpmfind.net/linux/epel/9/Everything/x86_64/Packages/g/gflags-2.2.2-9.el9.x86_64.rpm; \
+    rpmkeys --checksig /tmp/gflags.rpm /tmp/jemalloc.rpm; \
+    rpm -i /tmp/jemalloc.rpm; \
+    rpm -i /tmp/gflags.rpm; \
+    rm -f /tmp/gflags.rpm /tmp/jemalloc.rpm
+
+RUN set -ex; \
+    #microdnf -y install epel-release; \
+    rpm -e --nodeps tzdata; \
+    microdnf -y install \
+        hostname \
+        tzdata \
+        jemalloc \
+        which \
+        cracklib-dicts \
+        tar \
+        policycoreutils; \
+    microdnf -y update \
+        #glibc \
+        libnghttp2 \
+        openssh \
+        python3-setuptools-wheel \
+        krb5-libs \
+        pam \
+        python3; \
+    \
+    microdnf -y install \
+        percona-server-server-${FULL_PERCONA_VERSION} \
+        #percona-server-tokudb-${FULL_PERCONA_VERSION} \
+        percona-server-devel-${FULL_PERCONA_VERSION} \
+        percona-server-rocksdb-${FULL_PERCONA_VERSION} \
+        percona-icu-data-files-${FULL_PERCONA_VERSION} \
+        percona-mysql-shell-${FULL_MYSQL_SHELL_VERSION}; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
+
+# purge and re-create /var/lib/mysql with appropriate ownership
+RUN set -ex; \
+    /usr/bin/install -m 0775 -o mysql -g root -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d; \
+# comment out a few problematic configuration values
+	find /etc/my.cnf /etc/my.cnf.d -name '*.cnf' -print0 \
+		| xargs -0 grep -lZE '^(bind-address|log|user)' \
+		| xargs -rt -0 sed -Ei 's/^(bind-address|log|user)/#&/'; \
+# don't reverse lookup hostnames, they are usually another container
+	echo '!includedir /etc/my.cnf.d' >> /etc/my.cnf; \
+	printf '[mysqld]\nhost_cache_size=0\nskip-name-resolve\n' > /etc/my.cnf.d/docker.cnf; \
+# TokuDB modifications
+	/usr/bin/install -m 0664 -o mysql -g root /dev/null /etc/sysconfig/mysql; \
+	echo "LD_PRELOAD=/usr/lib64/libjemalloc.so.1" >> /etc/sysconfig/mysql; \
+	echo "THP_SETTING=never" >> /etc/sysconfig/mysql; \
+# allow to change config files
+	chown -R mysql:root /etc/my.cnf /etc/my.cnf.d; \
+	chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
+
+VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+RUN set -eux; \
+    curl -fL "https://github.com/Percona-Lab/telemetry-agent/archive/refs/tags/phase-$CALL_HOME_VERSION.tar.gz" -o "phase-$CALL_HOME_VERSION.tar.gz"; \
+    echo "$CALL_HOME_DOWNLOAD_SHA256 phase-$CALL_HOME_VERSION.tar.gz" | sha256sum --strict --check; \
+    tar -xvf phase-$CALL_HOME_VERSION.tar.gz; \
+    cp telemetry-agent-phase-$CALL_HOME_VERSION/call-home.sh .;\
+    rm -rf telemetry-agent-phase-$CALL_HOME_VERSION phase-$CALL_HOME_VERSION.tar.gz; \
+    chmod a+rx /call-home.sh; \
+    mkdir -p /usr/local/percona; \
+    chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
+
+COPY ps-entry-dockerhub.sh /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
+USER mysql
+EXPOSE 3306 33060
+CMD ["mysqld"]
