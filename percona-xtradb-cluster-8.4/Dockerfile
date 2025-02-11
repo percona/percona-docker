@@ -102,6 +102,7 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera; \
     cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
 
+RUN mkdir /usr/bin/pxc_extra/pxb-8.4/lib/plugin/ && cp /usr/bin/pxc_extra/pxb-8.4/lib/lib64/xtrabackup/plugin/* /usr/bin/pxc_extra/pxb-8.4/lib/plugin/
 COPY dockerdir /
 
 RUN set -ex; \
