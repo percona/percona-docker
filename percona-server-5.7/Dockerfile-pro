@@ -2,7 +2,7 @@ FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-RUN set -ex; \
+RUN --security=insecure set -ex; \
     # shadow-utils are needed for user/group manipulation on UBI-based images
     microdnf -y update; \
     microdnf -y install glibc-langpack-en \
