@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN dnf -y update; \
     dnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 16.1-2
+ENV PPG_VERSION 16.8-1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PPG_VERSION.$OS_VER"
 
@@ -30,7 +30,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #percona-release setup -y ppg16; \
-    percona-release enable ppg-16.1 testing; 
+    percona-release enable ppg-16.8 testing;
 
 RUN set -ex; \
     dnf -y update; \

@@ -14,9 +14,9 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 13.18-1
+ENV PPG_VERSION 13.20-1
 ENV PPG_MAJOR_VERSION 13
-ENV PPG_MINOR_VERSION 18
+ENV PPG_MINOR_VERSION 20
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO testing
