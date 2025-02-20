@@ -2,7 +2,7 @@ FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-RUN --security=insecure set -ex; \
+RUN set -ex; \
     # shadow-utils are needed for user/group manipulation on UBI-based images
     microdnf -y update; \
     microdnf -y install glibc-langpack-en \
@@ -52,7 +52,6 @@ ARG PERCONA_TELEMETRY_DISABLE=1
 COPY Percona-Server-server-57-${PS_VERSION}.el9.x86_64.rpm /tmp
 COPY Percona-Server-client-57-${PS_VERSION}.el9.x86_64.rpm /tmp
 COPY Percona-Server-shared-57-${PS_VERSION}.el9.x86_64.rpm /tmp
-COPY Percona-Server-shared-compat-57-${PS_VERSION}.el9.x86_64.rpm /tmp
 COPY Percona-Server-devel-57-${PS_VERSION}.el9.x86_64.rpm /tmp
 COPY Percona-Server-rocksdb-57-${PS_VERSION}.el9.x86_64.rpm /tmp
 COPY Percona-Server-tokudb-57-${PS_VERSION}.el9.x86_64.rpm /tmp
@@ -84,7 +83,6 @@ RUN set -ex; \
     #rpm -iv /tmp/selinux-policy.rpm --nodeps; \
     #rm -rf /tmp/selinux-policy.rpm; \
     \
-    rpm -iv /tmp/Percona-Server-shared-compat-57-${PS_VERSION}.el9.x86_64.rpm; \
     rpm -iv /tmp/Percona-Server-shared-57-${PS_VERSION}.el9.x86_64.rpm; \
     rpm -iv /tmp/Percona-Server-client-57-${PS_VERSION}.el9.x86_64.rpm; \
     rpm -iv /tmp/Percona-Server-server-57-${PS_VERSION}.el9.x86_64.rpm; \
