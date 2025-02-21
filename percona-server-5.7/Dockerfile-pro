@@ -71,6 +71,8 @@ RUN set -ex; \
         libaio \
         openssl-devel \
         selinux-policy \
+        libatomic \
+        libtirpc \
         policycoreutils; \
     microdnf -y update \
         python3-setuptools-wheel \
