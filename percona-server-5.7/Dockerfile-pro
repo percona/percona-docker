@@ -67,7 +67,7 @@ RUN set -ex; \
         net-tools \
         procps \
         systemd \
-        compat-openssl10 \
+        compat-openssl11 \
         libaio \
         openssl-devel \
         selinux-policy \
