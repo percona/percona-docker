@@ -36,6 +36,7 @@ RUN set -ex; \
         glibc \
         krb5-libs \
         pam \
+        bind-utils \
         libnghttp2; \
     \
     microdnf clean all; \
