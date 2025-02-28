@@ -143,9 +143,9 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/cache/yum
 
 RUN if [[ "${PG_MAJOR//.}" -le '16' ]]; then \
-    microdnf -y install --enablerepo="ol9_developer_EPEL" percona-patroni-3*; \
+    microdnf -y install --enablerepo="epel" percona-patroni-3*; \
     else \
-    microdnf -y install --enablerepo="ol9_developer_EPEL" percona-patroni; \
+    microdnf -y install --enablerepo="epel" percona-patroni; \
     fi; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
