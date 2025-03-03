@@ -14,13 +14,17 @@ ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
 # check repository package signature in secure way
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D FB5DB77FD5C118B80511ADA8A6310ACC4672475C; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    gpg --batch --export --armor FB5DB77FD5C118B80511ADA8A6310ACC4672475C > ${GNUPGHOME}/RPM-GPG-KEY-aws; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-aws; \
     microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
+    curl -o /tmp/awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip; \
+    curl -o /tmp/awscliv2.sig https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip.sig; \
+    gpg --verify /tmp/awscliv2.sig /tmp/awscliv2.zip; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
@@ -34,6 +38,7 @@ RUN set -ex; \
 RUN set -ex; \
     microdnf -y install \
         tar \
+        unzip \
         shadow-utils
 
 # create mysql user/group before mysql installation
@@ -48,8 +53,10 @@ RUN if [ "$(uname -m)" = "x86_64" ]; then \
     fi
 
 RUN set -ex; \
+    unzip -q /tmp/awscliv2.zip -d /tmp/; \
+    /tmp/aws/install; \
     rpm -i /tmp/libev.rpm; \
-    rm -rf /tmp/libev.rpm; \
+    rm -rf /tmp/libev.rpm /tmp/awscliv2.zip /tmp/awscliv2.sig /tmp/aws; \
     #dnf --setopt=install_weak_deps=False --best install -y \
     microdnf -y install \
         percona-xtrabackup-80-${FULL_PERCONA_XTRABACKUP_VERSION} \
