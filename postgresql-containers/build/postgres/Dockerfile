@@ -139,6 +139,7 @@ RUN if [[ "${PG_MAJOR%%.*}" -ge '13' ]]; then \
             percona-pgvector_${PG_MAJOR%%.*} \
             percona-pgvector_${PG_MAJOR%%.*}-llvmjit; \
     fi; \
+    rpm -e percona-telemetry-agent --nodeps; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
