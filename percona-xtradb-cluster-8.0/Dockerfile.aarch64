@@ -2,11 +2,11 @@ FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.0.40-31.1
-ENV PXC_REPO release
+ENV PXC_VERSION 8.0.41-32.1
+ENV PXC_REPO testing
 ENV OS_VER el9
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-ENV PXC_TELEMETRY_VERSION 8.0.40-31-1
+ENV PXC_TELEMETRY_VERSION 8.0.41-32-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
@@ -138,7 +138,7 @@ RUN if [[ -n $DEBUG ]] ; then \
     percona-release disable pdpxc-8.0 ${PXC_REPO}; \
     curl -Lf -o /tmp/telnet.rpm https://raw.repo.almalinux.org/almalinux/9.5/AppStream/aarch64/os/Packages/telnet-0.17-85.el9.aarch64.rpm; \
     curl -Lf -o /tmp/tcpdump.rpm https://raw.repo.almalinux.org/almalinux/9.5/AppStream/aarch64/os/Packages/tcpdump-4.99.0-9.el9.aarch64.rpm; \
-    curl -Lf -o /tmp/perf.rpm https://raw.repo.almalinux.org/almalinux/9.5/AppStream/aarch64/os/Packages/perf-5.14.0-503.15.1.el9_5.aarch64.rpm; \
+    curl -Lf -o /tmp/perf.rpm https://downloads.percona.com/downloads/packaging/perf-5.14.0-503.26.1.el9_5.aarch64.rpm; \
     curl -Lf -o /tmp/strace.rpm https://raw.repo.almalinux.org/almalinux/9/BaseOS/aarch64/os/Packages/strace-5.18-2.el9.aarch64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/9/RPMS/aarch64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/9/RPMS/aarch64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.aarch64.rpm; \
