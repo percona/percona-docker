@@ -5,8 +5,8 @@ LABEL org.opencontainers.image.authors="info@percona.com"
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ENV XTRABACKUP_VERSION 8.4.0-1.1
-ENV PS_VERSION 8.3.0-1.1
+ENV XTRABACKUP_VERSION 8.4.0-2.1
+ENV PS_VERSION 8.4.3-3.1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
@@ -31,7 +31,7 @@ RUN set -ex; \
     #microdnf -y module disable mysql perl-DBD-MySQL; \
     percona-release disable all; \
     #percona-release setup -y ps-80; \
-    percona-release enable ps-8x-innovation release; \
+    percona-release enable ps-84-lts release; \
     percona-release enable pxb-84-lts testing; \
     percona-release enable tools testing
 
