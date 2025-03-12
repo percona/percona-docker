@@ -20,8 +20,6 @@ ENV PS_VERSION=8.4.2-2.1
 ENV PXC_VERSION=8.4.2-2.1
 ENV PXC_REPO=release
 
-ENV KUBECTL_VERSION=v1.30.8
-ENV KUBECTL_SHA512SUM=30f65522a55e1545fcdc344ef080313015a4afa8655cb62d4c3a3c3cf831addc03b7023c727a1b2e68388a0318374d5c74e7c32a9e21b68707787f97b6d41dc5
 ENV OS_VER=el9
 ENV FULL_PERCONA_VERSION="$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION="$PXB_VERSION.$OS_VER"
@@ -99,14 +97,6 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-xtrabackup-84/LICENSE /licenses/LICENSE.xtrabackup; \
 	cp /usr/share/doc/percona-xtradb-cluster-garbd-3/COPYING /licenses/LICENSE.garbd; \
 	curl -o /licenses/LICENSE.aws-cli https://raw.githubusercontent.com/aws/aws-cli/refs/heads/master/LICENSE.txt
-
-RUN set -ex; \
-    curl -o /usr/bin/kubectl -LO  \
-    https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl; \
-	echo "${KUBECTL_SHA512SUM} /usr/bin/kubectl" | sha512sum -c -; \
-	chmod +x /usr/bin/kubectl; \
-	curl -o /licenses/LICENSE.kubectl \
-	https://raw.githubusercontent.com/kubernetes/kubectl/master/LICENSE
 
 RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 	mkdir /usr/lib/pxc
