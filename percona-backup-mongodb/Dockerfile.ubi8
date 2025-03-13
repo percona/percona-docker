@@ -1,4 +1,4 @@
-FROM redhat/ubi8-minimal
+FROM redhat/ubi8-minimal:8.9-1108
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona Backup for MongoDB" \
