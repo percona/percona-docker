@@ -7,8 +7,10 @@ RUN microdnf -y update; \
 
 ENV XTRABACKUP_VERSION 2.4.29-1
 ENV PS_VERSION 5.7.44-48.1
+ENV PXC_VERSION 5.7.44-31.65.1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV FULL_PXC_VERSION "$PXC_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
 
 # check repository package signature in secure way
@@ -30,6 +32,7 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #microdnf -y module disable mysql perl-DBD-MySQL; \
     percona-release enable tools testing; \
+    percona-release enable pxc-57 testing; \
     percona-release enable ps-57 testing
 
 RUN set -ex; \
@@ -45,7 +48,11 @@ RUN set -ex; \
     #dnf --setopt=install_weak_deps=False install -y \
     microdnf -y install \
         percona-xtrabackup-24-${FULL_PERCONA_XTRABACKUP_VERSION} \
+        Percona-XtraDB-Cluster-garbd-57-${FULL_PXC_VERSION} \
         Percona-Server-shared-57-${FULL_PERCONA_VERSION} \
+        socat \
+        hostname \
+        jq \
         qpress; \
     \
     microdnf clean all; \
