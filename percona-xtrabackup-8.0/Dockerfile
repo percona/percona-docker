@@ -33,6 +33,7 @@ RUN set -ex; \
     #percona-release setup -y ps-80; \
     percona-release enable ps-80; \
     percona-release enable tools testing; \
+    percona-release enable pxc-80 testing; \
     percona-release enable pxb-80 testing
 
 RUN set -ex; \
@@ -60,9 +61,12 @@ RUN set -ex; \
     #dnf --setopt=install_weak_deps=False --best install -y \
     microdnf -y install \
         percona-xtrabackup-80-${FULL_PERCONA_XTRABACKUP_VERSION} \
+        percona-xtradb-cluster-garbd-${FULL_PERCONA_VERSION} \
         percona-server-shared-${FULL_PERCONA_VERSION} \
         percona-server-client-${FULL_PERCONA_VERSION} \
         socat \
+        hostname \
+        jq \
         procps-ng \
         qpress \
         lz4 \
