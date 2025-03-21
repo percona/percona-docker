@@ -24,10 +24,13 @@ RUN set -ex; \
 RUN set -ex; \
     microdnf -y update; \
     microdnf -y install \
-        percona-pgbackrest; \
+        percona-pgbackrest \
+        nss_wrapper; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-USER postgres
+COPY pgbackrest.conf /etc/pgbackrest.conf
+
+USER 26
 
 CMD ["/usr/bin/pgbackrest", "version"]
