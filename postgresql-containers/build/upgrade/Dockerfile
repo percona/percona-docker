@@ -111,6 +111,8 @@ COPY bin/upgrade/ /opt/crunchy/bin
 COPY bin/common /opt/crunchy/bin
 COPY conf/upgrade/ /opt/crunchy/conf
 COPY bin/relocate-extensions.sh /usr/local/bin/relocate-extensions.sh
+COPY bin/postgres-liveness-check.sh /usr/local/bin/postgres-liveness-check.sh
+COPY bin/postgres-readiness-check.sh /usr/local/bin/postgres-readiness-check.sh
 
 RUN chown -R postgres:postgres /opt/crunchy /pgolddata /pgnewdata && \
     chmod -R g=u /opt/crunchy /pgolddata /pgnewdata
