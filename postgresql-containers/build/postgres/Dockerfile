@@ -57,7 +57,7 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/epel-release.rpm; \
     rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
     rpm -i /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
-    rm -rf "$GNUPGHOME" /tmp/percona-release.rpmm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
     percona-release enable ppg-${PG_MAJOR} release
 
 RUN set -ex; \
