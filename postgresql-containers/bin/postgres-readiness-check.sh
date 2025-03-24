@@ -14,7 +14,7 @@ if [ -f "${recovery_file}" ]; then
 	exit 0
 fi
 
-response=$(curl -s -o /dev/null -w "%{http_code}" -k "https://${PATRONI_HOST}:${PATRONI_PORT}/readinesss")
+response=$(curl -s -o /dev/null -w "%{http_code}" -k "https://${PATRONI_HOST}:${PATRONI_PORT}/readiness")
 
 if [[ "$response" -eq 200 ]]; then
     exit 0
