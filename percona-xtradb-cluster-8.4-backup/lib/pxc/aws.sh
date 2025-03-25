@@ -14,10 +14,10 @@ is_object_exist() {
 	local bucket="$1"
 	local object="$2"
 
-	aws $AWS_S3_NO_VERIFY_SSL s3api head-object  --bucket $bucket --key "$object" || NOT_EXIST=true
-	if [[ -z "$NOT_EXIST" ]]; then
-		return 1
-	fi
+  if aws $AWS_S3_NO_VERIFY_SSL s3api head-object --bucket "$bucket" --key "$object" > /dev/null 2>&1; then
+    return 0
+  fi
+  return 1
 }
 
 s3_add_bucket_dest() {
