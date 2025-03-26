@@ -12,12 +12,14 @@ fi
 
 is_object_exist() {
 	local bucket="$1"
-	local object="$2"
+	local path="$2"
 
-	if aws $AWS_S3_NO_VERIFY_SSL s3api head-object --bucket "$bucket" --key "$object" >/dev/null 2>&1; then
-		return 1
+	# '--summarize' is included to retrieve the 'Total Objects:' count for checking object/folder existence
+	res=$(aws $AWS_S3_NO_VERIFY_SSL s3 ls "s3://$bucket/$path" --summarize)
+	if echo "$res" | grep -q 'Total Objects: 0'; then
+		return 0 # object/folder does not exist
 	fi
-	return 0
+	return 1
 }
 
 s3_add_bucket_dest() {
