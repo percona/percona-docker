@@ -50,6 +50,9 @@ handle_sigterm() {
 		else
 			log 'INFO' 'SST request was finished'
 		fi
+	else
+		SST_FAILED=1
+		log 'ERROR' 'SIGTERM received but backup already started'
 	fi
 }
 
