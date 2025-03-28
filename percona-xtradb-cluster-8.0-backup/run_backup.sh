@@ -115,14 +115,12 @@ backup_s3() {
 
 	xbstream -C /tmp -c ${SST_INFO_NAME} $XBSTREAM_EXTRA_ARGS \
 		| xbcloud put --parallel="$(grep -c processor /proc/cpuinfo)" --storage=s3 --md5 $XBCLOUD_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" 2>&1 \
-		| (egrep -v "error: http request failed: Couldn't resolve host name|Donor is no longer in the cluster, interrupting script" || exit 1)
+		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	if (($SST_FAILED == 0)); then
 		socat -u "$SOCAT_OPTS" stdio \
 			| xbcloud put --storage=s3 --parallel="$(grep -c processor /proc/cpuinfo)" --md5 $XBCLOUD_ARGS --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH" 2>&1 \
-			| (egrep -v "error: http request failed: Couldn't resolve host name|Donor is no longer in the cluster, interrupting script" || exit 1)
-	else
-		exit 1
+			| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 	fi
 
 	trap '' 15
@@ -157,14 +155,12 @@ backup_azure() {
 
 	xbstream -C /tmp -c ${SST_INFO_NAME} $XBSTREAM_EXTRA_ARGS \
 		| xbcloud put --parallel="$(grep -c processor /proc/cpuinfo)" $XBCLOUD_ARGS --storage=azure "$BACKUP_PATH.$SST_INFO_NAME" 2>&1 \
-		| (egrep -v "error: http request failed: Couldn't resolve host name|Donor is no longer in the cluster, interrupting script" || exit 1)
+		| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 
 	if (($SST_FAILED == 0)); then
 		socat -u "$SOCAT_OPTS" stdio \
 			| xbcloud put --parallel="$(grep -c processor /proc/cpuinfo)" $XBCLOUD_ARGS --storage=azure "$BACKUP_PATH" 2>&1 \
-			| (egrep -v "error: http request failed: Couldn't resolve host name|Donor is no longer in the cluster, interrupting script" || exit 1)
-	else
-		exit 1
+			| (grep -v "error: http request failed: Couldn't resolve host name" || exit 1)
 	fi
 }
 
