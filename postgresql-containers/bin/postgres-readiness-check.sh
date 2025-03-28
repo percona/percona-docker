@@ -3,7 +3,8 @@
 PATRONI_PORT=8008
 PATRONI_HOST=localhost
 
-recovery_file='tmp/sleep-forever'
+# pgdata/ is mounted to the pg database container with rw permissions
+recovery_file='pgdata/sleep-forever'
 if [ -f "${recovery_file}" ]; then
 	set +o xtrace
 	echo "The $recovery_file file is detected, node is going to an infinite loop"
