@@ -227,6 +227,18 @@ initialization_monitor
 # Remove the pause key from patroni.dynamic.json if it exists
 remove_patroni_pause_key
 
+#
+recovery_file='pgdata/sleep-forever'
+if [ -f "${recovery_file}" ]; then
+	set +o xtrace
+	echo "The $recovery_file file is detected, node is going to an infinite loop"
+	echo "If you want to exit from the infinite loop, remove the $recovery_file file"
+	while [ -f "${recovery_file}" ]; do
+		sleep 3
+	done
+	exit 0
+fi
+
 # Bootstrap the cluster
 bootstrap_cmd="$@ /tmp/postgres-ha-bootstrap.yaml"
 echo_info "Initializing cluster bootstrap with command: '${bootstrap_cmd}'"
