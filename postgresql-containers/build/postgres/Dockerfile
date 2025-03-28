@@ -175,6 +175,7 @@ COPY conf/pgbackrest-repo/pgbackrest.conf /etc/pgbackrest.conf
 COPY bin/relocate-extensions.sh /usr/local/bin/relocate-extensions.sh
 COPY bin/postgres-liveness-check.sh /usr/local/bin/postgres-liveness-check.sh
 COPY bin/postgres-readiness-check.sh /usr/local/bin/postgres-readiness-check.sh
+COPY bin/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN echo "huge_pages = off" >> ${PGROOT}/share/postgresql.conf.sample
 
