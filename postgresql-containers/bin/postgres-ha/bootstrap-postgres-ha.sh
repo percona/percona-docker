@@ -226,7 +226,6 @@ initialization_monitor
 
 # Remove the pause key from patroni.dynamic.json if it exists
 remove_patroni_pause_key
-
 # Bootstrap the cluster
 bootstrap_cmd="$@ /tmp/postgres-ha-bootstrap.yaml"
 echo_info "Initializing cluster bootstrap with command: '${bootstrap_cmd}'"
