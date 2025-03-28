@@ -84,8 +84,15 @@ function request_streaming() {
         --group "$PXC_SERVICE" \
         --options "$GARBD_OPTS" \
         --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
-        --recv-script="/usr/bin/run_backup.sh"
+        --recv-script="/usr/bin/run_backup.sh" 2>&1 | tee /tmp/garbd.log
+
+    GARB_PID=$!
+    wait $GARB_PID
     EXID_CODE=$?
+
+    if grep 'Donor is no longer in the cluster, interrupting script' /tmp/garbd.log; then
+        exit 1
+    fi
 
     if [ -f '/tmp/backup-is-completed' ]; then
         log 'INFO' 'Backup was finished successfully'
