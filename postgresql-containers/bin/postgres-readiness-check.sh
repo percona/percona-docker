@@ -7,7 +7,7 @@ PATRONI_HOST=localhost
 recovery_file='pgdata/sleep-forever'
 if [ -f "${recovery_file}" ]; then
 	set +o xtrace
-	echo "The $recovery_file file is detected, node is going to an infinite sleep"
+	echo "The $recovery_file file is detected, node entered an infinite sleep"
 	echo "If you want to exit from the infinite sleep, remove the $recovery_file file"
 	exit 0
 fi
