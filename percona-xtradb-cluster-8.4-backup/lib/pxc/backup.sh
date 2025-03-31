@@ -67,4 +67,5 @@ is_object_exist_azure() {
 	if [[ ${#res} -ne 0 ]]; then
 		return 1
 	fi
+	return 0
 }
