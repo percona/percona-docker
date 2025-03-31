@@ -178,21 +178,33 @@ backup_s3() {
 }
 
 azure_auth_header_file() {
+	local params="$1"
+	local request_date="$2"
+	local hex_tmp
+	local signature_tmp
+	local auth_header_tmp
+	local resource
+	local string_to_sign
+	local decoded_key
+
 	hex_tmp=$(mktemp)
 	signature_tmp=$(mktemp)
 	auth_header_tmp=$(mktemp)
 
-	params="$1"
-	request_date="$2"
+	decoded_key=$(echo -n "$AZURE_ACCESS_KEY" | base64 -d | hexdump -ve '1/1 "%02x"')
+	echo -n "$decoded_key" >"$hex_tmp"
 
-	{ set +x; } 2>/dev/null
-	echo -n "$AZURE_ACCESS_KEY" | base64 -d -w0 | hexdump -ve '1/1 "%02x"' >"$hex_tmp"
-	headers="x-ms-date:$request_date\nx-ms-version:2021-06-08"
 	resource="/$AZURE_STORAGE_ACCOUNT/$AZURE_CONTAINER_NAME"
-	string_to_sign="GET\n\n\n\n\n\n\n\n\n\n\n\n${headers}\n${resource}\n${params}"
-	printf '%s' "$string_to_sign" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:$(cat "$hex_tmp")" -binary | base64 -w0 >"$signature_tmp"
+
+	string_to_sign=$(printf "GET\n\n\n\n\n\n\n\n\n\n\n\nx-ms-date:%s\nx-ms-version:2021-06-08\n%s\n%s" \
+		"$request_date" \
+		"$resource" \
+		"$params")
+
+	printf "%s" "$string_to_sign" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:$(cat "$hex_tmp")" -binary | base64 >"$signature_tmp"
+
 	echo -n "Authorization: SharedKey $AZURE_STORAGE_ACCOUNT:$(cat "$signature_tmp")" >"$auth_header_tmp"
-	set -x
+
 	echo "$auth_header_tmp"
 }
 
@@ -203,9 +215,9 @@ is_object_exist_azure() {
 	request_date=$(LC_ALL=en_US.utf8 TZ=GMT date "+%a, %d %h %Y %H:%M:%S %Z")
 	header_version="x-ms-version: 2021-06-08"
 	header_date="x-ms-date: $request_date"
-	header_auth_file=$(azure_auth_header_file "comp:list\nrestype:container" "$request_date")
+	header_auth_file=$(azure_auth_header_file $'comp:list\nrestype:container' "$request_date")
 
-	res=$(curl -s -H "$header_version" -H "$header_date" -H "@$header_auth_file" ${connection_string} | grep $object)
+	res=$(curl -s -H "$header_version" -H "$header_date" -H "@$header_auth_file" "${connection_string}" | grep "$object")
 	set -x
 
 	if [[ ${#res} -ne 0 ]]; then
