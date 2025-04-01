@@ -67,13 +67,14 @@ azure_auth_header_file() {
 is_object_exist_azure() {
 	object="$1"
 	{ set +x; } 2>/dev/null
-	connection_string="$ENDPOINT/$AZURE_CONTAINER_NAME?comp=list&restype=container"
+	connection_string="$ENDPOINT/$AZURE_CONTAINER_NAME?comp=list&restype=container&prefix=$object"
 	request_date=$(LC_ALL=en_US.utf8 TZ=GMT date "+%a, %d %h %Y %H:%M:%S %Z")
 	header_version="x-ms-version: 2021-06-08"
 	header_date="x-ms-date: $request_date"
-	header_auth_file=$(azure_auth_header_file $'comp:list\nrestype:container' "$request_date")
+	header_auth_file=$(azure_auth_header_file "$(printf 'comp:list\nprefix:%s\nrestype:container' "$object")" "$request_date")
 
-	res=$(curl -s -H "$header_version" -H "$header_date" -H "@$header_auth_file" "${connection_string}" | grep "$object")
+	response=$(curl -s -H "$header_version" -H "$header_date" -H "@$header_auth_file" "${connection_string}")
+	res=$(echo "$response" | grep "<Blob>")
 	set -x
 
 	if [[ ${#res} -ne 0 ]]; then
