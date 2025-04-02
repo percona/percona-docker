@@ -135,15 +135,16 @@ func (k *KubeAPI) Exec(namespace, pod, container string, stdin io.Reader, comman
 			Stderr:    true,
 		}, ParameterCodec)
 
-	exec, err := remotecommand.NewSPDYExecutor(k.Config, "POST", request.URL())
-
-	if err == nil {
-		err = exec.Stream(remotecommand.StreamOptions{
-			Stdin:  stdin,
-			Stdout: &stdout,
-			Stderr: &stderr,
-		})
+	exc, err := remotecommand.NewSPDYExecutor(k.Config, "POST", request.URL())
+	if err != nil {
+		return "", "", err
 	}
+
+	err = exc.Stream(remotecommand.StreamOptions{
+		Stdin:  stdin,
+		Stdout: io.MultiWriter(os.Stdout, &stdout),
+		Stderr: io.MultiWriter(os.Stderr, &stderr),
+	})
 
 	return stdout.String(), stderr.String(), err
 }
