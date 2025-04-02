@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# pgdata/ is mounted to the pg database container with rw permissions
-recovery_file='pgdata/sleep-forever'
+# /pgdata/ is already mounted to the pg database container with rw permissions
+recovery_file='/pgdata/sleep-forever'
 if [ -f "${recovery_file}" ]; then
 	set +o xtrace
 	echo "The $recovery_file file is detected, node entered an infinite sleep"
