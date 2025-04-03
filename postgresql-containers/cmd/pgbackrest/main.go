@@ -142,11 +142,20 @@ func (k *KubeAPI) Exec(namespace, pod, container string, stdin io.Reader, comman
 
 	err = exc.Stream(remotecommand.StreamOptions{
 		Stdin:  stdin,
-		Stdout: io.MultiWriter(os.Stdout, &stdout),
-		Stderr: io.MultiWriter(os.Stderr, &stderr),
+		Stdout: io.MultiWriter(logWriter{prefix: "stdout"}, &stdout),
+		Stderr: io.MultiWriter(logWriter{prefix: "stderr"}, &stderr),
 	})
 
 	return stdout.String(), stderr.String(), err
+}
+
+type logWriter struct {
+	prefix string
+}
+
+func (w logWriter) Write(p []byte) (n int, err error) {
+	log.Infof("[%s] %s", w.prefix, strings.TrimSuffix(string(p), "\n"))
+	return len(p), nil
 }
 
 func NewConfig() (*rest.Config, error) {
