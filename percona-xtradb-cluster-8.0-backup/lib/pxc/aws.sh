@@ -12,12 +12,14 @@ fi
 
 is_object_exist() {
 	local bucket="$1"
-	local object="$2"
+	local path="$2"
 
-	aws $AWS_S3_NO_VERIFY_SSL s3api head-object  --bucket $bucket --key "$object" || NOT_EXIST=true
-	if [[ -z "$NOT_EXIST" ]]; then
-		return 1
+	# '--summarize' is included to retrieve the 'Total Objects:' count for checking object/folder existence
+	res=$(aws $AWS_S3_NO_VERIFY_SSL s3 ls "s3://$bucket/$path" --summarize)
+	if echo "$res" | grep -q 'Total Objects: 0'; then
+		return 0 # object/folder does not exist
 	fi
+	return 1
 }
 
 s3_add_bucket_dest() {
@@ -26,4 +28,3 @@ s3_add_bucket_dest() {
 	aws configure set aws_secret_access_key "$SECRET_ACCESS_KEY"
 	set -x
 }
-
