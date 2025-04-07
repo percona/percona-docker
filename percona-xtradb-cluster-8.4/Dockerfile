@@ -2,11 +2,11 @@ FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.4.3-3.1
+ENV PXC_VERSION 8.4.4-4.1
 ENV PXC_REPO testing
 ENV OS_VER el9
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-ENV PXC_TELEMETRY_VERSION 8.4.3-3-1
+ENV PXC_TELEMETRY_VERSION 8.4.4-4-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
@@ -38,7 +38,7 @@ RUN set -ex; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
     rpm --import RPM-GPG-KEY-EPEL-9; \
     curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/p/pv-1.6.20-1.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/pv.rpm https://downloads.percona.com/downloads/packaging/pv-1.6.20-1.el9.x86_64.rpm; \
     rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm; \
     rpm -i /tmp/pv.rpm; \
     rpm -i /tmp/libev.rpm; \
