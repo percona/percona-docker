@@ -92,8 +92,9 @@ function request_streaming() {
 
     if grep 'Donor is no longer in the cluster, interrupting script' /tmp/garbd.log; then
         exit 1
+    elif grep 'failed: Invalid argument' /tmp/garbd.log; then
+        exit 1
     fi
-
 
     if [ -f '/tmp/backup-is-completed' ]; then
         log 'INFO' 'Backup was finished successfully'
