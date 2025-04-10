@@ -3,6 +3,7 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal AS ubi9
 LABEL name="Fluent Bit" \
       description="Fluent Bit docker image" \
       vendor="Percona" \
+      maintainer="Percona Development <info@percona.com>" \
       summary="Fluent Bit is a lightweight and high performance log processor" \
       org.opencontainers.image.authors="info@percona.com"
 
