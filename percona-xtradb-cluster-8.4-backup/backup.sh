@@ -107,6 +107,8 @@ function request_streaming() {
 check_ssl
 if [ -n "${S3_BUCKET}" ]; then
    clean_backup_s3
+elif [ -n "$AZURE_CONTAINER_NAME" ]; then
+   clean_backup_azure
 fi
 request_streaming
 
