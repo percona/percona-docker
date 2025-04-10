@@ -85,9 +85,6 @@ function request_streaming() {
         --options "$GARBD_OPTS" \
         --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
         --recv-script="/usr/bin/run_backup.sh" 2>&1 | tee /tmp/garbd.log
-
-    GARB_PID=$!
-    wait $GARB_PID
     EXID_CODE=$?
 
     if grep 'Donor is no longer in the cluster, interrupting script' /tmp/garbd.log; then

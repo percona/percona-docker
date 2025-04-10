@@ -30,7 +30,8 @@ clean_backup_s3() {
 	s3_add_bucket_dest
 
 	local time=30
-	local is_deleted=0
+	local is_deleted_full=0
+	local is_deleted_info=0
 	local exit_code=0
 
 	for i in {1..5}; do
@@ -48,7 +49,7 @@ clean_backup_s3() {
 
 			xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
 		else
-			is_deleted=1
+			is_deleted_full=1
 		fi
 
 		set +e
@@ -56,15 +57,14 @@ clean_backup_s3() {
 		exit_code=$?
 		set -e
 		if [[ $exit_code -ge 1 ]]; then
-			is_deleted=0
 			log 'INFO' "Delete (attempt $i)..."
 
 			xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
 		else
-			is_deleted=1
+			is_deleted_info=1
 		fi
 
-		if (( is_deleted == 1 )); then
+		if (( is_deleted_full == 1 && is_deleted_info == 1 )); then
 			log 'INFO' "Object deleted successfully before attempt $i. Exiting."
 			break
 		fi
@@ -124,7 +124,8 @@ is_object_exist_azure() {
 
 clean_backup_azure() {
 	local time=30
-	local is_deleted=0
+	local is_deleted_full=0
+	local is_deleted_info=0
 	local exit_code=0
 
 	for i in {1..5}; do
@@ -142,23 +143,21 @@ clean_backup_azure() {
 
 			xbcloud delete ${XBCLOUD_ARGS} --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
 		else
-			is_deleted=1
+            is_deleted_info=1
 		fi
 
 		set +e
-		is_object_exist_azure "$S3_BUCKET" "$BACKUP_PATH/"
+		is_object_exist_azure "$BACKUP_PATH/"
 		exit_code=$?
 		if [[ $exit_code -ge 1 ]]; then
-			is_deleted=0
 			log 'INFO' "Delete (attempt $i)..."
-
 			xbcloud delete ${XBCLOUD_ARGS} --storage=azure "$BACKUP_PATH"
 		else
-			is_deleted=1
+			is_deleted_full=1
 		fi
 		set -e
 
-		if (( is_deleted == 1 )); then
+		if (( is_deleted_full == 1 && is_deleted_info == 1 )); then
 			log 'INFO' "Object deleted successfully before attempt $i. Exiting."
 			break
 		fi
