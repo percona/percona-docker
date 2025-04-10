@@ -29,8 +29,39 @@ log() {
 clean_backup_s3() {
 	s3_add_bucket_dest
 
-	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME" || xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
-	is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH/" || xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+	local time=15
+	local is_deleted_full=0
+	local is_deleted_info=0
+	local exit_code=0
+
+	for i in {1..5}; do
+		if (( i > 1 )); then
+			log 'INFO' "Sleeping ${time}s before retry $i..."
+			sleep "$time"
+		fi
+
+		if is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH/"; then
+			log 'INFO' "Delete (attempt $i)..."
+
+			xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
+		else
+			is_deleted_full=1
+		fi
+
+		if is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME/"; then
+			log 'INFO' "Delete (attempt $i)..."
+
+			xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
+		else
+			is_deleted_info=1
+		fi
+
+		if [[ ${is_deleted_full} == 1 && ${is_deleted_info} == 1 ]]; then
+			log 'INFO' "Object deleted successfully before attempt $i. Exiting."
+			break
+		fi
+		let time*=2
+	done
 }
 
 azure_auth_header_file() {
@@ -78,7 +109,44 @@ is_object_exist_azure() {
 	set -x
 
 	if [[ ${#res} -ne 0 ]]; then
-		return 1
+		return 0
 	fi
-	return 0
+	return 1
 }
+
+clean_backup_azure() {
+	ENDPOINT=${AZURE_ENDPOINT:-"https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net"}
+
+	local time=15
+	local is_deleted_full=0
+	local is_deleted_info=0
+	local exit_code=0
+
+	for i in {1..5}; do
+		if (( i > 1 )); then
+			log 'INFO' "Sleeping ${time}s before retry $i..."
+			sleep "$time"
+		fi
+
+		if is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/"; then
+			log 'INFO' "Delete (attempt $i)..."
+			xbcloud delete ${XBCLOUD_ARGS} --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
+		else
+			is_deleted_info=1
+		fi
+
+		if is_object_exist_azure "$BACKUP_PATH/"; then
+			log 'INFO' "Delete (attempt $i)..."
+			xbcloud delete ${XBCLOUD_ARGS} --storage=azure "$BACKUP_PATH"
+		else
+			is_deleted_full=1
+		fi
+
+		if [[ ${is_deleted_full} == 1 && ${is_deleted_info} == 1 ]]; then
+			log 'INFO' "Object deleted successfully before attempt $i. Exiting."
+			break
+		fi
+		let time*=2
+	done
+}
+
