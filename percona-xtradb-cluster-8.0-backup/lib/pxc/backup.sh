@@ -40,11 +40,7 @@ clean_backup_s3() {
 			sleep "$time"
 		fi
 
-		set +e
-		is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH/"
-		exit_code=$?
-		set -e
-		if [[ $exit_code -ge 1 ]]; then
+		if is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH/"; then
 			log 'INFO' "Delete (attempt $i)..."
 
 			xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH"
@@ -52,11 +48,7 @@ clean_backup_s3() {
 			is_deleted_full=1
 		fi
 
-		set +e
-		is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME/"
-		exit_code=$?
-		set -e
-		if [[ $exit_code -ge 1 ]]; then
+		if is_object_exist "$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME/"; then
 			log 'INFO' "Delete (attempt $i)..."
 
 			xbcloud delete ${XBCLOUD_ARGS} --storage=s3 --s3-bucket="$S3_BUCKET" "$S3_BUCKET_PATH.$SST_INFO_NAME"
@@ -64,7 +56,7 @@ clean_backup_s3() {
 			is_deleted_info=1
 		fi
 
-		if (( is_deleted_full == 1 && is_deleted_info == 1 )); then
+		if [[ ${is_deleted_full} == 1 && ${is_deleted_info} == 1 ]]; then
 			log 'INFO' "Object deleted successfully before attempt $i. Exiting."
 			break
 		fi
@@ -117,9 +109,9 @@ is_object_exist_azure() {
 	set -x
 
 	if [[ ${#res} -ne 0 ]]; then
-		return 1
+		return 0
 	fi
-	return 0
+	return 1
 }
 
 clean_backup_azure() {
@@ -136,29 +128,21 @@ clean_backup_azure() {
 			sleep "$time"
 		fi
 
-		set +e
-		is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/"
-		exit_code=$?
-		set -e
-		if [[ $exit_code -ge 1 ]]; then
+		if is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/"; then
 			log 'INFO' "Delete (attempt $i)..."
 			xbcloud delete ${XBCLOUD_ARGS} --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
 		else
 			is_deleted_info=1
 		fi
 
-		set +e
-		is_object_exist_azure "$BACKUP_PATH/"
-		exit_code=$?
-		if [[ $exit_code -ge 1 ]]; then
+		if is_object_exist_azure "$BACKUP_PATH/"; then
 			log 'INFO' "Delete (attempt $i)..."
 			xbcloud delete ${XBCLOUD_ARGS} --storage=azure "$BACKUP_PATH"
 		else
 			is_deleted_full=1
 		fi
-		set -e
 
-		if (( is_deleted_full == 1 && is_deleted_info == 1 )); then
+		if [[ ${is_deleted_full} == 1 && ${is_deleted_info} == 1 ]]; then
 			log 'INFO' "Object deleted successfully before attempt $i. Exiting."
 			break
 		fi

@@ -17,9 +17,9 @@ is_object_exist() {
 	# '--summarize' is included to retrieve the 'Total Objects:' count for checking object/folder existence
 	res=$(aws $AWS_S3_NO_VERIFY_SSL s3 ls "s3://$bucket/$path" --summarize --recursive)
 	if echo "$res" | grep -q 'Total Objects: 0'; then
-		return 0 # object/folder does not exist
+		return 1 # object/folder does not exist
 	fi
-	return 1
+	return 0
 }
 
 s3_add_bucket_dest() {
