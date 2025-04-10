@@ -138,8 +138,7 @@ backup_azure() {
 
 	log 'INFO' "Backup to $ENDPOINT/$AZURE_CONTAINER_NAME/$BACKUP_PATH"
 
-	is_object_exist_azure "$BACKUP_PATH.$SST_INFO_NAME/" || xbcloud delete $XBCLOUD_ARGS --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
-	is_object_exist_azure "$BACKUP_PATH/" || xbcloud delete $XBCLOUD_ARGS --storage=azure "$BACKUP_PATH"
+	clean_backup_azure
 
 	socat -u "$SOCAT_OPTS" stdio | xbstream -x -C /tmp $XBSTREAM_EXTRA_ARGS &
 	wait $!
