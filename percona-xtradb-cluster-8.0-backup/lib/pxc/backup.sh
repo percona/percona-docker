@@ -29,7 +29,7 @@ log() {
 clean_backup_s3() {
 	s3_add_bucket_dest
 
-	local time=30
+	local time=15
 	local is_deleted_full=0
 	local is_deleted_info=0
 	local exit_code=0
@@ -123,7 +123,9 @@ is_object_exist_azure() {
 }
 
 clean_backup_azure() {
-	local time=30
+	ENDPOINT=${AZURE_ENDPOINT:-"https://$AZURE_STORAGE_ACCOUNT.blob.core.windows.net"}
+
+	local time=15
 	local is_deleted_full=0
 	local is_deleted_info=0
 	local exit_code=0
@@ -140,10 +142,9 @@ clean_backup_azure() {
 		set -e
 		if [[ $exit_code -ge 1 ]]; then
 			log 'INFO' "Delete (attempt $i)..."
-
 			xbcloud delete ${XBCLOUD_ARGS} --storage=azure "$BACKUP_PATH.$SST_INFO_NAME"
 		else
-            is_deleted_info=1
+			is_deleted_info=1
 		fi
 
 		set +e

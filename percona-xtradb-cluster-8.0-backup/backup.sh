@@ -85,7 +85,10 @@ function request_streaming() {
         --options "$GARBD_OPTS" \
         --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
         --recv-script="/usr/bin/run_backup.sh" 2>&1 | tee /tmp/garbd.log
-    EXID_CODE=$?
+
+    if grep 'Will never receive state. Need to abort' /tmp/garbd.log; then
+        exit 1
+    fi
 
     if grep 'Donor is no longer in the cluster, interrupting script' /tmp/garbd.log; then
         exit 1
@@ -98,7 +101,7 @@ function request_streaming() {
 
     log 'ERROR' 'Backup was finished unsuccessful'
 
-    exit $EXID_CODE
+    exit 1
 }
 
 check_ssl
