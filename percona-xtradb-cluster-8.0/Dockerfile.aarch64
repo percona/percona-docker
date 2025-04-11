@@ -1,5 +1,12 @@
 FROM redhat/ubi9-minimal
 
+LABEL name="Percona XtraDB Cluster" \
+      release="8.0" \
+      vendor="Percona" \
+      summary="A high availability clustering solution for MySQL" \
+      description="Percona XtraDB Cluster is an open-source, high-availability solution for MySQL. It uses Galera replication to provide synchronous multi-master clustering" \
+      maintainer="Percona Development <info@percona.com>"
+
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXC_VERSION 8.0.41-32.1
