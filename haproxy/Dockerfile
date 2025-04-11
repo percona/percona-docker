@@ -4,6 +4,7 @@ LABEL name="HAproxy" \
       description="TCP proxy loadbalancer for Percona Xtradb Cluster" \
       vendor="Percona" \
       summary="TCP proxy for mysql protocol" \
+      maintainer="Percona Development <info@percona.com>" \
       org.opencontainers.image.authors="info@percona.com"
 
 # check repository package signature in secure way

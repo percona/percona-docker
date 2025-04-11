@@ -1,5 +1,12 @@
 FROM redhat/ubi9-minimal
 
+LABEL name="Percona XtraDB Cluster" \
+      release="8.0" \
+      vendor="Percona" \
+      summary="A high availability clustering solution for MySQL" \
+      description="Percona XtraDB Cluster is an open-source, high-availability solution for MySQL. It uses Galera replication to provide synchronous multi-master clustering" \
+      maintainer="Percona Development <info@percona.com>"
+
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PXC_VERSION 8.0.41-32.1
@@ -133,7 +140,7 @@ RUN if [[ -n $DEBUG ]] ; then \
     percona-release disable pdpxc-8.0 ${PXC_REPO}; \
     curl -Lf -o /tmp/telnet.rpm https://downloads.percona.com/downloads/packaging/telnet-0.17-85.el9.x86_64.rpm; \
     curl -Lf -o /tmp/tcpdump.rpm https://downloads.percona.com/downloads/packaging/tcpdump-4.99.0-9.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/perf.rpm https://downloads.percona.com/downloads/packaging/perf-5.14.0-503.26.1.el9_5.x86_64.rpm; \
+    curl -Lf -o /tmp/perf.rpm https://downloads.percona.com/downloads/packaging/perf-5.14.0-503.35.1.el9_5.x86_64.rpm; \
     curl -Lf -o /tmp/strace.rpm https://downloads.percona.com/downloads/packaging/strace-6.12-1.el9.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-80/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
