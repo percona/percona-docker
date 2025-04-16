@@ -14,10 +14,10 @@ LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high ava
 	helps enterprises avoid downtime and outages and meet expected customer experience."
 LABEL org.opencontainers.image.license="GPL"
 
-ENV PXB_VERSION=8.4.0-1.1
-ENV PS_VERSION=8.4.3-3.1
+ENV PXB_VERSION=8.4.0-2.1
+ENV PS_VERSION=8.4.4-4.1
 
-ENV PXC_VERSION=8.4.3-3.1
+ENV PXC_VERSION=8.4.4-4.1
 ENV PXC_REPO=release
 
 ENV OS_VER=el9
@@ -84,8 +84,8 @@ RUN groupadd -g 1001 mysql; \
 RUN set -ex; \
 	curl -Lf -o /tmp/percona-xtrabackup.rpm https://repo.percona.com/pxb-84-lts/yum/release/9/RPMS/x86_64/percona-xtrabackup-84-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
 	curl -Lf -o /tmp/percona-server-shared.rpm https://repo.percona.com/ps-84-lts/yum/release/9/RPMS/x86_64/percona-server-shared-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-	curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-84-lts/yum/release/9/RPMS/x86_64/percona-xtradb-cluster-garbd-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
-	curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-84-lts/yum/release/9/RPMS/x86_64/percona-xtradb-cluster-client-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-84-lts/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-garbd-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-84-lts/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-client-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
 	rpmkeys --checksig /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm; \
 	rpm -iv /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm --nodeps; \
 	rm -rf /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm; \

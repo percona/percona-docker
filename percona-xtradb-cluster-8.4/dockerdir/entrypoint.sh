@@ -209,7 +209,7 @@ if [ -z "$CLUSTER_JOIN" ] && [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		rm -rf $DATADIR/* && mkdir -p "$DATADIR"
 
 		echo 'Initializing database'
-		"$@" --initialize-insecure --skip-ssl
+		"$@" --initialize-insecure
 		echo 'Database initialized'
 
 		SOCKET="$(_get_config 'socket' "$@")"
