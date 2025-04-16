@@ -1,12 +1,19 @@
 FROM redhat/ubi9-minimal
 
+LABEL name="Percona XtraDB Cluster" \
+      release="8.4" \
+      vendor="Percona" \
+      summary="A high availability clustering solution for MySQL" \
+      description="Percona XtraDB Cluster is an open-source, high-availability solution for MySQL. It uses Galera replication to provide synchronous multi-master clustering" \
+      maintainer="Percona Development <info@percona.com>"
+
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.4.3-3.1
+ENV PXC_VERSION 8.4.4-4.1
 ENV PXC_REPO testing
 ENV OS_VER el9
 ENV FULL_PERCONA_XTRADBCLUSTER_VERSION "$PXC_VERSION.$OS_VER"
-ENV PXC_TELEMETRY_VERSION 8.4.3-3-1
+ENV PXC_TELEMETRY_VERSION 8.4.4-4-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
@@ -38,7 +45,7 @@ RUN set -ex; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
     rpm --import RPM-GPG-KEY-EPEL-9; \
     curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/p/pv-1.6.20-1.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/pv.rpm https://downloads.percona.com/downloads/packaging/pv-1.6.20-1.el9.x86_64.rpm; \
     rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm; \
     rpm -i /tmp/pv.rpm; \
     rpm -i /tmp/libev.rpm; \
@@ -133,7 +140,7 @@ RUN if [[ -n $DEBUG ]] ; then \
     percona-release disable pdpxc-84-lts ${PXC_REPO}; \
     curl -Lf -o /tmp/telnet.rpm https://downloads.percona.com/downloads/packaging/telnet-0.17-85.el9.x86_64.rpm; \
     curl -Lf -o /tmp/tcpdump.rpm https://downloads.percona.com/downloads/packaging/tcpdump-4.99.0-9.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/perf.rpm https://downloads.percona.com/downloads/packaging/perf-5.14.0-503.21.1.0.1.el9_5.x86_64.rpm; \
+    curl -Lf -o /tmp/perf.rpm https://downloads.percona.com/downloads/packaging/perf-5.14.0-503.35.1.el9_5.x86_64.rpm; \
     curl -Lf -o /tmp/strace.rpm https://downloads.percona.com/downloads/packaging/strace-6.12-1.el9.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-84-lts/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-84-lts/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
