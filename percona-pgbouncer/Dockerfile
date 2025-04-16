@@ -2,8 +2,8 @@ FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PG_VERSION 17.0
-ENV PPG_REPO testing
+ENV PG_VERSION 17.4
+ENV PPG_REPO release
 
 # check repository package signature in secure way
 RUN set -ex; \

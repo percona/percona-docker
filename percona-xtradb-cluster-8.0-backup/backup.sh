@@ -86,11 +86,13 @@ function request_streaming() {
         --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
         --recv-script="/usr/bin/run_backup.sh" 2>&1 | tee /tmp/garbd.log
 
-    GARB_PID=$!
-    wait $GARB_PID
-    EXID_CODE=$?
+    if grep 'Will never receive state. Need to abort' /tmp/garbd.log; then
+        exit 1
+    fi
 
     if grep 'Donor is no longer in the cluster, interrupting script' /tmp/garbd.log; then
+        exit 1
+    elif grep 'failed: Invalid argument' /tmp/garbd.log; then
         exit 1
     fi
 
@@ -101,12 +103,14 @@ function request_streaming() {
 
     log 'ERROR' 'Backup was finished unsuccessful'
 
-    exit $EXID_CODE
+    exit 1
 }
 
 check_ssl
 if [ -n "${S3_BUCKET}" ]; then
    clean_backup_s3
+elif [ -n "$AZURE_CONTAINER_NAME" ]; then
+   clean_backup_azure
 fi
 request_streaming
 
