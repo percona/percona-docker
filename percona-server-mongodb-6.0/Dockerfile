@@ -1,5 +1,11 @@
 FROM redhat/ubi9-minimal
 
+LABEL name="Percona Server for MongoDB" \
+	release="6.0" \
+	vendor="Percona" \
+	summary="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition" \
+	description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
+	maintainer="Percona Development <info@percona.com>"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 # check repository package signature in secure way
