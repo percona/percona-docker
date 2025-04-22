@@ -32,7 +32,6 @@ ARG PERCONA_TELEMETRY_DISABLE=1
 RUN set -ex; \
     percona-release enable psmdb-70 ${PSMDB_REPO}; \
     #dnf config-manager --enable ol8_u4_security_validation; \
-    microdnf -y update openssh; \
     #dnf -y update bind-export-libs; \
     #dnf -y update glibc; \
     microdnf -y update libgcrypt; \

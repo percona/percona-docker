@@ -36,7 +36,6 @@ RUN set -ex; \
     percona-release enable psmdb-70 ${PSMDB_REPO}; \
     percona-release enable telemetry ${PSMDB_REPO}; \
     #microdnf config-manager --enable ol9_u4_security_validation; \
-    microdnf -y update openssh; \
     #microdnf -y update bind-export-libs; \
     microdnf -y update glibc; \
     microdnf -y update libgcrypt; \
