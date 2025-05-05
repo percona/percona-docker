@@ -24,6 +24,7 @@ RUN set -ex; \
     microdnf install -y \
         shadow-utils \
         percona-orchestrator \
+        percona-orchestrator-client \
         which \
         tar \
         openssl \
