@@ -10,6 +10,17 @@ ENV PS_VERSION 8.4.3-3.1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
+ENV PXB_TELEMETRY_VERSION "$XTRABACKUP_VERSION"
+ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
+ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
+ENV KEY_RPM_DOWNLOAD_SHA256 fcf0eab4f05a1c0de6363ac4b707600a27a9d774e9b491059e59e6921b255a84
+ENV CALL_HOME_VERSION 0.1
+# Do not report during Docker image creation.
+# Note that doing so, would create telemetry config file
+# which would prevent reporting when new container is started.
+# If we want to track Docker image creation as well,
+# remove telemetry config file after installing packages!
+ARG PERCONA_TELEMETRY_DISABLE=1
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -24,9 +35,6 @@ RUN set -ex; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     curl -Lf -o /tmp/packages-microsoft-prod.rpm https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
-    curl -o /tmp/awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip; \
-    curl -o /tmp/awscliv2.sig https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip.sig; \
-    gpg --verify /tmp/awscliv2.sig /tmp/awscliv2.zip; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
@@ -49,8 +57,21 @@ RUN groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -c "Default Application User" mysql
 
+RUN if [ "$(uname -m)" = "x86_64" ]; then \
+        curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
+    else \
+        curl -Lf -o /tmp/libev.rpm https://mirror.stream.centos.org/9-stream/BaseOS/aarch64/os/Packages/libev-4.33-5.el9.aarch64.rpm; \
+    fi
+
+RUN if [ "$(uname -m)" = "x86_64" ]; then \
+        curl -o /tmp/awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip; \
+        curl -o /tmp/awscliv2.sig https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip.sig; \
+    else \
+        curl -o /tmp/awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip; \
+        curl -o /tmp/awscliv2.sig https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip.sig; \
+    fi
+
 RUN set -ex; \
-    curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
     unzip -q /tmp/awscliv2.zip -d /tmp/; \
     /tmp/aws/install; \
     rpm -i /tmp/libev.rpm; \
@@ -75,6 +96,21 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/cache/yum
 
 RUN install -d -o 1001 -g 0 -m 0775 /backup
+
+RUN set -eux; \
+    curl -fL "https://github.com/Percona-Lab/telemetry-agent/archive/refs/tags/phase-$CALL_HOME_VERSION.tar.gz" -o "phase-$CALL_HOME_VERSION.tar.gz"; \
+    echo "$CALL_HOME_DOWNLOAD_SHA256 phase-$CALL_HOME_VERSION.tar.gz" | sha256sum --strict --check; \
+    tar -xvf phase-$CALL_HOME_VERSION.tar.gz; \
+    cp telemetry-agent-phase-$CALL_HOME_VERSION/call-home.sh .;\
+    rm -rf telemetry-agent-phase-$CALL_HOME_VERSION phase-$CALL_HOME_VERSION.tar.gz; \
+    chmod a+rx /call-home.sh; \
+    mkdir -p /usr/local/percona; \
+    chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
+
+COPY pxb-entry.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 VOLUME [ "/backup" ]
 USER 1001
