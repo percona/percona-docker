@@ -84,26 +84,33 @@ function request_streaming() {
         --group "$PXC_SERVICE" \
         --options "$GARBD_OPTS" \
         --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
-        --recv-script="/usr/bin/run_backup.sh" 2>&1 | tee /tmp/garbd.log
+        --extended-exit-codes \
+        --wait-for-recv-script-exit \
+        --recv-script="/usr/bin/run_backup.sh"
+    GARBD_EXIT_CODE=$?
 
-    if grep 'Will never receive state. Need to abort' /tmp/garbd.log; then
-        exit 1
-    fi
-
-    if grep 'Donor is no longer in the cluster, interrupting script' /tmp/garbd.log; then
-        exit 1
-    elif grep 'failed: Invalid argument' /tmp/garbd.log; then
-        exit 1
-    fi
-
-    if [ -f '/tmp/backup-is-completed' ]; then
-        log 'INFO' 'Backup was finished successfully'
-        exit 0
-    fi
-
-    log 'ERROR' 'Backup was finished unsuccessful'
-
-    exit 1
+    case ${GARBD_EXIT_CODE} in
+        0)
+            log 'INFO' 'Backup was finished successfully'
+            exit 0
+            ;;
+        100)
+            log 'ERROR' 'Backup was unsuccessful: Generic failure'
+            exit 1
+            ;;
+        101)
+            log 'ERROR' 'Backup was unsuccessful: Donor disappeared'
+            exit 1
+            ;;
+        102)
+            log 'ERROR' 'Backup was unsuccessful: SST request failure'
+            exit 1
+            ;;
+        *)
+            log 'ERROR' "Backup was unsuccessful: garbd exited with ${GARBD_EXIT_CODE}"
+            exit 1
+            ;;
+    esac
 }
 
 check_ssl
