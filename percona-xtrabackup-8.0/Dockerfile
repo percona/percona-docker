@@ -79,7 +79,7 @@ RUN set -ex; \
     #dnf --setopt=install_weak_deps=False --best install -y \
     microdnf -y install \
         percona-xtrabackup-80-${FULL_PERCONA_XTRABACKUP_VERSION} \
-        percona-xtradb-cluster-garbd-${FULL_PERCONA_VERSION} \
+        percona-xtradb-cluster-garbd \
         percona-server-shared-${FULL_PERCONA_VERSION} \
         percona-server-client-${FULL_PERCONA_VERSION} \
         socat \
