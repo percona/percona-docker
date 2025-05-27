@@ -51,7 +51,7 @@ RUN set -ex; \
     #dnf --setopt=install_weak_deps=False install -y \
     microdnf -y install \
         percona-xtrabackup-24-${FULL_PERCONA_XTRABACKUP_VERSION} \
-        Percona-XtraDB-Cluster-garbd-57-${FULL_PXC_VERSION} \
+        Percona-XtraDB-Cluster-garbd-57 \
         Percona-Server-shared-57-${FULL_PERCONA_VERSION} \
         Percona-Server-client-57-${FULL_PERCONA_VERSION} \
         socat \
