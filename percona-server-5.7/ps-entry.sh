@@ -202,6 +202,11 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			process_init_file "$f" "${mysql[@]}"
 		done
 
+		ls $MYSQL_INIT_DIR > /dev/null
+		for f in ${MYSQL_INIT_DIR}/*; do
+			process_init_file "$f" "${mysql[@]}"
+		done
+
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
 			"${mysql[@]}" <<-EOSQL
 				ALTER USER 'root'@'%' PASSWORD EXPIRE;
