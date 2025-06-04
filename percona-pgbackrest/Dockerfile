@@ -2,9 +2,9 @@ FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PG_VERSION 17.4
+ARG PG_VERSION=17.4
+ENV PG_VERSION=${PG_VERSION}
 ENV PPG_REPO release
-
 # check repository package signature in secure way
 RUN set -ex; \
     ARCH=$(uname -m) && echo "Architecture is: $ARCH" && \
