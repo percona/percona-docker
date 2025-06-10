@@ -2,7 +2,7 @@ FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ARG PG_VERSION=17.4
+ARG PG_VERSION=17.5
 ENV PG_VERSION=${PG_VERSION}
 ENV PPG_REPO release
 
