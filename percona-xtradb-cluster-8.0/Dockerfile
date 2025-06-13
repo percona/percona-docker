@@ -82,6 +82,21 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
+# tcmalloc is not available via package manager
+# Install required build tools and dependencies, build tcmalloc and cleanup
+ARG TCMALLOC_RELEASE_TAG=gperftools-2.16
+RUN microdnf install -y git gcc gcc-c++ make autoconf automake libtool which tar patch \
+    && git clone --depth 1 --branch ${TCMALLOC_RELEASE_TAG} https://github.com/gperftools/gperftools.git \
+    && cd gperftools \
+    && ./autogen.sh \
+    && ./configure --prefix=/usr --disable-debugalloc \
+    && make -j$(nproc) \
+    && make install \
+    && cd .. \
+    && rm -rf gperftools \
+    && microdnf clean all \
+    && ldconfig
+
 # create mysql user/group before mysql installation
 RUN groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
