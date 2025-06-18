@@ -1,6 +1,11 @@
 FROM redhat/ubi9-minimal
 
-LABEL org.opencontainers.image.authors="info@percona.com"
+LABEL name="Percona pgBackRest" \
+      description="pgBackRest is a simple, reliable backup and restore system for PostgreSQL that can seamlessly scale up to the largest databases and workloads." \
+      vendor="Percona" \
+      summary="Reliable PostgreSQL Backup & Restore" \
+      maintainer="Percona Development <info@percona.com>" \
+      org.opencontainers.image.authors="info@percona.com"
 
 ARG PG_VERSION=17.5
 ENV PG_VERSION=${PG_VERSION}
@@ -42,6 +47,7 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
+COPY LICENSE /licenses/LICENSE.Dockerfile
 COPY pgbackrest.conf /etc/pgbackrest.conf
 
 USER 26

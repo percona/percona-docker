@@ -1,6 +1,11 @@
 FROM redhat/ubi9-minimal
 
-LABEL org.opencontainers.image.authors="info@percona.com"
+LABEL name="Percona PgBouncer" \
+      description="PgBouncer is a lightweight connection pooler for PostgreSQL that offers various pooling modes (session, transaction, statement), low memory usage, support for multiple backend hosts, and the ability to reconfigure or restart it online without downtime." \
+      vendor="Percona" \
+      summary="Lightweight connection pooler for PostgreSQL" \
+      maintainer="Percona Development <info@percona.com>" \
+      org.opencontainers.image.authors="info@percona.com"
 
 ARG PG_VERSION=17.5
 ENV PG_VERSION=${PG_VERSION}
@@ -37,6 +42,8 @@ RUN set -ex; \
         percona-pgbouncer; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
+
+COPY LICENSE /licenses/LICENSE.Dockerfile
 
 RUN touch /etc/pgbouncer/userlist.txt && \
     chown -R 1001 /var/log/pgbouncer /var/run/pgbouncer /etc/pgbouncer
