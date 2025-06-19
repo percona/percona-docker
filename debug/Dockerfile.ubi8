@@ -1,0 +1,105 @@
+FROM redhat/ubi8
+
+LABEL org.opencontainers.image.authors="info@percona.com"
+
+RUN dnf -y update; \
+    dnf -y install glibc-langpack-en
+
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
+        4D1BB29D63D98E422B2113B19334A25F8507EFA5 \
+        99DB70FAE1D7CE227FB6488205B555B38483C65D \
+        94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 \
+        736AF5116D9C40E2AF6B074BF9B9FEE7764429E6; \
+    gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
+    gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+    rpmkeys --import \
+        ${GNUPGHOME}/PERCONA-PACKAGING-KEY \
+        ${GNUPGHOME}/RPM-GPG-KEY-centosofficial \
+        ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+    dnf install -y elfutils-debuginfod-client numactl-libs libbpf perl libbabeltrace bzip2 xz lm_sensors-libs findutils; \
+    curl -Lf -o /tmp/epel-release.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; \
+    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+    rpmkeys --checksig /tmp/percona-release.rpm /tmp/epel-release.rpm; \
+    rpm -i /tmp/percona-release.rpm /tmp/epel-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/epel-release.rpm; \
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    rpm --import https://yum.oracle.com/RPM-GPG-KEY-oracle-ol8; \
+    percona-release enable pt release
+
+RUN set -ex; \
+    curl -Lf -o /tmp/c-ares.rpm  https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/c-ares-1.13.0-11.el8_10.x86_64.rpm; \
+    curl -Lf -o /tmp/libtraceevent.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/libtraceevent-1.5.3-1.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/slang.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/slang-2.3.2-3.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/sysstat.rpm https://yum.oracle.com/repo/OracleLinux/OL8/appstream/x86_64/getPackage/sysstat-11.7.3-13.0.2.el8_10.x86_64.rpm; \
+    curl -Lf -o /tmp/perf.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/perf-4.18.0-553.51.1.el8_10.x86_64.rpm; \
+    rpmkeys --checksig /tmp/c-ares.rpm /tmp/libtraceevent.rpm /tmp/slang.rpm /tmp/sysstat.rpm /tmp/perf.rpm; \
+    rpm -i /tmp/c-ares.rpm /tmp/slang.rpm /tmp/libtraceevent.rpm /tmp/sysstat.rpm /tmp/perf.rpm; \
+    rm -rf /tmp/c-ares.rpm /tmp/slang.rpm /tmp/libtraceevent.rpm /tmp/sysstat.rpm /tmp/perf.rpm
+
+RUN set -ex; \
+    dnf -y update; \
+    dnf -y install \
+        percona-toolkit \
+        yum \
+        vim \
+        hostname \
+        tar \
+        bzip2 \
+        lz4 \
+        procps-ng \
+        strace \
+        golang \
+        mpfr-devel \
+        elfutils \
+        mpfr-devel \
+        wget \
+        aria2 \
+        net-tools
+
+
+# Add OL8 BaseOS repo
+RUN echo -e "[ol8_baseos]\n\
+name=Oracle Linux 8 BaseOS (\$basearch)\n\
+baseurl=https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/\n\
+gpgkey=https://yum.oracle.com/RPM-GPG-KEY-oracle-ol8\n\
+gpgcheck=1\n\
+enabled=1" > /etc/yum.repos.d/ol8_baseos.repo
+
+# Add OL8 AppStream repo
+RUN set -ex; \
+echo -e "[ol8_appstream]\n\
+name=Oracle Linux 8 Application Stream (\$basearch)\n\
+baseurl=https://yum.oracle.com/repo/OracleLinux/OL8/appstream/x86_64/\n\
+gpgkey=https://yum.oracle.com/RPM-GPG-KEY-oracle-ol8\n\
+gpgcheck=1\n\
+enabled=1" > /etc/yum.repos.d/ol8_appstream.repo; \
+    yum -y groupinstall "development tools"; \
+    dnf clean all; \
+    yum clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
+
+WORKDIR /opt/src
+
+# Fetch and extract the latest stable GDB version
+RUN LATEST_VERSION=$(curl -s ftp://ftp.gnu.org/gnu/gdb/ | \
+    awk '{print $NF}' | \
+    grep -E '^gdb-[0-9]+\.[0-9]+(\.[0-9]+)?\.tar\.gz$' | \
+    sed -E 's/gdb-([0-9]+\.[0-9]+(\.[0-9]+)?)\.tar\.gz/\1/' | \
+    sort -V | \
+    tail -n 1) && \
+    echo "Latest GDB version: $LATEST_VERSION" && \
+    aria2c -x 8 -s 8 https://ftp.gnu.org/gnu/gdb/gdb-${LATEST_VERSION}.tar.gz && \
+    tar -xzf gdb-${LATEST_VERSION}.tar.gz && \
+    cd gdb-${LATEST_VERSION} && \
+    ./configure --prefix=/usr/local && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && \
+    rm -rf /opt/src
+
+RUN gdb --version
+
+COPY LICENSE /licenses/LICENSE.Dockerfile
