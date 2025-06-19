@@ -47,8 +47,6 @@ RUN groupadd -g 1001 mysql
 RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -c "Default Application User" mysql
 
-STOPSIGNAL SIGUSR1
-
 RUN set -ex; \
     mkdir -p /etc/orchestrator /var/lib/orchestrator ; \
     chown -R 1001:1001 /etc/orchestrator /var/lib/orchestrator
