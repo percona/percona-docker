@@ -44,6 +44,7 @@ RUN set -ex; \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
         percona-mongodb-mongosh \
+        numactl \
         numactl-libs \
         procps-ng \
         jq \
@@ -56,12 +57,9 @@ RUN set -ex; \
     rpm --import RPM-GPG-KEY-Rocky-9; \
     ARCH="$(uname -m)"; \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-70/yum/${PSMDB_REPO}/9/RPMS/${ARCH}/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.${ARCH}.rpm; \
-    curl -Lf -o /tmp/numactl.rpm https://download.rockylinux.org/pub/rocky/9/BaseOS/aarch64/os/Packages/n/numactl-2.0.18-2.${OS_VER}.${ARCH}.rpm; \
-    rpmkeys --checksig /tmp/numactl.rpm; \
     rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
-    rpm -i /tmp/numactl.rpm; \
-    rm -rf /tmp/numactl.rpm /tmp/Percona-Server-MongoDB-server.rpm; \
+    rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db; \
     chown -R 1001:0 /data/db
