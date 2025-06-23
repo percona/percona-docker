@@ -36,6 +36,7 @@ RUN set -ex; \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
         percona-mongodb-mongosh \
+        numactl \
         numactl-libs \
         shadow-utils \
         procps-ng \
@@ -44,11 +45,9 @@ RUN set -ex; \
         policycoreutils; \
         \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-60/yum/${PSMDB_REPO}/9/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-    curl -Lf -o /tmp/numactl.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/numactl-2.0.16-1.el9.x86_64.rpm; \
-    rpmkeys --checksig /tmp/numactl.rpm /tmp/Percona-Server-MongoDB-server.rpm; \
+    rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
-    rpm -i /tmp/numactl.rpm; \
-    rm -rf /tmp/numactl.rpm /tmp/Percona-Server-MongoDB-server.rpm; \
+    rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db; \
     chown -R 1001:0 /data/db
