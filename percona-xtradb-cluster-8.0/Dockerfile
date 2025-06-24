@@ -121,6 +121,9 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql /usr/lib64/mysql/plugin/debug /usr/sbin/mysqld-debug /usr/lib64/mecab /usr/lib64/mysql/mecab /usr/bin/myisam*; \
     rpm -ql percona-xtradb-cluster-client | egrep -v "mysql$|mysqldump$|mysqladmin$|mysqlbinlog$" | xargs rm -rf
 
+# fix PKG-842
+RUN sed -i '1756,1765 s/^/#/' /usr/bin/wsrep_sst_xtrabackup-v2
+
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-xtradb-cluster-galera/COPYING /licenses/LICENSE.galera; \
     cp /usr/share/doc/percona-xtradb-cluster-galera/LICENSE.* /licenses/
