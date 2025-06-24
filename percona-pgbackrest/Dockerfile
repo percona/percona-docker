@@ -43,6 +43,7 @@ RUN set -ex; \
     microdnf -y install \
         --enablerepo="ol9_developer_EPEL" \
         percona-pgbackrest \
+        procps-ng \
         nss_wrapper; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum

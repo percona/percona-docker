@@ -39,6 +39,7 @@ RUN groupadd -g 1001 pgbouncer; \
 RUN set -ex; \
     microdnf -y update; \
     microdnf -y install \
+        procps-ng \
         percona-pgbouncer; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
