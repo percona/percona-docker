@@ -47,9 +47,9 @@ RUN set -ex; \
     rpm --import RPM-GPG-KEY-EPEL-9; \
     curl -O https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux-9; \
     rpm --import RPM-GPG-KEY-AlmaLinux-9; \
-    curl -Lf -o /tmp/libev.rpm https://rpmfind.net/linux/almalinux/9.5/BaseOS/aarch64/os/Packages/libev-4.33-5.el9.aarch64.rpm; \
-    curl -Lf -o /tmp/pv.rpm https://mirror.freedif.org/fedora/epel/9/Everything/aarch64/Packages/p/pv-1.6.20-1.el9.aarch64.rpm; \
-    curl -Lf -o /tmp/jemalloc.rpm https://rpmfind.net/linux/epel/9/Everything/aarch64/Packages/j/jemalloc-5.2.1-2.el9.aarch64.rpm; \
+    curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-6.el9.aarch64.rpm; \
+    curl -Lf -o /tmp/pv.rpm https://downloads.percona.com/downloads/packaging/pv-1.6.20-1.el9.aarch64.rpm; \
+    curl -Lf -o /tmp/jemalloc.rpm https://downloads.percona.com/downloads/packaging/jemalloc-5.2.1-2.el9.aarch64.rpm; \
     rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm /tmp/jemalloc.rpm; \
     rpm -i /tmp/pv.rpm; \
     rpm -i /tmp/libev.rpm; \
