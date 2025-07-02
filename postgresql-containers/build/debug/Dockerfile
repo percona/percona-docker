@@ -1,6 +1,8 @@
+# syntax=docker/dockerfile:1
+
 FROM redhat/ubi9-minimal
 
-LABEL name="Percona PostgreSQL Distribution upgrade" \
+LABEL name="Percona PostgreSQL Distribution" \
     vendor="Percona" \
     summary="Percona Distribution for PostgreSQL" \
     description="Percona Distribution for PostgreSQL is a collection of tools to assist you in managing your PostgreSQL database system" \
@@ -14,7 +16,7 @@ RUN set -ex; \
 
 ENV LC_ALL en_US.utf-8
 ENV LANG en_US.utf-8
-ARG PG_MAJOR=17
+ARG PG_MAJOR=14
 
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
@@ -39,10 +41,11 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/epel-release.rpm; \
     rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
     rpm -i /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
-    rm -rf "$GNUPGHOME" /tmp/percona-release.rpmm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
     percona-release enable ppg-${PG_MAJOR} release
 
 RUN set -ex; \
+    microdnf -y install perl-DBI perl-DBD-Pg perl-XML-Parser; \
     yum-config-manager --disable ol9_appstream; \
     microdnf --disablerepo="ubi-9-appstream-rpms" -y install \
         llvm; \
@@ -62,81 +65,41 @@ RUN set -ex; \
         python3-pyparsing \
         perl \
         libedit \
+        openssh \
+        openssh-server \
+        openssh-clients \
         procps-ng; \
+    sed -i 's/install_langs C.utf8/install_langs all/' /etc/rpm/macros.image-language-conf; \
     microdnf -y install \
         libpq \
-        percona-postgresql${PG_MAJOR//.}; \
-    microdnf -y clean all; \
-    rm -rf /var/cache/dnf /var/cache/yum
+        glibc-all-langpacks \
+        percona-postgresql${PG_MAJOR%%.*}; \
+    microdnf -y clean all
+
+# Preserving PGVERSION out of paranoia
+ENV PGROOT="/usr/pgsql-${PG_MAJOR%%.*}" PGVERSION="${PG_MAJOR%%.*}"
 
 RUN set -ex; \
     microdnf -y install \
         --enablerepo="ol9_developer_EPEL" \
-        percona-pgaudit${PG_MAJOR//.} \
-        percona-pgaudit${PG_MAJOR//.}_set_user \
-        percona-postgresql${PG_MAJOR//.}-contrib \
-        percona-postgresql${PG_MAJOR//.}-server \
-        percona-postgresql${PG_MAJOR//.}-libs \
-        percona-postgresql${PG_MAJOR//.}-llvmjit \
-        percona-wal2json${PG_MAJOR//.} \
-        percona-pg_stat_monitor${PG_MAJOR//.} \
-        percona-pgvector_${PG_MAJOR//.} \
-        percona-pgvector_${PG_MAJOR//.}-llvmjit \
+        percona-pgaudit${PG_MAJOR%%.*} \
+        percona-pgaudit${PG_MAJOR%%.*}_set_user \
+        percona-pgbackrest \
+        percona-postgresql${PG_MAJOR%%.*}-contrib \
+        percona-postgresql${PG_MAJOR%%.*}-server \
+        percona-postgresql${PG_MAJOR%%.*}-libs \
+        percona-pg_stat_monitor${PG_MAJOR%%.*} \
+        percona-postgresql${PG_MAJOR%%.*}-llvmjit \
+        percona-wal2json${PG_MAJOR%%.*} \
+        percona-pg_repack${PG_MAJOR%%.*} \
+        psmisc \
+        rsync \
+        perl \
         nss_wrapper \
+        tar \
+        bzip2 \
         lz4 \
+        file \
+        tzdata \
         unzip; \
-    microdnf -y reinstall tzdata; \
-    microdnf clean all; \
-    rm -rf /var/cache/dnf /var/cache/yum
-
-RUN for pg_version in 17; do \
-        percona-release enable ppg-${pg_version} release; \
-        microdnf -y install --nodocs \
-            percona-pgaudit${pg_version} \
-            percona-pgaudit${pg_version}_set_user \
-            percona-postgresql${pg_version}-contrib \
-            percona-postgresql${pg_version}-server \
-            percona-postgresql${pg_version}-libs \
-            percona-postgresql${pg_version}-llvmjit \
-            percona-wal2json${pg_version} \
-            percona-pg_stat_monitor${pg_version}; \
-
-        if [[ "${pg_version}" -gt 12 ]]; then \
-            microdnf -y install --nodocs percona-pgvector_${pg_version} percona-pgvector_${pg_version}-llvmjit; \
-        fi; \
-    done && microdnf -y clean all && rm -rf /var/cache/dnf /var/cache/yum
-
-RUN set -ex; \
-    curl -Lf \
-        -o /tmp/postgresql18-beta1.rpm \
-        https://download.postgresql.org/pub/repos/yum/testing/18/redhat/rhel-9-x86_64/postgresql18-18-beta1_2PGDG.rhel9.x86_64.rpm; \
-    curl -Lf \
-        -o /tmp/postgresql18-libs-beta1.rpm \
-        https://download.postgresql.org/pub/repos/yum/testing/18/redhat/rhel-9-x86_64/postgresql18-libs-18-beta1_2PGDG.rhel9.x86_64.rpm; \
-    curl -Lf \
-        -o /tmp/postgresql18-server-beta1.rpm \
-        https://download.postgresql.org/pub/repos/yum/testing/18/redhat/rhel-9-x86_64/postgresql18-server-18-beta1_2PGDG.rhel9.x86_64.rpm; \
-    dnf install -y numactl-libs liburing; \
-    rpm -i \
-        /tmp/postgresql18-beta1.rpm \
-        /tmp/postgresql18-libs-beta1.rpm \
-        /tmp/postgresql18-server-beta1.rpm;
-
-RUN mkdir -p /opt/crunchy/bin /pgolddata /pgnewdata /opt/crunchy/conf
-COPY bin/upgrade/ /opt/crunchy/bin
-COPY bin/common /opt/crunchy/bin
-COPY conf/upgrade/ /opt/crunchy/conf
-COPY bin/relocate-extensions.sh /usr/local/bin/relocate-extensions.sh
-
-RUN chown -R postgres:postgres /opt/crunchy /pgolddata /pgnewdata && \
-    chmod -R g=u /opt/crunchy /pgolddata /pgnewdata
-
-VOLUME /pgolddata /pgnewdata
-
-ENV NSS_WRAPPER_SUBDIR="upgrade"
-
-ENTRYPOINT ["opt/crunchy/bin/uid_postgres.sh"]
-
-USER 26
-
-CMD ["/opt/crunchy/bin/start.sh"]
+        microdnf -y reinstall tzdata; \
