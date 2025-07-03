@@ -88,8 +88,7 @@ RUN set -ex; \
     sed -i 's/install_langs C.utf8/install_langs all/' /etc/rpm/macros.image-language-conf; \
     microdnf -y install \
         libpq \
-        glibc-all-langpacks \
-        percona-postgresql${PG_MAJOR%%.*}; \
+        glibc-all-langpacks; \
     microdnf -y clean all
 
 # Preserving PGVERSION out of paranoia
@@ -98,16 +97,7 @@ ENV PGROOT="/usr/pgsql-${PG_MAJOR%%.*}" PGVERSION="${PG_MAJOR%%.*}"
 RUN set -ex; \
     microdnf -y install \
         --enablerepo="ol9_developer_EPEL" \
-        percona-pgaudit${PG_MAJOR%%.*} \
-        percona-pgaudit${PG_MAJOR%%.*}_set_user \
         percona-pgbackrest \
-        percona-postgresql${PG_MAJOR%%.*}-contrib \
-        percona-postgresql${PG_MAJOR%%.*}-server \
-        percona-postgresql${PG_MAJOR%%.*}-libs \
-        percona-pg_stat_monitor${PG_MAJOR%%.*} \
-        percona-postgresql${PG_MAJOR%%.*}-llvmjit \
-        percona-wal2json${PG_MAJOR%%.*} \
-        percona-pg_repack${PG_MAJOR%%.*} \
         psmisc \
         rsync \
         perl \
@@ -131,18 +121,29 @@ RUN set -ex; \
         ydiff \
         percona-patroni; \
     microdnf clean all; \
-    rm -rf /var/cache/dnf /var/cache/yum
+    rm -rf /var/cache/dnf /var/cache/yum;
 
-RUN if [[ "${PG_MAJOR%%.*}" -ge '13' ]]; then \
-        microdnf -y install \
-            --enablerepo="ol9_developer_EPEL" \
-            percona-pgvector_${PG_MAJOR%%.*} \
-            percona-pgvector_${PG_MAJOR%%.*}-llvmjit; \
-    fi; \
-    rpm -e percona-telemetry-agent --nodeps; \
-    microdnf clean all; \
-    rm -rf /var/cache/dnf /var/cache/yum
+RUN set -ex; \
+    curl -Lf \
+        -o /tmp/postgresql18-beta1.rpm \
+        https://download.postgresql.org/pub/repos/yum/testing/18/redhat/rhel-9-x86_64/postgresql18-18-beta1_2PGDG.rhel9.x86_64.rpm; \
+    curl -Lf \
+        -o /tmp/postgresql18-libs-beta1.rpm \
+        https://download.postgresql.org/pub/repos/yum/testing/18/redhat/rhel-9-x86_64/postgresql18-libs-18-beta1_2PGDG.rhel9.x86_64.rpm; \
+    curl -Lf \
+        -o /tmp/postgresql18-contrib-beta1.rpm \
+        https://download.postgresql.org/pub/repos/yum/testing/18/redhat/rhel-9-x86_64/postgresql18-contrib-18-beta1_2PGDG.rhel9.x86_64.rpm; \
+    curl -Lf \
+        -o /tmp/postgresql18-server-beta1.rpm \
+        https://download.postgresql.org/pub/repos/yum/testing/18/redhat/rhel-9-x86_64/postgresql18-server-18-beta1_2PGDG.rhel9.x86_64.rpm; \
+    dnf install -y numactl-libs liburing libxslt; \
+    rpm -i \
+        /tmp/postgresql18-beta1.rpm \
+        /tmp/postgresql18-libs-beta1.rpm \
+        /tmp/postgresql18-contrib-beta1.rpm \
+        /tmp/postgresql18-server-beta1.rpm;
 
+ENV PGROOT="/usr/pgsql-18" PGVERSION="18"
 ENV PATH="${PGROOT}/bin:${PATH}"
 
 RUN set -ex; \
