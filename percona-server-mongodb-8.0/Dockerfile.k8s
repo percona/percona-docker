@@ -67,8 +67,6 @@ RUN set -ex; \
         cyrus-sasl-gssapi \
         policycoreutils; \
         \
-    curl -O https://download.rockylinux.org/pub/rocky/RPM-GPG-KEY-Rocky-9; \
-    rpm --import RPM-GPG-KEY-Rocky-9; \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-80/yum/${PSMDB_REPO}/9/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
