@@ -58,8 +58,6 @@ RUN set -ex; \
 
 RUN set -ex; \
     ARCH="$(uname -m)"; \
-    curl -O https://download.rockylinux.org/pub/rocky/RPM-GPG-KEY-Rocky-9; \
-    rpm --import RPM-GPG-KEY-Rocky-9; \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-80/yum/${PSMDB_REPO}/9/RPMS/${ARCH}/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.${ARCH}.rpm; \
     rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
