@@ -51,6 +51,7 @@ RUN set -ex; \
         tar \
         oniguruma \
         cyrus-sasl-gssapi \
+        cyrus-sasl-plain \
         policycoreutils; \
         \
     ARCH="$(uname -m)"; \

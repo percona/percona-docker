@@ -46,6 +46,7 @@ RUN set -ex; \
         procps-ng \
         tar \
         cyrus-sasl-gssapi \
+        cyrus-sasl-plain \
         policycoreutils; \
         \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-80/yum/${PSMDB_REPO}/8/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
