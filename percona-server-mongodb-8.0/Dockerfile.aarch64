@@ -52,6 +52,7 @@ RUN set -ex; \
         tar \
         oniguruma \
         cyrus-sasl-gssapi \
+        cyrus-sasl-plain \
         policycoreutils; \
         \
 	echo test
