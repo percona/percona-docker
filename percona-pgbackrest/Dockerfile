@@ -44,6 +44,7 @@ RUN set -ex; \
         --enablerepo="ol9_developer_EPEL" \
         percona-pgbackrest \
         procps-ng \
+        gettext \
         nss_wrapper; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
