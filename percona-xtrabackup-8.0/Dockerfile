@@ -1,6 +1,11 @@
 FROM redhat/ubi9-minimal
 
-LABEL org.opencontainers.image.authors="info@percona.com"
+LABEL name="XtraBackup" \
+      description="Percona XtraBackup is an open-source tool that performs hot, non-blocking backups of MySQL and Percona Server databases with minimal downtime" \
+      vendor="Percona" \
+      summary="Percona XtraBackup is a powerful backup utility for MySQL and Percona Server" \
+      maintainer="Percona Development <info@percona.com>" \
+      org.opencontainers.image.authors="info@percona.com
 
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
@@ -106,6 +111,8 @@ RUN set -eux; \
     mkdir -p /usr/local/percona; \
     chown mysql:mysql /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
+
+COPY LICENSE /licenses/LICENSE.Dockerfile
 
 COPY pxb-entry.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
