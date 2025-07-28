@@ -5,7 +5,7 @@ LABEL name="XtraBackup" \
       vendor="Percona" \
       summary="Percona XtraBackup is a powerful backup utility for MySQL and Percona Server" \
       maintainer="Percona Development <info@percona.com>" \
-      org.opencontainers.image.authors="info@percona.com
+      org.opencontainers.image.authors="info@percona.com"
 
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
