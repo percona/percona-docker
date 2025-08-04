@@ -1,11 +1,11 @@
 FROM oraclelinux:9 AS downloader
 
 RUN yum install -y epel-release; \
-	yum config-manager --set-enabled ol9_codeready_builder; \
-	yum install -y --downloadonly perl-JSON; \
-	mkdir -p downloaded-packages; \
-	cp -rp /var/cache/dnf/ol9_appstream-*/packages/*.rpm downloaded-packages; \
-	tar -cvzf downloaded-packages.tar.gz downloaded-packages
+    yum config-manager --set-enabled ol9_codeready_builder; \
+    yum install -y --downloadonly perl-JSON; \
+    mkdir -p downloaded-packages; \
+    cp -rp /var/cache/dnf/ol9_appstream-*/packages/*.rpm downloaded-packages; \
+    tar -cvzf downloaded-packages.tar.gz downloaded-packages
 
 FROM redhat/ubi9-minimal
 
@@ -64,20 +64,18 @@ RUN set -ex; \
     microdnf -y reinstall tzdata; \
     microdnf clean all
 
-# the numeric UID is needed for OpenShift
-RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
-            -c "Default Application User" postgres
-
 ENV PGDATA /data/db
+ENV PGROOT="/usr/pgsql-${PPG_MAJOR_VERSION}"
+ENV PATH="/pgdata:${PGROOT}/bin:${PATH}"
 
 COPY --from=downloader /downloaded-packages.tar.gz .
 RUN tar -xvzf downloaded-packages.tar.gz; \
-	cd downloaded-packages; \
+        cd downloaded-packages; \
         rpm -ivh perl-*.rpm; \
         rpm -ivh perl-JSON*.rpm; \
-	rm -f /downloaded-packages.tar.gz; \
-	cd -; \
-	rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
+        rm -f /downloaded-packages.tar.gz; \
+        cd -; \
+        rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
 
 RUN set -ex; \
     microdnf install -y \
@@ -88,11 +86,33 @@ RUN set -ex; \
         percona-pg_repack${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION}_set_user \
+        percona-pgbackrest \
 	percona-pgvector_${PPG_MAJOR_VERSION} \
         percona-wal2json${PPG_MAJOR_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
-    chown -R 1001:0 $PGDATA docker-entrypoint-initdb.d
+    chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
+
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F ; \
+    gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+    gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle; \
+    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+    microdnf install -y yum-utils; \
+    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oraclelinux-release-el9-1.0-15.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oracle-epel-release-el9-1.0-1.el9.x86_64.rpm; \
+    rpmkeys --checksig /tmp/epel-release.rpm; \
+    rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
+    rpm -i /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/epel-release.rpm /tmp/oraclelinux-release.rpm;
+
+RUN set -ex; \
+    microdnf -y update; \
+    microdnf install -y --enablerepo="ol9_developer_EPEL"\
+        python3-click \
+        percona-patroni; \
+    microdnf clean all
 
 RUN set -ex; \
     sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-${PPG_MAJOR_VERSION}/share/postgresql.conf.sample; \
@@ -119,15 +139,15 @@ COPY entrypoint.sh /entrypoint.sh
 ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
 RUN chmod a+rx call-home.sh
 RUN mkdir -p /usr/local/percona
-RUN chown 1001:0 /usr/local/percona
+RUN chown postgres:postgres /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY telemetry-agent-supervisor.sh /usr/bin/
 RUN set -ex; \
-    chown  1001:0 /usr/bin/telemetry-agent-supervisor.sh; \
-    chown  1001:0 /usr/bin/percona-telemetry-agent; \
-    chown  1001:0 /usr/local/percona/telemetry/history; \
-    chown -R 1001:0 /var/log/percona; \
+    chown  postgres:postgres /usr/bin/telemetry-agent-supervisor.sh; \
+    chown  postgres:postgres /usr/bin/percona-telemetry-agent; \
+    chown  postgres:postgres /usr/local/percona/telemetry/history; \
+    chown -R postgres:postgres /var/log/percona; \
     chmod ug+rwx /usr/bin/telemetry-agent-supervisor.sh;
 ENV PERCONA_TELEMETRY_CHECK_INTERVAL=86400
 ENV PERCONA_TELEMETRY_HISTORY_KEEP_INTERVAL=604800
@@ -136,10 +156,20 @@ ENV PERCONA_TELEMETRY_URL=https://check.percona.com/v1/telemetry/GenericReport
 
 VOLUME ["/data/db"]
 
+RUN rm -f /etc/pgbackrest.conf
+
+# add volumes to allow override of pg_hba.conf and postgresql.conf
+# add volumes to offer a restore feature
+# add volumes to allow storage of postgres WAL segment files
+# add volumes for pgbackrest to write to
+# The VOLUME directive must appear after all RUN directives to ensure the proper
+# volume permissions are applied when building the image
+VOLUME ["/sshd", "/pgconf", "/pgdata", "/pgwal", "/backrestrepo"]
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 5432
 
-USER 1001
+USER 26
 
 CMD ["postgres"]
