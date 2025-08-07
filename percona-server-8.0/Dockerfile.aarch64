@@ -8,8 +8,10 @@ FROM redhat/ubi9-minimal
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 ENV PS_VERSION 8.0.42-33.1
+ENV MYSQL_SHELL_VERSION 8.0.42-1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
 ENV PS_REPO testing
 ENV PS_TELEMETRY_VERSION 8.0.42-33-1
 ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
@@ -46,6 +48,7 @@ RUN set -ex; \
     #microdnf -y module disable mysql; \
     percona-release disable all; \
     percona-release enable ps-80 ${PS_REPO}; \
+    percona-release enable mysql-shell ${PS_REPO}; \
     percona-release enable telemetry ${PS_REPO}; \
     rm -rf /tmp/percona-*; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
@@ -82,6 +85,7 @@ RUN set -ex; \
         percona-server-rocksdb-${FULL_PERCONA_VERSION} \
         percona-server-devel-${FULL_PERCONA_VERSION} \
         percona-icu-data-files-${FULL_PERCONA_VERSION} \
+        percona-mysql-shell-${FULL_MYSQL_SHELL_VERSION} \
         percona-telemetry-agent; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
