@@ -123,7 +123,7 @@ ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY ps-entry.sh /docker-entrypoint.sh
 COPY telemetry-agent-supervisor.sh /usr/bin/
-COPY dockerdir /
+COPY dockerdir/ /
 RUN set -ex; \
     chown  mysql /usr/bin/telemetry-agent-supervisor.sh; \
     chown  mysql /usr/bin/percona-telemetry-agent; \
