@@ -1,0 +1,216 @@
+FROM rockylinux:9 AS pxc_builder
+
+RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+RUN yum install -v -y git yum-utils 
+ 
+#RUN yum clean all
+
+RUN  yum install -y cpio.x86_64
+
+RUN mkdir /build
+RUN mkdir /src
+
+RUN dnf -y install dnf-plugins-core
+#RUN dnf config-manager --set-enabled powertools
+RUN dnf config-manager --set-enabled crb
+RUN dnf -y install rpcsvc-proto-devel
+
+#build PS
+RUN git clone --branch=release-8.4.6-6 --depth=1 https://github.com/percona/percona-server.git /src
+
+WORKDIR /src
+RUN git submodule update --init --recursive
+RUN chmod +x ./build-ps/percona-server-8.0_builder.sh; ./build-ps/percona-server-8.0_builder.sh  --install_deps=1 --builddir=/build
+RUN yum install -y gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-binutils gcc-toolset-12-annobin-annocheck gcc-toolset-12-annobin-plugin-gcc rpcgen
+RUN ls -l /usr/lib64/libj*
+
+#RUN yum install -v -y  jemalloc jemalloc-devel
+RUN yum install -v -y  libatomic.x86_64 libatomic_ops-devel.x86_64 boost-atomic.x86_64
+RUN yum -y install gcc-toolset-*libatomic* libaio1
+
+RUN ls -l /usr/lib64/libj*
+
+
+WORKDIR /build
+RUN source /opt/rh/gcc-toolset-12/enable; \
+    cmake /src/ \
+    -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+    -DDOWNLOAD_BOOST=1 \
+    -DENABLED_LOCAL_INFILE=1 \
+    -DWITH_DEBUG=0 \
+    -DWITH_INNODB_EXTRA_DEBUG=0 \
+    -DWITH_INNODB_MEMCACHED=0 \
+    -DWITH_FEDERATED_STORAGE_ENGINE=0 \
+    -DWITH_ARCHIVE_STORAGE_ENGINE=0 \
+    -DWITH_JEMALLOC=0 \
+    -DWITH_PACKAGE_FLAGS=OFF \
+    -DWITHOUT_ROCKSDB=ON \
+    -DWITH_BOOST=/opt/boost \
+    -DCOMPILATION_COMMENT_SERVER="Marco compile" \
+    -DCOMPILATION_COMMENT="Marco compile"
+
+RUN source /opt/rh/gcc-toolset-12/enable; \
+    make -j 6
+RUN make install
+
+RUN ls -l /usr/lib64/libj*
+
+
+#COPY dockerdir /
+
+#COPY --from=go_builder /go/src/github.com/percona/percona-xtradb-cluster-operator/cmd/peer-list /usr/bin/
+
+RUN mkdir -p /usr/lib64/mysql
+RUN mkdir -p /usr/share/mysql
+RUN mkdir -p /usr/include/mysql
+
+
+# This Dockerfile should be used for docker official repo
+
+# https://github.com/docker-library/official-images:
+# No official images can be derived from, or depend on, non-official images
+# with the following notable exceptions...
+FROM redhat/ubi9-minimal
+
+LABEL org.opencontainers.image.authors="info@percona.com"
+
+# It is intentionally used another UID, to have backward compatibility with
+# the previous image versions published on Docker Hub
+RUN set -ex; \
+    #groupdel input; \
+    #userdel systemd-coredump; \
+    groupadd -g 1001 mysql; \
+    useradd -u 1001 -r -g 1001 -s /sbin/nologin \
+        -m -c "Default Application User" mysql
+
+ENV PS_VERSION 8.4.5-6.1
+ENV MYSQL_SHELL_VERSION 8.4.6-1
+ENV OS_VER el9
+ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
+ENV PS_REPO testing
+ENV PS_TELEMETRY_VERSION 8.4.6-6-1
+ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
+ENV KEY_RPM_DOWNLOAD_SHA256 fcf0eab4f05a1c0de6363ac4b707600a27a9d774e9b491059e59e6921b255a84
+ENV CALL_HOME_VERSION 0.1
+# Do not report during Docker image creation.
+# Note that doing so, would create telemetry config file
+# which would prevent reporting when new container is started.
+# If we want to track Docker image creation as well,
+# remove telemetry config file after installing packages!
+ARG PERCONA_TELEMETRY_DISABLE=1
+
+# check repository package signature in secure way
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D; \
+    gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
+    gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+    rpmkeys --checksig /tmp/percona-release.rpm; \
+    microdnf install -y findutils; \
+    rpm -i /tmp/percona-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    percona-release disable all; \
+    percona-release enable ps-84-lts ${PS_REPO}; \
+    percona-release enable telemetry ${PS_REPO}; \
+    percona-release enable mysql-shell ${PS_REPO}; \
+    curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
+    echo "$KEY_RPM_DOWNLOAD_SHA256 RPM-GPG-KEY-EPEL-9" | sha256sum --strict --check; \
+    rpm --import RPM-GPG-KEY-EPEL-9; \
+    curl -Lf -o /tmp/jemalloc.rpm https://rpmfind.net/linux/epel/9/Everything/x86_64/Packages/j/jemalloc-5.2.1-2.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/gflags.rpm https://rpmfind.net/linux/epel/9/Everything/x86_64/Packages/g/gflags-2.2.2-9.el9.x86_64.rpm; \
+    rpmkeys --checksig /tmp/gflags.rpm /tmp/jemalloc.rpm; \
+    rpm -i /tmp/jemalloc.rpm; \
+    rpm -i /tmp/gflags.rpm; \
+    rm -f /tmp/gflags.rpm /tmp/jemalloc.rpm
+
+RUN set -ex; \
+    #microdnf -y install epel-release; \
+    rpm -e --nodeps tzdata; \
+    microdnf -y install \
+        hostname \
+        tzdata \
+        jemalloc \
+        which \
+        cracklib-dicts \
+        tar \
+        policycoreutils; \
+    microdnf -y update \
+        #glibc \
+        libnghttp2 \
+        openssh \
+        python3-setuptools-wheel \
+        krb5-libs \
+        pam \
+        libaio \
+        python3; \
+    \
+    microdnf -y install \
+        percona-mysql-shell-${FULL_MYSQL_SHELL_VERSION}; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
+
+# purge and re-create /var/lib/mysql with appropriate ownership
+RUN set -ex; \
+    /usr/bin/install -m 0775 -o mysql -g root /dev/null  /etc/my.cnf ; \
+    /usr/bin/install -m 0775 -o mysql -g root -d /etc/my.cnf.d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d; \
+# comment out a few problematic configuration values
+	find /etc/my.cnf /etc/my.cnf.d -name '*.cnf' -print0 \
+		| xargs -0 grep -lZE '^(bind-address|log|user)' \
+		| xargs -rt -0 sed -Ei 's/^(bind-address|log|user)/#&/'; \
+# don't reverse lookup hostnames, they are usually another container
+	echo '!includedir /etc/my.cnf.d' >> /etc/my.cnf; \
+	printf '[mysqld]\nhost_cache_size=0\nskip-name-resolve\n' > /etc/my.cnf.d/docker.cnf; \
+# allow to change config files
+	chown -R mysql:root /etc/my.cnf /etc/my.cnf.d; \
+	chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
+
+
+RUN set -ex; \
+    ln -s /etc/mysql/conf.d /etc/my.cnf.d; \
+    rm -f /etc/percona-xtradb-cluster.conf.d/*.cnf; \
+    echo '!include /etc/mysql/node.cnf' > /etc/my.cnf
+
+VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+
+COPY ps-entry.sh /docker-entrypoint.sh
+
+COPY --from=pxc_builder /usr/local/mysql/bin/ /usr/bin/
+COPY --from=pxc_builder /usr/local/mysql/lib/ /usr/lib/
+COPY --from=pxc_builder /usr/local/mysql/share/ /usr/share/
+COPY --from=pxc_builder /usr/local/mysql/include/ /usr/include/mysql/
+COPY --from=pxc_builder /usr/lib64/libjemalloc* /usr/lib64/
+
+RUN ls -l /usr/bin/
+#RUN ls -l /usr/bin/pxc_extra
+# RUN pippo
+
+RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d; \
+    chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d; \
+    chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d
+
+RUN microdnf install -y nc
+
+RUN set -ex; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
+
+
+ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
+RUN chmod a+rx /call-home.sh
+RUN mkdir -p /usr/local/percona
+RUN chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}-openshift"
+
+USER 1001
+
+VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+EXPOSE 3306 4567 4568 33060
+CMD ["mysqld"]
