@@ -60,6 +60,21 @@ RUN set -ex; \
     rpm -i /tmp/gflags.rpm; \
     rm -f /tmp/gflags.rpm /tmp/jemalloc.rpm
 
+# tcmalloc is not available via package manager
+# Install required build tools and dependencies, build tcmalloc and cleanup
+ARG TCMALLOC_RELEASE_TAG=gperftools-2.16
+RUN microdnf install -y git gcc gcc-c++ make autoconf automake libtool which tar patch \
+    && git clone --depth 1 --branch ${TCMALLOC_RELEASE_TAG} https://github.com/gperftools/gperftools.git \
+    && cd gperftools \
+    && ./autogen.sh \
+    && ./configure --prefix=/usr --disable-debugalloc \
+    && make -j$(nproc) \
+    && make install \
+    && cd .. \
+    && rm -rf gperftools \
+    && microdnf clean all \
+    && ldconfig
+
 RUN set -ex; \
     #microdnf -y install epel-release; \
     rpm -e --nodeps tzdata; \
