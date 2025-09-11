@@ -26,7 +26,7 @@ RUN ls -l /usr/lib64/libj*
 
 #RUN yum install -v -y  jemalloc jemalloc-devel
 RUN yum install -v -y  libatomic.x86_64 libatomic_ops-devel.x86_64 boost-atomic.x86_64
-RUN yum -y install gcc-toolset-*libatomic* libaio1
+RUN yum -y install gcc-toolset-*libatomic*
 
 RUN ls -l /usr/lib64/libj*
 
@@ -137,6 +137,9 @@ RUN set -ex; \
         which \
         cracklib-dicts \
         tar \
+        libaio \
+        numactl \
+        numactl-libs \
         policycoreutils; \
     microdnf -y update \
         #glibc \
@@ -145,7 +148,6 @@ RUN set -ex; \
         python3-setuptools-wheel \
         krb5-libs \
         pam \
-        libaio \
         python3; \
     \
     microdnf -y install \
@@ -176,6 +178,8 @@ RUN set -ex; \
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
+
+COPY dockerdir /
 
 COPY ps-entry.sh /docker-entrypoint.sh
 
