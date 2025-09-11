@@ -140,7 +140,8 @@ RUN set -ex; \
         libaio \
         numactl \
         numactl-libs \
-        policycoreutils; \
+        policycoreutils \
+        libtirpc; \
     microdnf -y update \
         #glibc \
         libnghttp2 \
@@ -172,6 +173,7 @@ RUN set -ex; \
 
 
 RUN set -ex; \
+    mkdir -p /etc/mysql/conf.d; \
     ln -s /etc/mysql/conf.d /etc/my.cnf.d; \
     rm -f /etc/percona-xtradb-cluster.conf.d/*.cnf; \
     echo '!include /etc/mysql/node.cnf' > /etc/my.cnf
@@ -197,7 +199,7 @@ RUN mkdir -p /etc/mysql/conf.d/ /var/log/mysql /var/lib/mysql /docker-entrypoint
     chown -R 1001:1001 /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d; \
     chmod -R g=u /etc/mysql/ /var/log/mysql /var/lib/mysql /docker-entrypoint-initdb.d
 
-RUN microdnf install -y nc
+RUN microdnf install -y nc libtirpc
 
 RUN set -ex; \
     microdnf clean all; \
@@ -208,13 +210,15 @@ ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-h
 RUN chmod a+rx /call-home.sh
 RUN mkdir -p /usr/local/percona
 RUN chown mysql:mysql /usr/local/percona
+# Pre-create /usr/data directory for ps-entrypoint.sh
+RUN mkdir -p /usr/data && chown -R 1001:1001 /usr/data
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}-openshift"
 
 USER 1001
 
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 EXPOSE 3306 4567 4568 33060
 CMD ["mysqld"]
