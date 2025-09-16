@@ -40,7 +40,7 @@ RUN set -ex; \
     rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
-    microdnf install -y findutils; \
+    microdnf install -y findutils libssh; \
     rpm -i /tmp/percona-release.rpm; \
     sed -i "s|x86_64|x86_64 aarch64|" /usr/bin/percona-release; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
