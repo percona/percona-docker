@@ -12,7 +12,8 @@ FROM redhat/ubi9-minimal
 LABEL org.opencontainers.image.authors="info@percona.com"
 
 RUN microdnf -y update; \
-    microdnf -y install glibc-langpack-en
+    microdnf -y install glibc-langpack-en; \
+	microdnf -y install systemd-rpm-macros
 
 ENV PPG_VERSION 17.5-3
 ENV PPG_MAJOR_VERSION 17
