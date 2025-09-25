@@ -15,7 +15,7 @@ LABEL org.opencontainers.image.title="Percona Backup for MongoDB" \
     low-impact solution for achieving consistent backups of MongoDB Sharded Clusters and Replica Sets." \
     org.opencontainers.image.authors="info@percona.com"
 
-ENV PBM_VERSION 2.10.0-1
+ENV PBM_VERSION 2.11.0-1
 ENV PBM_REPO_CH release
 ENV OS_VER el9
 ENV FULL_PBM_VERSION "$PBM_VERSION.$OS_VER"
