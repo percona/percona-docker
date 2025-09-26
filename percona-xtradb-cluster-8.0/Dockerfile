@@ -67,6 +67,7 @@ RUN set -ex; \
         diffutils \
         libaio \
         which \
+        nc \
         pam \
         procps-ng \
         cracklib-dicts \
