@@ -70,6 +70,7 @@ RUN set -ex; \
         iproute \
         libaio \
         which \
+        nc \
         pam \
         procps-ng \
         tar \
