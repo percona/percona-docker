@@ -73,6 +73,7 @@ RUN set -ex; \
         percona-telemetry-agent \
         libatomic \
         kernel-headers \
+        cyrus-sasl-scram \
         tar; \
     microdnf update -y \
         libksba \

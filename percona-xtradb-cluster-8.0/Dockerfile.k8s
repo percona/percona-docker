@@ -74,6 +74,7 @@ RUN set -ex; \
         pam \
         procps-ng \
         tar \
+        cyrus-sasl-scram \
         cracklib-dicts; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum

@@ -73,6 +73,7 @@ RUN set -ex; \
         cracklib-dicts \
         percona-telemetry-agent \
         libatomic \
+        cyrus-sasl-scram \
         tar; \
     microdnf update -y \
         libksba \
