@@ -13,6 +13,16 @@ LABEL name="Percona PostgreSQL Distribution" \
 USER 0
 
 ARG PG_MAJOR=14
+ARG PPG_REPO=testing
+
+ENV PPG_REPO ${PPG_REPO}
+
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 567E347AD0044ADE55BA8A5F199E2F91FD431D51; \
+    gpg --batch --export --armor 567E347AD0044ADE55BA8A5F199E2F91FD431D51 > /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release; \
+    rpmkeys --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release; \
+    percona-release enable ppg-${PG_MAJOR%%.*} ${PPG_REPO}
 
 RUN set -ex; \
     yum-config-manager --enable ol9_codeready_builder ol9_developer_EPEL ol9_baseos_latest ol9_appstream; \
