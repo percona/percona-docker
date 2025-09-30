@@ -15,12 +15,14 @@ RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en; \
 	microdnf -y install systemd-rpm-macros
 
+ARG PPG_REPO=testing
+
 ENV PPG_VERSION 14.17-1
 ENV PPG_MAJOR_VERSION 14
 ENV PPG_MINOR_VERSION 17
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
-ENV PPG_REPO testing
+ENV PPG_REPO ${PPG_REPO}
 ENV PPG_REPO_VERSION "${PPG_MAJOR_VERSION}.${PPG_MINOR_VERSION}"
 
 # Do not report during Docker image creation.
