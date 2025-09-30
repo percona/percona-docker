@@ -34,7 +34,7 @@ RUN set -ex; \
     percona-xtradb-cluster-client-${PERCONA_VERSION} tar vim-minimal; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
-    curl -Lf https://packages.fluentbit.io/centos/9/x86_64/fluent-bit-4.0.1-1.x86_64.rpm -o /tmp/fluent-bit.rpm; \
+    curl -Lf https://packages.fluentbit.io/centos/9/x86_64/fluent-bit-4.1.0-1.x86_64.rpm -o /tmp/fluent-bit.rpm; \
     rpmkeys --checksig /tmp/fluent-bit.rpm; \
     rpm -i /tmp/fluent-bit.rpm; \
     rm -rf /var/cache
