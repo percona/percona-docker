@@ -9,11 +9,11 @@ LABEL name="Percona XtraDB Cluster" \
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PXC_VERSION 8.4.5-5.1
+ENV PXC_VERSION 8.4.6-6.1
 ENV PXC_REPO testing
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
-ENV PXC_TELEMETRY_VERSION 8.4.5-5-1
+ENV PXC_TELEMETRY_VERSION 8.4.6-6-1
 
 # Do not report during Docker image creation.
 # Note that doing so, would create telemetry config file
