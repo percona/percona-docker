@@ -11,9 +11,18 @@ LABEL name="XtraBackup" \
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
+ARG PXC_REPO=release
+ARG PS_REPO=release
+ARG PXB_REPO=release
+ARG TOOLS_REPO=release
+
 ENV XTRABACKUP_VERSION 8.4.0-4.1
 ENV PS_VERSION 8.4.5-5.1
 ENV OS_VER el9
+ENV PXC_REPO ${PXC_REPO}
+ENV PS_REPO ${PS_REPO}
+ENV PXB_REPO ${PXB_REPO}
+ENV TOOLS_REPO ${TOOLS_REPO}
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_PERCONA_XTRABACKUP_VERSION "$XTRABACKUP_VERSION.$OS_VER"
 ENV PXB_TELEMETRY_VERSION "$XTRABACKUP_VERSION"
@@ -47,10 +56,10 @@ RUN set -ex; \
     #microdnf -y module disable mysql perl-DBD-MySQL; \
     percona-release disable all; \
     #percona-release setup -y ps-80; \
-    percona-release enable ps-84-lts release; \
-    percona-release enable pxc-84-lts release; \
-    percona-release enable pxb-84-lts testing; \
-    percona-release enable tools testing
+    percona-release enable ps-84-lts ${PS_REPO}; \
+    percona-release enable pxc-84-lts ${PXC_REPO}; \
+    percona-release enable pxb-84-lts ${PXB_REPO}; \
+    percona-release enable tools ${TOOLS_REPO}
 
 RUN set -ex; \
     microdnf -y install \
