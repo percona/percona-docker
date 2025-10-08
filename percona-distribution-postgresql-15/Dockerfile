@@ -9,7 +9,12 @@ RUN yum install -y epel-release; \
 
 FROM redhat/ubi9-minimal
 
-LABEL org.opencontainers.image.authors="info@percona.com"
+LABEL name="Percona Distribution for PostgreSQL" \
+      description="Essential / key PostgreSQL15 components. Percona Distribution for PostgreSQL features core components, tools and add-ons from the community, tested to work together in demanding enterprise environments." \
+      vendor="Percona" \
+      summary="Percona base selection of PostgreSQL15 components" \
+      maintainer="Percona Development <info@percona.com>" \
+      org.opencontainers.image.authors="info@percona.com"
 
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en; \
