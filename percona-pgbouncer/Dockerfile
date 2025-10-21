@@ -7,7 +7,7 @@ LABEL name="Percona PgBouncer" \
       maintainer="Percona Development <info@percona.com>" \
       org.opencontainers.image.authors="info@percona.com"
 
-ARG PG_VERSION=17.5
+ARG PG_VERSION=17.6
 ARG PPG_REPO=release
 ENV PG_VERSION=${PG_VERSION}
 ENV PPG_REPO=${PPG_REPO}
