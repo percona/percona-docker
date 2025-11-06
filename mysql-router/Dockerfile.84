@@ -4,7 +4,8 @@ LABEL name="mysql-router" \
       description="MySQL Router is lightweight middleware that provides transparent routing between your application and back-end MySQL Servers" \
       vendor="Percona" \
       summary="MySQL Router is lightweight middleware that provides transparent routing between your application and back-end MySQL Servers" \
-      org.opencontainers.image.authors="info@percona.com"
+      org.opencontainers.image.authors="info@percona.com" \
+      maintainer="Percona Development <info@percona.com>"
 
 ENV ROUTE_VERSION 8.4.5-5.1
 ENV MYSQL_SHELL_VERSION 8.4.5-1
