@@ -79,7 +79,6 @@ RUN set -ex; \
         python3-setuptools-wheel \
         krb5-libs \
         pam \
-        setuptools \
         python3; \
     \
     microdnf -y install \
