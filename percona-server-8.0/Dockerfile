@@ -9,9 +9,9 @@ LABEL name="Percona Server" \
       release="8.0" \
       vendor="Percona" \
       summary="Percona Server database server" \
-      description="Percona Server is a fast, stable and true multi-user, multi-threaded SQL
-                   database server. SQL (Structured Query Language) is the most popular database
-                   query language in the world. The main goals of Percona Server are speed,
+      description="Percona Server is a fast, stable and true multi-user, multi-threaded SQL \
+                   database server. SQL (Structured Query Language) is the most popular database \
+                   query language in the world. The main goals of Percona Server are speed, \
                    robustness and ease of use." \
       maintainer="Percona Development <info@percona.com>"
 
