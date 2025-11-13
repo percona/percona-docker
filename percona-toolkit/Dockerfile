@@ -42,6 +42,7 @@ RUN   set -ex; \
       microdnf clean all; \
       rm -rf /var/cache/dnf /var/cache/yum
 
+COPY LICENSE /licenses/LICENSE.Dockerfile
 
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" perconatoolkit

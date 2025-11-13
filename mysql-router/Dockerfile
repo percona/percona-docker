@@ -62,6 +62,8 @@ RUN set -ex; \
     chmod -R 777 /tmp/mysqlrouter ; \
     chmod -R 777 /etc/mysqlrouter
 
+COPY LICENSE /licenses/LICENSE.Dockerfile
+
 VOLUME ["/var/lib/mysqlrouter"]
 
 USER 1001

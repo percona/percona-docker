@@ -109,6 +109,8 @@ RUN set -ex; \
 	chown -R mysql:root /etc/my.cnf /etc/my.cnf.d; \
 	chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
 
+COPY LICENSE /licenses/LICENSE.Dockerfile
+
 VOLUME ["/var/lib/mysql", "/var/log/mysql"]
 
 RUN set -eux; \
