@@ -4,6 +4,7 @@ LABEL name="orchestrator" \
       description="orchestrator is a MySQL high availability and replication management tool" \
       vendor="Percona" \
       summary="orchestrator is a MySQL high availability and replication management tool" \
+      maintainer="Percona Development <info@percona.com>" \
       org.opencontainers.image.authors="info@percona.com"
 
 # check repository package signature in secure way
@@ -50,6 +51,7 @@ RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
 RUN set -ex; \
     mkdir -p /etc/orchestrator /var/lib/orchestrator ; \
     chown -R 1001:1001 /etc/orchestrator /var/lib/orchestrator
+
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-orchestrator/LICENSE /licenses/LICENSE.orchestrator
 
