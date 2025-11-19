@@ -20,7 +20,6 @@ RUN set -ex; \
         ${GNUPGHOME}/PERCONA-PACKAGING-KEY \
         ${GNUPGHOME}/RPM-GPG-KEY-oracle \
         ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    microdnf install -y findutils yum-utils; \
     curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oraclelinux-release-el9-1.0-15.el9.x86_64.rpm; \
     curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oracle-epel-release-el9-1.0-1.el9.x86_64.rpm; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
@@ -28,16 +27,18 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     rpmkeys --checksig /tmp/epel-release.rpm; \
     rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
-    rpm -i /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    rpm -i /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm; \
+    microdnf install -y findutils yum-utils yum elfutils --disablerepo='*' --enablerepo=ol9_baseos_latest; \
+    rpm -i /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
     percona-release enable pt release
 
 RUN set -ex; \
     microdnf -y update; \
+    yum -y groupinstall "Development tools" --disablerepo=ubi-9-appstream-rpms,ubi-9-baseos-rpms; \
     microdnf -y install \
         percona-toolkit \
         perf \
-        yum \
         vim \
         hostname \
         sysstat \
@@ -48,12 +49,10 @@ RUN set -ex; \
         strace \
         golang \
         mpfr-devel \
-        elfutils \
         mpfr-devel \
         wget \
         aria2 \
         net-tools; \
-    yum -y groupinstall "Development tools"; \
     microdnf clean all; \
     yum clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
