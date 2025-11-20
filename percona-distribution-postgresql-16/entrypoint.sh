@@ -256,12 +256,6 @@ pg_setup_pg_stat_monitor() {
 	EOSQL
 }
 
-pg_setup_percona_pg_telemetry() {
-        docker_process_sql --dbname postgres <<-'EOSQL'
-                alter system set shared_preload_libraries=pg_stat_monitor,percona_pg_telemetry ;
-	EOSQL
-}
-
 # check arguments for an option that would cause postgres to stop
 # return true if there is one
 _pg_want_help() {
@@ -317,12 +311,7 @@ _main() {
 			docker_setup_db
 			docker_process_init_files /docker-entrypoint-initdb.d/*
 
-			if [[ "x${PERCONA_TELEMETRY_DISABLE}" == "x" ]] || [[ ${PERCONA_TELEMETRY_DISABLE} == "0" ]]; then
-				pg_setup_percona_pg_telemetry
-				/usr/bin/telemetry-agent-supervisor.sh &
-			else
-				pg_setup_pg_stat_monitor
-			fi
+			pg_setup_pg_stat_monitor
 
 			docker_temp_server_stop
 			unset PGPASSWORD
