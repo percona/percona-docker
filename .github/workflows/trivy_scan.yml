@@ -30,7 +30,7 @@ jobs:
           for product_name in ${products}; do
               if [ -d "${product_name}" ] && [ -f "${product_name}/Dockerfile" ]; then
                   docker_tag="percona/${product_name}:${{ github.sha }}"
-                  docker_build="docker build --no-cache -t ${docker_tag} ${product_name}"
+                  docker_build="docker build --provenance=false --no-cache -t ${docker_tag} ${product_name}"
                   strategy=$(echo ${strategy} | \
                              jq -c \
                                --arg product_name "${product_name}" \

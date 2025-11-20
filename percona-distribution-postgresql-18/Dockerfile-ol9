@@ -10,19 +10,18 @@ RUN yum install -y epel-release; \
 FROM redhat/ubi9-minimal
 
 LABEL name="Percona Distribution for PostgreSQL" \
-      description="Essential / key PostgreSQL17 components. Percona Distribution for PostgreSQL features core components, tools and add-ons from the community, tested to work together in demanding enterprise environments." \
+      description="Essential / key PostgreSQL18 components. Percona Distribution for PostgreSQL features core components, tools and add-ons from the community, tested to work together in demanding enterprise environments." \
       vendor="Percona" \
-      summary="Percona base selection of PostgreSQL17 components" \
+      summary="Percona base selection of PostgreSQL18 components" \
       maintainer="Percona Development <info@percona.com>" \
       org.opencontainers.image.authors="info@percona.com"
 
 RUN microdnf -y update; \
-    microdnf -y install glibc-langpack-en; \
-	microdnf -y install systemd-rpm-macros
+    microdnf -y install glibc-langpack-en
 
-ENV PPG_VERSION 17.7-1
-ENV PPG_MAJOR_VERSION 17
-ENV PPG_MINOR_VERSION 7
+ENV PPG_VERSION 18.1-1
+ENV PPG_MAJOR_VERSION 18
+ENV PPG_MINOR_VERSION 1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO testing
@@ -98,8 +97,8 @@ RUN set -ex; \
     gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle; \
     rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
     microdnf install -y yum-utils; \
-    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/aarch64/getPackage/oraclelinux-release-el9-1.0-15.el9.aarch64.rpm; \
-    curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/aarch64/getPackage/oracle-epel-release-el9-1.0-1.el9.aarch64.rpm; \
+    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oraclelinux-release-el9-1.0-15.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oracle-epel-release-el9-1.0-1.el9.x86_64.rpm; \
     rpmkeys --checksig /tmp/epel-release.rpm; \
     rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
     rpm -i /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
@@ -121,8 +120,8 @@ RUN cp /usr/share/doc/percona-postgresql${PPG_MAJOR_VERSION}/COPYRIGHT /licenses
 
 ENV GOSU_VERSION=1.11
 RUN set -eux; \
-    curl -Lf -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-arm64; \
-    curl -Lf -o /usr/bin/gosu.asc https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-arm64.asc; \
+    curl -Lf -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64; \
+    curl -Lf -o /usr/bin/gosu.asc https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64.asc; \
     \
     export GNUPGHOME="$(mktemp -d)"; \
     gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
