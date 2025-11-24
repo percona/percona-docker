@@ -22,20 +22,13 @@ RUN microdnf -y update; \
 
 ARG PPG_REPO=testing
 
-ENV PPG_VERSION 17.6-1
+ENV PPG_VERSION 17.7-1
 ENV PPG_MAJOR_VERSION 17
-ENV PPG_MINOR_VERSION 6
+ENV PPG_MINOR_VERSION 7
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO ${PPG_REPO}
 ENV PPG_REPO_VERSION "${PPG_MAJOR_VERSION}.${PPG_MINOR_VERSION}"
-
-# Do not report during Docker image creation.
-# Note that doing so, would create telemetry config file
-# which would prevent reporting when new container is started.
-# If we want to track Docker image creation as well,
-# remove telemetry config file after installing packages!
-ARG PERCONA_TELEMETRY_DISABLE=1
 
 # check repository package signature in secure way
 RUN set -ex; \
@@ -50,7 +43,6 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable telemetry ${PPG_REPO}; \
     percona-release enable ppg-${PPG_REPO_VERSION} ${PPG_REPO};
 
 RUN set -ex; \
@@ -90,6 +82,7 @@ RUN set -ex; \
         percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql-common \
+        percona-pg_tde_${PPG_MAJOR_VERSION} \
         percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
         percona-pg_repack${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION} \
@@ -143,24 +136,6 @@ RUN set -eux; \
     curl -f -o /licenses/LICENSE.gosu https://raw.githubusercontent.com/tianon/gosu/${GOSU_VERSION}/LICENSE
 
 COPY entrypoint.sh /entrypoint.sh
-
-ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
-RUN chmod a+rx call-home.sh
-RUN mkdir -p /usr/local/percona
-RUN chown postgres:postgres /usr/local/percona
-ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
-
-COPY telemetry-agent-supervisor.sh /usr/bin/
-RUN set -ex; \
-    chown  postgres:postgres /usr/bin/telemetry-agent-supervisor.sh; \
-    chown  postgres:postgres /usr/bin/percona-telemetry-agent; \
-    chown  postgres:postgres /usr/local/percona/telemetry/history; \
-    chown -R postgres:postgres /var/log/percona; \
-    chmod ug+rwx /usr/bin/telemetry-agent-supervisor.sh;
-ENV PERCONA_TELEMETRY_CHECK_INTERVAL=86400
-ENV PERCONA_TELEMETRY_HISTORY_KEEP_INTERVAL=604800
-ENV PERCONA_TELEMETRY_RESEND_INTERVAL=60
-ENV PERCONA_TELEMETRY_URL=https://check.percona.com/v1/telemetry/GenericReport
 
 VOLUME ["/data/db"]
 
