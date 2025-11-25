@@ -8,6 +8,8 @@ RUN set -ex; \
     microdnf -y install glibc-langpack-en \
         nss_wrapper \
         shadow-utils; \
+    microdnf -y update \
+        expat; \
     microdnf clean all; \
     groupadd -g 1001 mysql; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
