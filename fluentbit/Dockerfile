@@ -26,17 +26,25 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && percona-release enable psmdb-80 release
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION 8.0.42-33.1.el9
+ENV PERCONA_VERSION=8.0.42-33.1.el9
+
+# Add Fluent Bit repo
+RUN printf "%s\n" \
+    "[fluent-bit]" \
+    "name=Fluent Bit" \
+    "baseurl=https://packages.fluentbit.io/centos/9/" \
+    "gpgcheck=1" \
+    "gpgkey=https://packages.fluentbit.io/fluentbit.key" \
+    "repo_gpgcheck=1" \
+    "enabled=1" \
+    > /etc/yum.repos.d/fluent-bit.repo
 
 # fluentbit does not have el8 repo and the doc suggests installing el7 rpm
 RUN set -ex; \
-    microdnf install -y hostname postgresql-libs shadow-utils yum-utils logrotate make libpq procps-ng compat-openssl11 percona-mongodb-mongosh \
+    microdnf install -y hostname postgresql-libs shadow-utils yum-utils fluent-bit logrotate make libpq procps-ng compat-openssl11 percona-mongodb-mongosh \
     percona-xtradb-cluster-client-${PERCONA_VERSION} tar vim-minimal; \
     curl -Lf https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz -o /tmp/go-cron.tar.gz; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
-    curl -Lf https://packages.fluentbit.io/centos/9/x86_64/fluent-bit-4.0.1-1.x86_64.rpm -o /tmp/fluent-bit.rpm; \
-    rpmkeys --checksig /tmp/fluent-bit.rpm; \
-    rpm -i /tmp/fluent-bit.rpm; \
     rm -rf /var/cache
 
 
