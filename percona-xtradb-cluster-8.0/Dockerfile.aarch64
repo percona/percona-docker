@@ -50,12 +50,13 @@ RUN set -ex; \
     curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-6.el9.aarch64.rpm; \
     curl -Lf -o /tmp/pv.rpm https://downloads.percona.com/downloads/packaging/pv-1.6.20-1.el9.aarch64.rpm; \
     curl -Lf -o /tmp/jemalloc.rpm https://downloads.percona.com/downloads/packaging/jemalloc-5.2.1-2.el9.aarch64.rpm; \
+    curl -Lf -o /tmp/cyrus-sasl-scram.rpm https://downloads.percona.com/downloads/packaging/cyrus-sasl-scram-2.1.27-21.el9.aarch64.rpm; \
     rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm /tmp/jemalloc.rpm; \
     rpm -i /tmp/pv.rpm; \
     rpm -i /tmp/libev.rpm; \
     rpm -i /tmp/jemalloc.rpm; \
-    rm -rf /tmp/libev.rpm /tmp/pv.rpm /tmp/jemalloc.rpm
-
+    rpm -i /tmp/cyrus-sasl-scram.rpm; \
+    rm -rf /tmp/libev.rpm /tmp/pv.rpm /tmp/jemalloc.rpm /tmp/cyrus-sasl-scram.rpm
 
 RUN set -ex; \
     #percona-release setup -y ps-80; \
