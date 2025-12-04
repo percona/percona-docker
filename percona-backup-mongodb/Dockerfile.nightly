@@ -1,22 +1,5 @@
-FROM redhat/ubi9-minimal
-
-# Please don't remove old-style LABEL since it's needed for RedHat certification
-LABEL name="Percona Backup for MongoDB" \
-    maintainer="Percona Development <info@percona.com>" \
-    vendor="Percona" \
-    summary="Percona Backup for MongoDB" \
-    description="Percona Backup for MongoDB is a distributed, \
-    low-impact solution for achieving consistent backups of MongoDB Sharded Clusters and Replica Sets." \
-    org.opencontainers.image.authors="info@percona.com"
-
-LABEL org.opencontainers.image.title="Percona Backup for MongoDB" \
-    org.opencontainers.image.vendor="Percona" \
-    org.opencontainers.image.description="Percona Backup for MongoDB is a distributed, \
-    low-impact solution for achieving consistent backups of MongoDB Sharded Clusters and Replica Sets." \
-    org.opencontainers.image.authors="info@percona.com"
-
-ENV PSMDB_REPO psmdb-80
-ENV PSMDB_REPO_CH release
+# Build stage
+FROM redhat/ubi9-minimal AS builder
 
 # Install build dependencies including latest Go
 RUN set -ex; \
@@ -40,12 +23,37 @@ RUN set -ex; \
     git clone https://github.com/percona/percona-backup-mongodb.git /tmp/percona-backup-mongodb; \
     cd /tmp/percona-backup-mongodb; \
     git checkout ${PBM_BRANCH_OR_COMMIT}; \
-    make build && make build-entrypoint; \
-    cp bin/* /usr/local/bin/; \
-    rm -rf /tmp/percona-backup-mongodb /usr/local/go
+    make build && make build-entrypoint
+
+# Runtime stage
+FROM redhat/ubi9-minimal
+
+# Please don't remove old-style LABEL since it's needed for RedHat certification
+LABEL name="Percona Backup for MongoDB" \
+    maintainer="Percona Development <info@percona.com>" \
+    vendor="Percona" \
+    summary="Percona Backup for MongoDB" \
+    description="Percona Backup for MongoDB is a distributed, \
+    low-impact solution for achieving consistent backups of MongoDB Sharded Clusters and Replica Sets." \
+    org.opencontainers.image.authors="info@percona.com"
+
+LABEL org.opencontainers.image.title="Percona Backup for MongoDB" \
+    org.opencontainers.image.vendor="Percona" \
+    org.opencontainers.image.description="Percona Backup for MongoDB is a distributed, \
+    low-impact solution for achieving consistent backups of MongoDB Sharded Clusters and Replica Sets." \
+    org.opencontainers.image.authors="info@percona.com"
+
+ENV PSMDB_REPO psmdb-80
+ENV PSMDB_REPO_CH release
+
+# Copy built binaries from builder stage
+COPY --from=builder /tmp/percona-backup-mongodb/bin/* /usr/local/bin/
 
 # Install runtime dependencies and MongoDB shell
 RUN set -ex; \
+    microdnf -y update; \
+    microdnf -y install \
+        findutils; \
     export GNUPGHOME="$(mktemp -d)"; \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
