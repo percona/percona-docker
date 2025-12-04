@@ -48,7 +48,7 @@ RUN set -ex; \
     rpm --import RPM-GPG-KEY-EPEL-9; \
     curl -Lf -o /tmp/libev.rpm https://downloads.percona.com/downloads/packaging/libev-4.33-5.el9.x86_64.rpm; \
     curl -Lf -o /tmp/pv.rpm http://download.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/p/pv-1.6.20-1.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/cyrus-sasl-scram.rpm https://downloads.percona.com/downloads/packaging/cyrus-sasl-scram-2.1.27-21.el9.x86_64.rpm; \
+    curl -Lf -o /tmp/cyrus-sasl-scram.rpm https://downloads.percona.com/downloads/packaging/cyrus-sasl-scram-2.1.27-22.el9.x86_64.rpm; \
     rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm; \
     rpmkeys --checksig /tmp/libev.rpm /tmp/pv.rpm /tmp/cyrus-sasl-scram.rpm; \
     rpm -i /tmp/pv.rpm; \
