@@ -23,8 +23,7 @@ RUN set -ex; \
     git clone https://github.com/percona/percona-backup-mongodb.git /tmp/percona-backup-mongodb; \
     cd /tmp/percona-backup-mongodb; \
     git checkout ${PBM_BRANCH_OR_COMMIT}; \
-    make build && make build-entrypoint; \
-    cp bin/* /usr/local/bin/
+    make build && make build-entrypoint
 
 # Runtime stage
 FROM redhat/ubi9-minimal
@@ -48,7 +47,7 @@ ENV PSMDB_REPO psmdb-80
 ENV PSMDB_REPO_CH release
 
 # Copy built binaries from builder stage
-COPY --from=builder /usr/local/bin/* /usr/local/bin/
+COPY --from=builder /tmp/percona-backup-mongodb/bin/* /usr/local/bin/
 
 # Install runtime dependencies and MongoDB shell
 RUN set -ex; \
