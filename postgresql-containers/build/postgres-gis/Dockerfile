@@ -25,8 +25,14 @@ RUN set -ex; \
     percona-release enable ppg-${PG_MAJOR%%.*} ${PPG_REPO}
 
 RUN set -ex; \
-    yum-config-manager --enable ol9_codeready_builder ol9_developer_EPEL ol9_baseos_latest ol9_appstream; \
-    microdnf -y install percona-postgis33_${PG_MAJOR%%.*} percona-postgis33_${PG_MAJOR%%.*}-client
+    yum-config-manager --enable ol9_codeready_builder ol9_developer_EPEL ol9_baseos_latest ol9_appstream
+
+RUN set -eux; \
+    if [[ "${PG_MAJOR%%.*}" -ge '18' ]]; then \
+        microdnf -y install percona-postgis35_${PG_MAJOR%%.*} percona-postgis35_${PG_MAJOR%%.*}-client; \
+    else \
+        microdnf -y install percona-postgis33_${PG_MAJOR%%.*} percona-postgis33_${PG_MAJOR%%.*}-client; \
+    fi;
 
 EXPOSE 5432
 
