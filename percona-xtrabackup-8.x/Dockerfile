@@ -53,6 +53,7 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    microdnf install -y python3.12-pip; \
     #microdnf -y module disable mysql perl-DBD-MySQL; \
     percona-release disable all; \
     #percona-release setup -y ps-80; \
@@ -106,6 +107,10 @@ RUN set -ex; \
         lz4 \
         azure-cli \
         zstd; \
+    \
+    python3.12 -m pip install --upgrade --target /usr/lib64/az/lib/python3.12/site-packages urllib3; \
+    rm -rf /usr/lib64/az/lib/python3.12/site-packages/urllib3-2.5.0.dist-info/METADATA; \
+    microdnf remove -y python3.12-pip; \
     \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
