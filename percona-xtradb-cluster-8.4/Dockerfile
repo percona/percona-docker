@@ -80,6 +80,7 @@ RUN set -ex; \
         percona-telemetry-agent \
         libatomic \
         kernel-headers \
+        zstd \
         tar; \
     microdnf update -y \
         libksba \

@@ -79,6 +79,7 @@ RUN set -ex; \
         cracklib-dicts \
         percona-telemetry-agent \
         libatomic \
+        zstd \
         tar; \
     microdnf update -y \
         libksba \
