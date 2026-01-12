@@ -1,0 +1,7 @@
+MongoDB Community Edition License
+
+This software is licensed under the Server Side Public License (SSPL) v1.
+For more information, see: https://www.mongodb.com/licensing/server-side-public-license
+
+This Docker image contains MongoDB Community Edition binaries and is configured
+for use with the Percona MongoDB Operator for Kubernetes.
