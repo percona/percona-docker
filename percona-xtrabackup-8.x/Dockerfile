@@ -108,7 +108,7 @@ RUN set -ex; \
         azure-cli \
         zstd; \
     \
-    rm -rf /usr/lib64/az/lib/python3.12/site-packages/urllib3-2.*.dist-info/METADATA;
+    rm -rf /usr/lib64/az/lib/python3.12/site-packages/urllib3-2.*.dist-info/METADATA; \
     python3.12 -m pip install --upgrade --target /usr/lib64/az/lib/python3.12/site-packages urllib3; \
     microdnf remove -y python3.12-pip; \
     \
