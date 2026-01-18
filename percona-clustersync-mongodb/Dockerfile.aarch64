@@ -15,8 +15,8 @@ LABEL org.opencontainers.image.title="Percona ClusterSync for MongoDB" \
     replicating data from a source MongoDB cluster to a target MongoDB cluster." \
     org.opencontainers.image.authors="info@percona.com"
 
-ENV PCSM_VERSION 0.6.0-1
-ENV PCSM_REPO_CH experimental
+ENV PCSM_VERSION 0.7.0-1
+ENV PCSM_REPO_CH release
 ENV OS_VER el9
 ENV FULL_PCSM_VERSION "$PCSM_VERSION.$OS_VER"
 

@@ -16,8 +16,8 @@ ARG PS_REPO=release
 ARG PXB_REPO=release
 ARG TOOLS_REPO=release
 
-ENV XTRABACKUP_VERSION 8.4.0-4.1
-ENV PS_VERSION 8.4.5-5.1
+ENV XTRABACKUP_VERSION 8.4.0-5.1
+ENV PS_VERSION 8.4.7-7.1
 ENV OS_VER el9
 ENV PXC_REPO ${PXC_REPO}
 ENV PS_REPO ${PS_REPO}
@@ -108,8 +108,8 @@ RUN set -ex; \
         azure-cli \
         zstd; \
     \
+    rm -rf /usr/lib64/az/lib/python3.12/site-packages/urllib3-2.*.dist-info/METADATA; \
     python3.12 -m pip install --upgrade --target /usr/lib64/az/lib/python3.12/site-packages urllib3; \
-    rm -rf /usr/lib64/az/lib/python3.12/site-packages/urllib3-2.5.0.dist-info/METADATA; \
     microdnf remove -y python3.12-pip; \
     \
     microdnf clean all; \
