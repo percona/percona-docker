@@ -51,7 +51,6 @@ RUN set -ex; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    #microdnf install -y python3.12-pip; \
     percona-release disable all; \
     percona-release enable ps-80 ${PS_REPO}; \
     percona-release enable tools ${TOOLS_REPO}; \
@@ -104,13 +103,6 @@ RUN set -ex; \
         azure-cli \
         zstd; \
     \
-    #rm -rf /usr/lib64/az/lib/python3.12/site-packages/urllib3-2.*.dist-info/METADATA; \
-    #rm -rf /usr/lib64/az/lib/python3.12/site-packages/azure_core-1.*.0.dist-info/METADATA; \
-    #rm -rf /usr/lib64/az/lib/python3.12/site-packages/setuptools/_vendor/jaraco.context-5.*.0.dist-info/METADATA; \
-    #python3.12 -m pip install --upgrade --target /usr/lib64/az/lib/python3.12/site-packages urllib3; \
-    #python3.12 -m pip install --upgrade --target /usr/lib64/az/lib/python3.12/site-packages azure-core; \
-    #python3.12 -m pip install --upgrade --target /usr/lib64/az/lib/python3.12/site-packages/setuptools/_vendor/ jaraco.context; \
-    #microdnf remove -y python3.12-pip; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
