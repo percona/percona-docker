@@ -62,11 +62,9 @@ RUN set -ex; \
     microdnf -y reinstall tzdata; \
     microdnf clean all
 
-# the numeric UID is needed for OpenShift
-RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
-            -c "Default Application User" postgres
-
 ENV PGDATA /data/db
+ENV PGROOT="/usr/pgsql-${PPG_MAJOR_VERSION}"
+ENV PATH="/pgdata:${PGROOT}/bin:${PATH}"
 
 COPY --from=downloader /downloaded-packages.tar.gz .
 RUN tar -xvzf downloaded-packages.tar.gz; \
@@ -90,7 +88,7 @@ RUN set -ex; \
         percona-wal2json${PPG_MAJOR_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
-    chown -R 1001:0 $PGDATA docker-entrypoint-initdb.d
+    chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
 
 RUN set -ex; \
     sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-${PPG_MAJOR_VERSION}/share/postgresql.conf.sample; \
@@ -116,10 +114,20 @@ COPY entrypoint.sh /entrypoint.sh
 
 VOLUME ["/data/db"]
 
+RUN rm -f /etc/pgbackrest.conf
+
+# add volumes to allow override of pg_hba.conf and postgresql.conf
+# add volumes to offer a restore feature
+# add volumes to allow storage of postgres WAL segment files
+# add volumes for pgbackrest to write to
+# The VOLUME directive must appear after all RUN directives to ensure the proper
+# volume permissions are applied when building the image
+VOLUME ["/sshd", "/pgconf", "/pgdata", "/pgwal", "/backrestrepo"]
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 5432
 
-USER 1001
+USER 26
 
 CMD ["postgres"]
