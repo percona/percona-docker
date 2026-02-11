@@ -7,8 +7,8 @@ LABEL name="mysql-router" \
       org.opencontainers.image.authors="info@percona.com" \
       maintainer="Percona Development <info@percona.com>"
 
-ENV ROUTE_VERSION 8.0.42-33.1
-ENV MYSQL_SHELL_VERSION 8.0.42-1
+ENV ROUTE_VERSION 8.0.44-35.1
+ENV MYSQL_SHELL_VERSION 8.0.44-1
 ENV OS_VER el9
 ENV FULL_ROUTE_VERSION "$ROUTE_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
@@ -18,6 +18,7 @@ RUN set -ex; \
     microdnf -y update; \
     microdnf -y install glibc-langpack-en \
         nss_wrapper \
+        python \
         shadow-utils; \
     microdnf clean all; \
     groupadd -g 1001 mysql; \
