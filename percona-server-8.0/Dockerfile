@@ -59,7 +59,6 @@ RUN set -ex; \
     percona-release disable all; \
     percona-release enable ps-80 ${PS_REPO}; \
     percona-release enable telemetry ${PS_REPO}; \
-    percona-release enable mysql-shell ${PS_REPO}; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
     echo "$KEY_RPM_DOWNLOAD_SHA256 RPM-GPG-KEY-EPEL-9" | sha256sum --strict --check; \
     rpm --import RPM-GPG-KEY-EPEL-9; \
