@@ -58,7 +58,6 @@ RUN set -ex; \
     #microdnf -y module disable mysql; \
     percona-release disable all; \
     percona-release enable ps-80 ${PS_REPO}; \
-    percona-release enable mysql-shell ${PS_REPO}; \
     percona-release enable telemetry ${PS_REPO}; \
     rm -rf /tmp/percona-*; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
