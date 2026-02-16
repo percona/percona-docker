@@ -5,6 +5,7 @@ RUN yum install -y epel-release; \
 	yum install -y --downloadonly perl-JSON; \
 	mkdir -p downloaded-packages; \
 	cp -rp /var/cache/dnf/ol9_appstream-*/packages/*.rpm downloaded-packages; \
+    yum install -y --downloadonly --downloaddir=downloaded-packages libssh2; \
 	tar -cvzf downloaded-packages.tar.gz downloaded-packages
 
 FROM redhat/ubi9-minimal
@@ -20,9 +21,9 @@ RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en; \
 	microdnf -y install systemd-rpm-macros
 
-ENV PPG_VERSION 16.11-1
+ENV PPG_VERSION 16.12-1
 ENV PPG_MAJOR_VERSION 16
-ENV PPG_MINOR_VERSION 11
+ENV PPG_MINOR_VERSION 12
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO testing
@@ -58,6 +59,7 @@ RUN set -ex; \
         nss_wrapper \
         shadow-utils \
         libpq \
+        libssh2-devel \
         libedit; \
     microdnf -y reinstall tzdata; \
     microdnf clean all
@@ -71,6 +73,7 @@ RUN tar -xvzf downloaded-packages.tar.gz; \
 	cd downloaded-packages; \
         rpm -ivh perl-*.rpm; \
         rpm -ivh perl-JSON*.rpm; \
+        rpm -ivh libssh2*.rpm; \
 	rm -f /downloaded-packages.tar.gz; \
 	cd -; \
 	rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
