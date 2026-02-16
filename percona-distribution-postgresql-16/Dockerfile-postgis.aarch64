@@ -68,7 +68,6 @@ RUN set -ex; \
         libedit \
         dbus-libs \
         libbrotli \
-        libssh2-devel \
         pcre2-utf16 \
         pcre2-syntax \
         libgfortran; \

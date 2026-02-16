@@ -70,7 +70,6 @@ RUN set -ex; \
         nss_wrapper \
         shadow-utils \
         libpq \
-        libssh2-devel \
         libedit; \
     microdnf -y reinstall tzdata; \
     microdnf clean all
