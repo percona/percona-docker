@@ -9,6 +9,7 @@ RUN set -ex; \
     cp -rp /var/cache/dnf/ol9_baseos_latest*/packages/*.rpm downloaded-packages; \
     cp -rp /var/cache/dnf/ol9_developer_EPEL*/packages/*.rpm downloaded-packages; \
     cp -rp /var/cache/dnf/ol9_codeready_builder*/packages/*.rpm downloaded-packages; \
+    yum install -y --downloadonly --downloaddir=downloaded-packages libssh2; \
     cd downloaded-packages; \
     rm -rf pcre2* brotli* dbus*; \
     cd -; \
@@ -29,9 +30,9 @@ RUN microdnf -y update; \
 
 ARG PPG_REPO=testing
 
-ENV PPG_VERSION 17.7-2
+ENV PPG_VERSION 17.8-1
 ENV PPG_MAJOR_VERSION 17
-ENV PPG_MINOR_VERSION 7
+ENV PPG_MINOR_VERSION 8
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO ${PPG_REPO}
@@ -84,6 +85,7 @@ RUN set -ex; \
         ls -la downloaded-packages; \
         cd downloaded-packages; \
         rpm -Uvh --replacepkgs *.rpm; \
+        rpm -ivh libssh2*.rpm; \
         rm -f /downloaded-packages.tar.gz; \
         cd -; \
         rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
