@@ -192,8 +192,8 @@ VOLUME ["/sshd", "/pgconf", "/pgdata", "/pgwal", "/backrestrepo"]
 # Defines a unique directory name that will be utilized by the nss_wrapper in the UID script
 ENV NSS_WRAPPER_SUBDIR="postgres"
 
-ENTRYPOINT ["/opt/crunchy/bin/postgres-ha/bootstrap-postgres-ha.sh"]
+ENTRYPOINT ["/opt/crunchy/bin/uid_postgres.sh"]
 
 USER 26
 
-CMD ["/usr/bin/patroni"]
+CMD ["/opt/crunchy/bin/start.sh"]
