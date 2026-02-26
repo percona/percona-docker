@@ -1,7 +1,6 @@
 FROM oraclelinux:9 AS downloader
 
-RUN set -ex; \
-    yum install -y epel-release; \
+RUN yum install -y epel-release; \
     yum config-manager --set-enabled ol9_codeready_builder; \
     yum install -y --downloadonly perl-JSON hdf5 xerces-c netcdf libaec libarrow libgta freexl libdeflate cfitsio armadillo gpsbabel libqhull_r boost-serialization minizip libkml librttopo; \
     mkdir -p downloaded-packages; \
@@ -80,8 +79,7 @@ ENV PGROOT="/usr/pgsql-${PPG_MAJOR_VERSION}"
 ENV PATH="/pgdata:${PGROOT}/bin:${PATH}"
 
 COPY --from=downloader /downloaded-packages.tar.gz .
-RUN set -ex; \
-        tar -xvzf downloaded-packages.tar.gz; \
+RUN tar -xvzf downloaded-packages.tar.gz; \
         ls -la downloaded-packages; \
         cd downloaded-packages; \
         rpm -Uvh --replacepkgs *.rpm; \
