@@ -7,7 +7,7 @@ LABEL name="Percona pgBackRest" \
       maintainer="Percona Development <info@percona.com>" \
       org.opencontainers.image.authors="info@percona.com"
 
-ARG PG_VERSION=18.1
+ARG PG_VERSION=18.3
 ARG PPG_REPO=testing
 
 ENV PG_VERSION=${PG_VERSION}
