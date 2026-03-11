@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.23 AS go_builder
+FROM golang:1.26 AS go_builder
 WORKDIR /go/src/github.com/mikefarah/yq
 
 ARG GOOS=linux
@@ -16,7 +16,7 @@ RUN git clone -b $YQ_VERSION https://github.com/mikefarah/yq.git .; \
     CGO_ENABLED=$CGO_ENABLED GOOS=$GOOS GOARCH=$GOARCH \
     make local build
 
-FROM redhat/ubi9-minimal
+FROM redhat/ubi8-minimal
 
 LABEL name="Percona PostgreSQL Distribution" \
     vendor="Percona" \
@@ -27,6 +27,8 @@ LABEL name="Percona PostgreSQL Distribution" \
 RUN set -ex; \
     microdnf -y update; \
     microdnf -y install glibc-langpack-en platform-python; \
+    /usr/libexec/platform-python -m pip install pip --upgrade; \
+    microdnf -y remove platform-python-pip; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
@@ -38,56 +40,55 @@ RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
         4D1BB29D63D98E422B2113B19334A25F8507EFA5 \
-        3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F \
-        99DB70FAE1D7CE227FB6488205B555B38483C65D; \
+        99DB70FAE1D7CE227FB6488205B555B38483C65D \
+        94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 \
+        736AF5116D9C40E2AF6B074BF9B9FEE7764429E6; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-    gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle; \
+    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
+    gpg --batch --export --armor 736AF5116D9C40E2AF6B074BF9B9FEE7764429E6 > ${GNUPGHOME}/RPM-GPG-KEY-CentOS-SIG-Cloud; \
     rpmkeys --import \
         ${GNUPGHOME}/PERCONA-PACKAGING-KEY \
-        ${GNUPGHOME}/RPM-GPG-KEY-oracle \
-        ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    microdnf install -y findutils yum-utils; \
-    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oraclelinux-release-el9-1.0-15.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oracle-epel-release-el9-1.0-1.el9.x86_64.rpm; \
+        ${GNUPGHOME}/RPM-GPG-KEY-centosofficial \
+        ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8 \
+        ${GNUPGHOME}/RPM-GPG-KEY-CentOS-SIG-Cloud; \
+    microdnf install -y findutils; \
+    curl -Lf -o /tmp/epel-release.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
-    rpm --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-oracle ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
     rpmkeys --checksig /tmp/epel-release.rpm; \
-    rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
-    rpm -i /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
-    rm -rf "$GNUPGHOME" /tmp/percona-release.rpmm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
-    percona-release enable ppg-${PG_MAJOR} release
+    rpm -i /tmp/percona-release.rpm /tmp/epel-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/epel-release.rpm; \
+    curl -Lf -o /tmp/python3-pyparsing.rpm https://vault.centos.org/8.5.2111/cloud/x86_64/openstack-train/Packages/p/python3-pyparsing-2.4.6-1.el8.noarch.rpm; \
+    rpmkeys --checksig /tmp/python3-pyparsing.rpm; \
+    rpm -i /tmp/python3-pyparsing.rpm; \
+    rm -rf /tmp/python3-pyparsing.rpm; \
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    if [ "$PG_MAJOR" = "13" ]; then \
+        percona-release enable ppg-13.20 release; \
+    elif [ "$PG_MAJOR" = "14" ]; then \
+        percona-release enable ppg-14.17 release; \
+    else \
+        percona-release enable ppg-${PG_MAJOR} release; \
+    fi
 
 RUN set -ex; \
-    microdnf -y install perl-DBI perl-DBD-Pg perl-XML-Parser; \
-    yum-config-manager --disable ol9_appstream; \
-    microdnf --disablerepo="ubi-9-appstream-rpms" -y install \
-        llvm; \
-    microdnf -y clean all
-
-RUN set -ex; \
-    microdnf --enablerepo="ol9_appstream" -y install \
-        annobin-12.31-2.el9.x86_64; \
-    microdnf -y clean all
-
-RUN set -ex; \
-    yum-config-manager --disable ol9_developer_EPEL ol9_UEKR7 ol9_baseos_latest; \
     microdnf -y install \
         bind-utils \
         gettext \
         hostname \
-        python3-pyparsing \
         perl \
         libedit \
         openssh \
         openssh-server \
         openssh-clients \
         procps-ng; \
+    sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
     sed -i 's/install_langs C.utf8/install_langs all/' /etc/rpm/macros.image-language-conf; \
+    microdnf -y module disable llvm-toolset; \
     microdnf -y install \
         libpq \
+        llvm \
         glibc-all-langpacks \
         percona-postgresql${PG_MAJOR%%.*}; \
     microdnf -y clean all
@@ -96,8 +97,23 @@ RUN set -ex; \
 ENV PGROOT="/usr/pgsql-${PG_MAJOR%%.*}" PGVERSION="${PG_MAJOR%%.*}"
 
 RUN set -ex; \
+    curl -Lf -o /tmp/perl-libxml-perl.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-libxml-perl-0.08-33.el8.noarch.rpm; \
+    curl -Lf -o /tmp/perl-DBD-Pg.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBD-Pg-3.7.4-4.module_el8.3.0+426+0b4e9c0a.x86_64.rpm; \
+    curl -Lf -o /tmp/perl-XML-Parser.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-XML-Parser-2.44-11.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/perl-DBI.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/perl-DBI-1.641-3.module_el8.3.0+413+9be2aeb5.x86_64.rpm; \
+    curl -Lf -o /tmp/python3-psutil.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-psutil-5.4.3-11.el8.x86_64.rpm; \
+    curl -Lf -o /tmp/python3-prettytable.rpm  http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-prettytable-0.7.2-14.el8.noarch.rpm; \
+    curl -Lf -o /tmp/python3-click.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/python3-click-6.7-8.el8.noarch.rpm; \
+    rpmkeys --checksig /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
+                       /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm; \
+    rpm -i /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
+           /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm; \
+    rm -rf /tmp/perl-DBI.rpm /tmp/perl-DBI.rpm /tmp/perl-XML-Parser.rpm /tmp/perl-libxml-perl.rpm /tmp/perl-DBD-Pg.rpm \
+           /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm
+
+RUN set -ex; \
     microdnf -y install \
-        --enablerepo="ol9_developer_EPEL" \
+        --enablerepo="epel" \
         percona-pgaudit${PG_MAJOR%%.*} \
         percona-pgaudit${PG_MAJOR%%.*}_set_user \
         percona-pgbackrest \
@@ -121,21 +137,21 @@ RUN set -ex; \
         microdnf -y reinstall tzdata; \
 # patroni block starts
 # Provided by Percona
-    microdnf -y install --enablerepo="ol9_developer_EPEL" \
+    microdnf -y install --enablerepo="epel"\
         python3-psycopg2 \
         python3-ydiff \
-        python3-dateutil \
-        python3-urllib3 \
-        python3-pyyaml \
-        python3-click \
         ydiff \
         percona-patroni; \
+    pip install python-dateutil; \
+    pip install pyyaml; \
+    pip install six; \
+    pip install urllib3; \
+    rpm -e percona-telemetry-agent --nodeps; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
 RUN if [[ "${PG_MAJOR%%.*}" -ge '13' ]]; then \
-        microdnf -y install \
-            --enablerepo="ol9_developer_EPEL" \
+    microdnf -y install --enablerepo="epel" \
             percona-pgvector_${PG_MAJOR%%.*} \
             percona-pgvector_${PG_MAJOR%%.*}-llvmjit; \
     fi; \
