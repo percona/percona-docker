@@ -82,6 +82,7 @@ RUN set -ex; \
         percona-pg_stat_monitor${PG_MAJOR//.} \
         percona-pgvector_${PG_MAJOR//.} \
         percona-pgvector_${PG_MAJOR//.}-llvmjit \
+        percona-pg_tde${PG_MAJOR//.} \
         nss_wrapper \
         lz4 \
         unzip; \
@@ -103,6 +104,10 @@ RUN for pg_version in 17 16 15 14 13 12; do \
 
         if [[ "${pg_version}" -gt 12 ]]; then \
             microdnf -y install --nodocs percona-pgvector_${pg_version} percona-pgvector_${pg_version}-llvmjit; \
+        fi; \
+
+        if [[ "${pg_version}" -ge 17 ]]; then \
+            microdnf -y install --nodocs percona-pg_tde${pg_version}; \
         fi; \
     done && microdnf -y clean all && rm -rf /var/cache/dnf /var/cache/yum
 
