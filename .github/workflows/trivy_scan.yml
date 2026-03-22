@@ -67,7 +67,7 @@ jobs:
       - run: ${{ matrix.runs.build }}
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@69cb1e254b6f9b93a5b00c5c28bc15cd61f5fff3
         with:
           image-ref: ${{ matrix.runs.test }}
           format: 'table'
