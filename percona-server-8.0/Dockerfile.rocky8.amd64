@@ -1,0 +1,104 @@
+From rockylinux:8
+
+RUN set -ex; \
+    groupdel input; \
+    userdel systemd-coredump; \
+    groupadd -g 1001 mysql; \
+    useradd -u 1001 -r -g 1001 -s /sbin/nologin \
+        -m -c "Default Application User" mysql
+
+ARG PERCONA_TELEMETRY_DISABLE=1
+ENV PS_VERSION=8.0.29-21.1
+ENV MYSQL_SHELL_VERSION 8.0.36-1
+ENV OS_VER el8
+ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
+ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
+ENV PS_REPO release
+ENV PS_TELEMETRY_VERSION 8.0.29-21.1
+ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
+ENV CALL_HOME_VERSION 0.1
+ENV DOCKER_DEFAULT_PLATFORM linux/amd64
+
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A 99DB70FAE1D7CE227FB6488205B555B38483C65D; \
+    gpg --batch --export --armor 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A > ${GNUPGHOME}/RPM-GPG-KEY-Percona; \
+    gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Percona ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+    rpmkeys --checksig /tmp/percona-release.rpm; \
+    dnf -y install findutils; \
+    rpm -i /tmp/percona-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    percona-release disable all; \
+    percona-release enable ps-80 ${PS_REPO}; \
+    percona-release enable mysql-shell ${PS_REPO}
+
+RUN set -ex; \
+    dnf -y install epel-release; \
+    rpm -e --nodeps tzdata; \
+    dnf -y install \
+        hostname \
+        tzdata \
+        jemalloc \
+        which \
+        cracklib-dicts \
+        tar \
+        policycoreutils; \
+    dnf -y update \
+        curl \
+        glibc \
+        libnghttp2 \
+        python3; \
+    dnf -y install \
+        https://downloads.percona.com/downloads/Percona-Server-8.0/Percona-Server-8.0.29-21/binary/redhat/8/x86_64/percona-server-shared-8.0.29-21.1.el8.x86_64.rpm \
+        https://downloads.percona.com/downloads/Percona-Server-8.0/Percona-Server-8.0.29-21/binary/redhat/8/x86_64/percona-server-client-8.0.29-21.1.el8.x86_64.rpm \
+        https://downloads.percona.com/downloads/Percona-Server-8.0/Percona-Server-8.0.29-21/binary/redhat/8/x86_64/percona-server-server-8.0.29-21.1.el8.x86_64.rpm \
+        https://downloads.percona.com/downloads/Percona-Server-8.0/Percona-Server-8.0.29-21/binary/redhat/8/x86_64/percona-server-devel-8.0.29-21.1.el8.x86_64.rpm \
+        https://downloads.percona.com/downloads/Percona-Server-8.0/Percona-Server-8.0.29-21/binary/redhat/8/x86_64/percona-server-rocksdb-8.0.29-21.1.el8.x86_64.rpm \
+        https://downloads.percona.com/downloads/Percona-Server-8.0/Percona-Server-8.0.29-21/binary/redhat/8/x86_64/percona-icu-data-files-8.0.29-21.1.el8.x86_64.rpm; \
+        #percona-mysql-shell-8.0.29xxxx couldn't find the package on percona download page ; \
+    dnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
+
+RUN set -ex; \
+    /usr/bin/install -m 0775 -o mysql -g root -d /var/lib/mysql /var/run/mysqld /docker-entrypoint-initdb.d; \
+# comment out a few problematic configuration values
+	find /etc/my.cnf /etc/my.cnf.d -name '*.cnf' -print0 \
+		| xargs -0 grep -lZE '^(bind-address|log|user)' \
+		| xargs -rt -0 sed -Ei 's/^(bind-address|log|user)/#&/'; \
+# don't reverse lookup hostnames, they are usually another container
+	echo '!includedir /etc/my.cnf.d' >> /etc/my.cnf; \
+	printf '[mysqld]\nskip-host-cache\nskip-name-resolve\n' > /etc/my.cnf.d/docker.cnf; \
+# TokuDB modifications
+	/usr/bin/install -m 0664 -o mysql -g root /dev/null /etc/sysconfig/mysql; \
+	echo "LD_PRELOAD=/usr/lib64/libjemalloc.so.1" >> /etc/sysconfig/mysql; \
+	echo "THP_SETTING=never" >> /etc/sysconfig/mysql; \
+# allow to change config files
+	chown -R mysql:root /etc/my.cnf /etc/my.cnf.d; \
+	chmod -R ug+rwX /etc/my.cnf /etc/my.cnf.d
+
+
+
+VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+RUN set -eux; \
+    curl -fL "https://github.com/Percona-Lab/telemetry-agent/archive/refs/tags/phase-$CALL_HOME_VERSION.tar.gz" -o "phase-$CALL_HOME_VERSION.tar.gz"; \
+    echo "$CALL_HOME_DOWNLOAD_SHA256 phase-$CALL_HOME_VERSION.tar.gz" | sha256sum --strict --check; \
+    tar -xvf phase-$CALL_HOME_VERSION.tar.gz; \
+    cp telemetry-agent-phase-$CALL_HOME_VERSION/call-home.sh .;\
+    rm -rf telemetry-agent-phase-$CALL_HOME_VERSION phase-$CALL_HOME_VERSION.tar.gz; \
+    chmod a+rx /call-home.sh; \
+    mkdir -p /usr/local/percona; \
+    chown mysql:mysql /usr/local/percona
+ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
+
+
+COPY ./ps-entry.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
+USER mysql
+EXPOSE 3306 33060
+CMD ["mysqld"]
