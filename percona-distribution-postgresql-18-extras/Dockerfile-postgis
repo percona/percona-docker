@@ -92,11 +92,12 @@ RUN set -ex; \
         percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-llvmjit \
-        percona-timescaledb_${PPG_MAJOR_VERSION}; \
+        percona-timescaledb_${PPG_MAJOR_VERSION} \
+        percona-h3-pg_${PPG_MAJOR_VERSION}; \
     microdnf clean all
 
 RUN set -ex; \
-    percona-release enable-only ppg-${PPG_REPO_VERSION} release; \
+    percona-release enable ppg-${PPG_REPO_VERSION} release; \
     microdnf install -y \
         percona-postgresql-common \
         percona-pg_oidc_validator${PPG_MAJOR_VERSION} \
@@ -113,7 +114,8 @@ RUN set -ex; \
         percona-postgis35_${PPG_MAJOR_VERSION}-gui \
         percona-postgis35_${PPG_MAJOR_VERSION}-llvmjit \
         percona-postgis35_${PPG_MAJOR_VERSION}-utils \
-        percona-wal2json${PPG_MAJOR_VERSION}; \
+        percona-wal2json${PPG_MAJOR_VERSION} \
+        percona-pgrouting_${PPG_MAJOR_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
     chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
