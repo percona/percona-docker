@@ -250,16 +250,6 @@ docker_temp_server_stop() {
 }
 
 
-pg_setup_pg_stat_monitor_and_pg_tde() {
-	libraries='pg_stat_monitor'
-	if [[ -n "${ENABLE_PG_TDE}" && "${ENABLE_PG_TDE}" != "0" ]]; then
-		libraries='pg_stat_monitor,pg_tde'
-	fi
-	docker_process_sql --dbname postgres <<-EOSQL
-		alter system set shared_preload_libraries=${libraries} ;
-	EOSQL
-}
-
 # check arguments for an option that would cause postgres to stop
 # return true if there is one
 _pg_want_help() {
@@ -314,7 +304,6 @@ _main() {
 
 			docker_setup_db
 			docker_process_init_files /docker-entrypoint-initdb.d/*
-			pg_setup_pg_stat_monitor_and_pg_tde
 
 			docker_temp_server_stop
 			unset PGPASSWORD
