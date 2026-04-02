@@ -21,8 +21,8 @@
 #
 # /pgolddata is a volume that gets mapped into this container
 # /pgnewdata is a volume that gets mapped into this container
-# $OLD_VERSION (e.g. 9.5)
-# $NEW_VERSION (e.g. 9.6)
+# $OLD_VERSION (e.g. 16)
+# $NEW_VERSION (e.g. 17)
 #
 
 CRUNCHY_DIR=${CRUNCHY_DIR:-'/opt/crunchy'}
@@ -42,8 +42,6 @@ env_check_err "NEW_VERSION"
 env_check_err "OLD_DATABASE_NAME"
 env_check_err "NEW_DATABASE_NAME"
 
-export CHECKSUMS=${CHECKSUMS:-true}
-
 export PGDATAOLD=/pgolddata/${OLD_DATABASE_NAME?}
 dir_check_err "${PGDATAOLD?}"
 
@@ -54,6 +52,16 @@ dir_check_err "${PGDATANEW?}"
 # Set the postgres binary to match the NEW_VERSION
 
   case $NEW_VERSION in
+"18")
+    echo_info "Setting PGBINNEW to ${NEW_VERSION}."
+    export PGBINNEW=/usr/pgsql-18/bin
+    export LD_LIBRARY_PATH=/usr/pgsql-18/lib
+    ;;
+"17")
+    echo_info "Setting PGBINNEW to ${NEW_VERSION}."
+    export PGBINNEW=/usr/pgsql-17/bin
+    export LD_LIBRARY_PATH=/usr/pgsql-17/lib
+    ;;
 "16")
     echo_info "Setting PGBINNEW to ${NEW_VERSION}."
     export PGBINNEW=/usr/pgsql-16/bin
@@ -74,22 +82,24 @@ dir_check_err "${PGDATANEW?}"
     export PGBINNEW=/usr/pgsql-13/bin
     export LD_LIBRARY_PATH=/usr/pgsql-13/lib
     ;;
-"12")
-    echo_info "Setting PGBINNEW to ${NEW_VERSION}."
-    export PGBINNEW=/usr/pgsql-12/bin
-    export LD_LIBRARY_PATH=/usr/pgsql-12/lib
-    ;;
-"11")
-    echo_info "Setting PGBINNEW to ${NEW_VERSION}."
-    export PGBINNEW=/usr/pgsql-11/bin
-    export LD_LIBRARY_PATH=/usr/pgsql-11/lib
-    ;;
 *)
     echo_info "Unsupported NEW_VERSION of ${NEW_VERSION}."
     exit 2
     ;;
 esac
 case $OLD_VERSION in
+"17")
+    echo_info "Setting PGBINOLD to ${OLD_VERSION}."
+    export PGBINOLD=/usr/pgsql-17/bin
+    ;;
+"16")
+    echo_info "Setting PGBINOLD to ${OLD_VERSION}."
+    export PGBINOLD=/usr/pgsql-16/bin
+    ;;
+"15")
+    echo_info "Setting PGBINOLD to ${OLD_VERSION}."
+    export PGBINOLD=/usr/pgsql-15/bin
+    ;;
 "14")
     echo_info "Setting PGBINOLD to ${OLD_VERSION}."
     export PGBINOLD=/usr/pgsql-14/bin
@@ -101,10 +111,6 @@ case $OLD_VERSION in
 "12")
     echo_info "Setting PGBINOLD to ${OLD_VERSION}."
     export PGBINOLD=/usr/pgsql-12/bin
-    ;;
-"11")
-    echo_info "Setting PGBINOLD to ${OLD_VERSION}."
-    export PGBINOLD=/usr/pgsql-11/bin
     ;;
 *)
     echo_info "Unsupported OLD_VERSION of ${OLD_VERSION}."
@@ -128,9 +134,14 @@ if [[ -v XLOGDIR ]]; then
     fi
 fi
 
-if [[ ${CHECKSUMS?} == 'true' ]]
-then
+# Auto-detect the old cluster's checksum setting
+old_checksums=$(${PGBINOLD?}/pg_controldata ${PGDATAOLD?} | grep "Data page checksum" | awk '{print $NF}')
+if [[ "$old_checksums" == "1" ]]; then
+    echo_info "Old cluster has data checksums enabled, enabling on new cluster."
     options+=" --data-checksums"
+else
+    echo_info "Old cluster does not have data checksums, disabling on new cluster."
+    options+=" --no-data-checksums"
 fi
 
 echo_info "Using the ${options} flags for initdb.."
@@ -142,7 +153,7 @@ cp ${PGDATAOLD?}/pg_hba.conf ${PGDATANEW?}
 
 # Remove the old postmaster.pid
 echo_info "Cleaning up the old postmaster.pid file.."
-rm ${PGDATAOLD?}/postmaster.pid
+rm -f ${PGDATAOLD?}/postmaster.pid
 
 # changing to /tmp is necessary since pg_upgrade has to have write access
 cd /tmp
