@@ -16,7 +16,7 @@ RUN yum install -y epel-release; \
 
 FROM redhat/ubi9-minimal
 
-LABEL name="Percona Distribution for PostgreSQL with PostGIS" \
+LABEL name="Percona Distribution for PostgreSQL" \
       description="Essential / key PostgreSQL17 components. Percona Distribution for PostgreSQL with PostGIS features core components, tools and add-ons from the community, tested to work together in demanding enterprise environments." \
       vendor="Percona" \
       summary="Percona base selection of PostgreSQL17 components" \
