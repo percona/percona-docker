@@ -1,3 +1,19 @@
+FROM oraclelinux:9 AS downloader
+
+RUN yum install -y epel-release; \
+    yum config-manager --set-enabled ol9_codeready_builder; \
+    yum install -y --downloadonly perl-JSON hdf5 xerces-c netcdf libaec libarrow libgta freexl libdeflate cfitsio armadillo gpsbabel libqhull_r boost-serialization minizip libkml librttopo; \
+    mkdir -p downloaded-packages; \
+    cp -rp /var/cache/dnf/ol9_appstream-*/packages/*.rpm downloaded-packages; \
+    cp -rp /var/cache/dnf/ol9_baseos_latest*/packages/*.rpm downloaded-packages; \
+    cp -rp /var/cache/dnf/ol9_developer_EPEL*/packages/*.rpm downloaded-packages; \
+    cp -rp /var/cache/dnf/ol9_codeready_builder*/packages/*.rpm downloaded-packages; \
+    yum install -y --downloadonly --downloaddir=downloaded-packages libssh2; \
+    cd downloaded-packages; \
+    rm -rf pcre2* brotli* dbus*; \
+    cd -; \
+    tar -cvzf downloaded-packages.tar.gz downloaded-packages
+
 FROM redhat/ubi9-minimal
 
 LABEL name="Percona PostgreSQL Distribution upgrade" \
@@ -8,7 +24,7 @@ LABEL name="Percona PostgreSQL Distribution upgrade" \
 
 RUN set -ex; \
     microdnf -y update; \
-    microdnf -y install glibc-langpack-en platform-python; \
+    microdnf -y install glibc-langpack-en platform-python tar; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
@@ -62,12 +78,24 @@ RUN set -ex; \
         python3-pyparsing \
         perl \
         libedit \
+        pcre2-utf16 \
+        brotli \
+        dbus-libs \
         procps-ng; \
     microdnf -y install \
         libpq \
         percona-postgresql${PG_MAJOR//.}; \
     microdnf -y clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
+
+COPY --from=downloader /downloaded-packages.tar.gz .
+RUN tar -xvzf downloaded-packages.tar.gz; \
+    cd downloaded-packages; \
+    rpm -Uvh --replacepkgs *.rpm; \
+    rpm -ivh libssh2*.rpm; \
+    rm -f /downloaded-packages.tar.gz; \
+    cd -; \
+    rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
 
 RUN set -ex; \
     microdnf -y install \
@@ -83,6 +111,11 @@ RUN set -ex; \
         percona-pgvector_${PG_MAJOR//.} \
         percona-pgvector_${PG_MAJOR//.}-llvmjit \
         percona-pg_tde${PG_MAJOR//.} \
+        percona-postgis35_${PG_MAJOR//.} \
+        percona-postgis35_${PG_MAJOR//.}-client \
+        percona-postgis35_${PG_MAJOR//.}-llvmjit \
+        percona-postgis35_${PG_MAJOR//.}-utils \
+        percona-pg_repack${PG_MAJOR//.} \
         nss_wrapper \
         lz4 \
         unzip; \
@@ -103,7 +136,12 @@ RUN for pg_version in 17 16 15 14 13 12; do \
             percona-pg_stat_monitor${pg_version}; \
 
         if [[ "${pg_version}" -gt 12 ]]; then \
-            microdnf -y install --nodocs percona-pgvector_${pg_version} percona-pgvector_${pg_version}-llvmjit; \
+            microdnf -y install --nodocs \
+                percona-pgvector_${pg_version} \
+                percona-pgvector_${pg_version}-llvmjit \
+                percona-postgis35_${pg_version} \
+                percona-postgis35_${pg_version}-llvmjit \
+                percona-pg_repack${pg_version}; \
         fi; \
 
         if [[ "${pg_version}" -ge 17 ]]; then \
