@@ -125,7 +125,16 @@ RUN set -ex; \
         percona-postgis35_${PG_MAJOR//.}-client \
         percona-postgis35_${PG_MAJOR//.}-llvmjit \
         percona-postgis35_${PG_MAJOR//.}-utils \
-        percona-pgrouting_${PG_MAJOR//.}; \
+        percona-pgrouting_${PG_MAJOR//.} \
+        percona-pg_similarity_${PG_MAJOR//.} \
+        percona-rum_${PG_MAJOR//.} \
+        percona-postgresql-unit_${PG_MAJOR//.} \
+        percona-ip4r_${PG_MAJOR//.} \
+        percona-pg_cron_${PG_MAJOR//.} \
+        percona-hll_${PG_MAJOR//.} \
+        percona-postgresql_anonymizer_${PG_MAJOR//.} \
+        percona-pgvectorscale_${PG_MAJOR//.} \
+        percona-pg_partman_${PG_MAJOR//.}; \
     if [[ "${PG_MAJOR//.}" -ge 18 ]]; then \
         microdnf -y install percona-pg_oidc_validator${PG_MAJOR//.}; \
     fi; \
@@ -134,24 +143,18 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/cache/yum
 
 RUN set -ex; \
-    percona-release enable ppg-17-extras testing; \
+for pg_version in 17 16; do \
+    percona-release enable ppg-${pg_version}-extras testing; \
     microdnf -y install --nodocs \
-        percona-postgresql17-contrib \
-        percona-postgresql17-server \
-        percona-postgresql17-libs \
-        percona-postgresql17-llvmjit;
+        percona-postgresql${pg_version}-contrib \
+        percona-postgresql${pg_version}-server \
+        percona-postgresql${pg_version}-libs \
+        percona-postgresql${pg_version}-llvmjit; \
+done
 
 RUN set -ex; \
     for pg_version in 17 16; do \
         percona-release enable ppg-${pg_version} release; \
-        percona-release enable ppg-${pg_version}-extras testing; \
-        if [[ "${pg_version}" -eq 16 ]]; then \
-            microdnf -y install --nodocs \
-                percona-postgresql16-contrib \
-                percona-postgresql16-server \
-                percona-postgresql16-libs \
-                percona-postgresql16-llvmjit; \
-        fi; \
         microdnf -y install --nodocs \
             percona-pgaudit${pg_version} \
             percona-pgaudit${pg_version}_set_user \
@@ -164,7 +167,16 @@ RUN set -ex; \
             percona-pg_repack${pg_version} \
             percona-timescaledb_${pg_version} \
             percona-h3-pg_${pg_version} \
-            percona-pgrouting_${pg_version}; \
+            percona-pgrouting_${pg_version} \
+            percona-pg_similarity_${pg_version} \
+            percona-rum_${pg_version} \
+            percona-postgresql-unit_${pg_version} \
+            percona-ip4r_${pg_version} \
+            percona-pg_cron_${pg_version} \
+            percona-hll_${pg_version} \
+            percona-postgresql_anonymizer_${pg_version} \
+            percona-pgvectorscale_${pg_version} \
+            percona-pg_partman_${pg_version}; \
     done; \
     microdnf -y clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
