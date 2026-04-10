@@ -94,7 +94,16 @@ RUN set -ex; \
         percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-llvmjit \
         percona-timescaledb_${PPG_MAJOR_VERSION} \
-        percona-h3-pg_${PPG_MAJOR_VERSION}; \
+        percona-h3-pg_${PPG_MAJOR_VERSION} \
+        percona-pgvectorscale_${PPG_MAJOR_VERSION} \
+        percona-pg_similarity_${PPG_MAJOR_VERSION} \
+        percona-rum_${PPG_MAJOR_VERSION} \
+        percona-postgresql-unit_${PPG_MAJOR_VERSION} \
+        percona-ip4r_${PPG_MAJOR_VERSION} \
+        percona-pg_cron_${PPG_MAJOR_VERSION} \
+        percona-hll_${PPG_MAJOR_VERSION} \
+        percona-postgresql_anonymizer_${PPG_MAJOR_VERSION} \
+        percona-pg_partman_${PPG_MAJOR_VERSION}; \
     microdnf clean all
 
 RUN set -ex; \
