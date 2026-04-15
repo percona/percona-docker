@@ -123,7 +123,6 @@ RUN set -ex; \
         lz4 \
         unzip; \
     microdnf -y reinstall tzdata; \
-    rpm -e percona-telemetry-agent --nodeps; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
