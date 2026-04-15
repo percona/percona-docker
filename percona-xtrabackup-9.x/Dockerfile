@@ -11,7 +11,7 @@ LABEL name="XtraBackup" \
 RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
-ARG PXC_REPO=release
+ARG PXC_REPO=testing
 ARG PS_REPO=release
 ARG PXB_REPO=release
 ARG TOOLS_REPO=release
