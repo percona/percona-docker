@@ -16,11 +16,14 @@ RUN yum install -y epel-release; \
 
 FROM redhat/ubi9-minimal
 
+ARG PG_MAJOR_VERSION_LIST="18.3-17.9-16.13-15.17-14.22-13.23"
+
 LABEL name="Percona PostgreSQL Distribution upgrade" \
     vendor="Percona" \
     summary="Percona Distribution for PostgreSQL" \
     description="Percona Distribution for PostgreSQL is a collection of tools to assist you in managing your PostgreSQL database system" \
-    maintainer="Percona Development <info@percona.com>"
+    maintainer="Percona Development <info@percona.com>" \
+    percona.pg.versions="${PG_MAJOR_VERSION_LIST}"
 
 RUN set -ex; \
     microdnf -y update; \
