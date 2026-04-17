@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Percona Server 8.4 — Hardened Docker Image</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================
+   VIEWPORT FITTING: MANDATORY BASE STYLES
+   ========================================= */
+html, body { height: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+.slide {
+    width: 100vw; height: 100vh; height: 100dvh;
+    overflow: hidden; scroll-snap-align: start;
+    display: flex; flex-direction: column; position: relative;
+}
+.slide-content {
+    flex: 1; display: flex; flex-direction: column;
+    justify-content: center; max-height: 100%; overflow: hidden;
+    padding: var(--slide-padding);
+}
+:root {
+    --title-size: clamp(1.5rem, 5vw, 4rem);
+    --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+    --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+    --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+    --small-size: clamp(0.65rem, 1vw, 0.875rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+    /* Terminal Green palette */
+    --bg: #0d1117;
+    --bg-alt: #161b22;
+    --fg: #c9d1d9;
+    --green: #3fb950;
+    --green-dim: #238636;
+    --green-glow: rgba(63, 185, 80, 0.15);
+    --red: #f85149;
+    --yellow: #d29922;
+    --cyan: #58a6ff;
+    --border: #30363d;
+    --comment: #6e7681;
+}
+@media (max-height: 700px) {
+    :root { --slide-padding: clamp(0.75rem, 3vw, 2rem); --content-gap: clamp(0.4rem, 1.5vw, 1rem); --title-size: clamp(1.25rem, 4.5vw, 2.5rem); --h2-size: clamp(1rem, 3vw, 1.75rem); }
+}
+@media (max-height: 600px) {
+    :root { --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem); --content-gap: clamp(0.3rem, 1vw, 0.75rem); --title-size: clamp(1.1rem, 4vw, 2rem); --body-size: clamp(0.7rem, 1.2vw, 0.95rem); }
+    .nav-dots, .keyboard-hint, .decorative { display: none; }
+}
+@media (max-height: 500px) {
+    :root { --slide-padding: clamp(0.4rem, 2vw, 1rem); --title-size: clamp(1rem, 3.5vw, 1.5rem); --h2-size: clamp(0.9rem, 2.5vw, 1.25rem); --body-size: clamp(0.65rem, 1vw, 0.85rem); }
+}
+@media (max-width: 600px) {
+    :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+    .grid { grid-template-columns: 1fr !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+    html { scroll-behavior: auto; }
+}
+
+/* =========================================
+   TERMINAL GREEN THEME
+   ========================================= */
+body { font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--fg); }
+
+.slide { background: var(--bg); border-bottom: 1px solid var(--border); }
+
+/* scanline overlay */
+.slide::before {
+    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(255,255,255,0.015) 2px, rgba(255,255,255,0.015) 4px
+    );
+}
+.slide-content { position: relative; z-index: 2; }
+
+h1, h2, h3 { margin: 0; line-height: 1.15; }
+h1 { font-size: var(--title-size); font-weight: 700; color: var(--green); }
+h2 { font-size: var(--h2-size); font-weight: 500; color: var(--green); margin-bottom: var(--content-gap); }
+h3 { font-size: var(--h3-size); font-weight: 500; color: var(--cyan); }
+p, li { font-size: var(--body-size); line-height: 1.55; color: var(--fg); }
+
+.prompt { color: var(--green); font-weight: 700; }
+.comment { color: var(--comment); }
+.flag { color: var(--cyan); }
+.string { color: var(--yellow); }
+.error { color: var(--red); }
+.success { color: var(--green); }
+
+.subtitle {
+    font-size: var(--h3-size); color: var(--fg);
+    margin-top: var(--element-gap); font-weight: 300;
+}
+
+.tag {
+    display: inline-block; padding: 0.15em 0.6em; border-radius: 3px;
+    font-size: var(--small-size); font-weight: 500;
+    border: 1px solid var(--green-dim); color: var(--green);
+    background: var(--green-glow);
+}
+
+.slide-number {
+    position: absolute; top: var(--slide-padding); right: var(--slide-padding);
+    font-size: var(--small-size); color: var(--comment); z-index: 3;
+}
+
+/* grid for feature cards */
+.grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem); margin-top: var(--content-gap);
+}
+.card {
+    background: var(--bg-alt); border: 1px solid var(--border);
+    border-radius: 6px; padding: clamp(0.6rem, 1.5vw, 1.2rem);
+}
+.card h3 { font-size: var(--body-size); margin-bottom: 0.3em; }
+.card p { font-size: var(--small-size); color: var(--comment); margin: 0; }
+
+/* comparison table */
+.compare-table {
+    width: 100%; border-collapse: collapse; margin-top: var(--content-gap);
+    font-size: var(--body-size);
+}
+.compare-table th, .compare-table td {
+    text-align: left; padding: clamp(0.3rem, 0.8vw, 0.6rem) clamp(0.4rem, 1vw, 0.8rem);
+    border-bottom: 1px solid var(--border);
+}
+.compare-table th { color: var(--green); font-weight: 500; border-bottom: 2px solid var(--green-dim); }
+.compare-table .removed { color: var(--red); text-decoration: line-through; opacity: 0.7; }
+.compare-table .kept { color: var(--green); }
+
+/* code block */
+.code-block {
+    background: var(--bg-alt); border: 1px solid var(--border);
+    border-radius: 6px; padding: clamp(0.6rem, 1.5vw, 1.2rem);
+    margin-top: var(--element-gap); overflow: hidden;
+    font-size: var(--small-size); line-height: 1.6;
+}
+
+/* progress bar */
+.progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--green); z-index: 100; transition: width 0.3s; }
+
+/* nav dots */
+.nav-dots {
+    position: fixed; right: clamp(0.5rem, 1.5vw, 1rem); top: 50%;
+    transform: translateY(-50%); z-index: 100;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.nav-dot {
+    width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--green-dim);
+    background: transparent; cursor: pointer; transition: all 0.3s;
+}
+.nav-dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+/* reveal animation */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* pipeline diagram */
+.pipeline { display: flex; align-items: center; gap: clamp(0.3rem, 0.8vw, 0.6rem); flex-wrap: wrap; margin-top: var(--content-gap); }
+.stage {
+    background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px;
+    padding: clamp(0.4rem, 1vw, 0.8rem) clamp(0.6rem, 1.5vw, 1.2rem);
+    text-align: center; flex: 1; min-width: 120px;
+}
+.stage .label { font-size: var(--small-size); color: var(--comment); }
+.stage .name { font-size: var(--body-size); color: var(--cyan); font-weight: 500; margin-top: 0.2em; }
+.stage .detail { font-size: var(--small-size); color: var(--fg); margin-top: 0.3em; }
+.arrow { color: var(--green); font-size: var(--h3-size); flex-shrink: 0; }
+
+/* metric boxes */
+.metrics { display: flex; gap: clamp(0.5rem, 2vw, 1.5rem); flex-wrap: wrap; margin-top: var(--content-gap); }
+.metric {
+    flex: 1; min-width: 100px; text-align: center;
+    background: var(--bg-alt); border: 1px solid var(--border);
+    border-radius: 6px; padding: clamp(0.5rem, 1.5vw, 1rem);
+}
+.metric .value { font-size: var(--h2-size); font-weight: 700; }
+.metric .label { font-size: var(--small-size); color: var(--comment); margin-top: 0.3em; }
+</style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div class="progress" id="progress"></div>
+
+<!-- Nav dots -->
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- =================== SLIDE 1: TITLE =================== -->
+<section class="slide" id="slide-1">
+    <span class="slide-number">01 / 06</span>
+    <div class="slide-content" style="align-items: center; text-align: center;">
+        <div class="reveal">
+            <div style="margin-bottom: var(--content-gap);">
+                <span class="tag">Docker Hardened Image</span>
+                <span class="tag" style="margin-left: 0.5em;">DHI</span>
+                <span class="tag" style="margin-left: 0.5em;">Percona</span>
+            </div>
+            <h1>Percona Server 8.4</h1>
+            <h1 style="color: var(--fg); font-weight: 300;">Hardened Docker Image</h1>
+            <p class="subtitle" style="margin-top: var(--content-gap);">
+                Minimal attack surface &middot; Non-root &middot; DHI base &middot; SBOM &middot; Stubbed libsystemd
+            </p>
+            <div class="code-block" style="display: inline-block; margin-top: var(--content-gap); text-align: left;">
+                <span class="prompt">$</span> <span class="flag">docker run</span> -e MYSQL_ROOT_PASSWORD=secret \<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;evgeniypatlan/test-images:<span class="string">percona-server-8.4-hardened</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =================== SLIDE 2: THE PROBLEM =================== -->
+<section class="slide" id="slide-2">
+    <span class="slide-number">02 / 06</span>
+    <div class="slide-content">
+        <div class="reveal">
+            <h2><span class="prompt">#</span> The Problem</h2>
+            <p style="max-width: 800px; color: var(--comment);">Standard Percona Server Docker images carry significant attack surface that production deployments shouldn't tolerate.</p>
+        </div>
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));">
+            <div class="card reveal">
+                <h3><span class="error">8</span> HIGH CVEs</h3>
+                <p>Naive DHI build: bash, ncurses, libreadline, libsystemd, Go stdlib — all flagged</p>
+            </div>
+            <div class="card reveal">
+                <h3><span class="error">~700 MB</span> image</h3>
+                <p>MySQL Shell (Python + V8), mysql client, mysqldump, mysql_upgrade — rarely needed at runtime</p>
+            </div>
+            <div class="card reveal">
+                <h3><span class="error">bash</span> in runtime</h3>
+                <p>Full interactive shell with readline → libtinfo → ncurses dependency chain and 4 HIGH CVEs</p>
+            </div>
+            <div class="card reveal">
+                <h3><span class="error">libsystemd</span></h3>
+                <p>mysqld links sd_notify() — never used in containers but CVE-2026-29111 rides along</p>
+            </div>
+            <div class="card reveal">
+                <h3><span class="error">root</span>-capable</h3>
+                <p>apt, dpkg, curl, wget all present — one RCE away from package-manager pivoting</p>
+            </div>
+            <div class="card reveal">
+                <h3><span class="error">~50</span> users in /etc/passwd</h3>
+                <p>nobody, sshd, systemd-*, messagebus, _apt — none needed by mysqld</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =================== SLIDE 3: ARCHITECTURE =================== -->
+<section class="slide" id="slide-3">
+    <span class="slide-number">03 / 06</span>
+    <div class="slide-content">
+        <div class="reveal">
+            <h2><span class="prompt">#</span> Build Architecture</h2>
+            <p style="color: var(--comment);">Single Dockerfile, 3 linear stages. One <code>docker build</code> → one image.</p>
+        </div>
+        <div class="pipeline reveal">
+            <div class="stage">
+                <div class="label">Stage 1</div>
+                <div class="name">package-install</div>
+                <div class="detail">
+                    DHI trixie-dev<br>
+                    apt install pdps-8.4.8<br>
+                    gcc → stub libsystemd
+                </div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="stage">
+                <div class="label">Stage 2</div>
+                <div class="name">assemble</div>
+                <div class="detail">
+                    Build /runtime tree<br>
+                    ldd closure walk<br>
+                    dash + coreutils subset
+                </div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="stage" style="border-color: var(--green-dim);">
+                <div class="label">Stage 3</div>
+                <div class="name" style="color: var(--green);">final</div>
+                <div class="detail">
+                    DHI trixie runtime<br>
+                    COPY /runtime → /<br>
+                    Strip bash + ncurses + dpkg
+                </div>
+            </div>
+        </div>
+        <div class="grid reveal" style="margin-top: var(--content-gap); grid-template-columns: 1fr 1fr;">
+            <div class="code-block">
+                <span class="comment">// Key techniques</span><br>
+                <span class="flag">ldd</span> mysqld + every plugin .so<br>
+                <span class="flag">ldd</span> every copied binary<br>
+                <span class="flag">gcc</span> libsystemd-stub.c → .so<br>
+                <span class="flag">awk</span> strip dpkg status entries
+            </div>
+            <div class="code-block">
+                <span class="comment">// Package source</span><br>
+                percona-release enable \<br>
+                &nbsp;&nbsp;<span class="string">pdps-8.4.8</span> testing<br>
+                <span class="comment">// Not ps-84-lts (no trixie</span><br>
+                <span class="comment">// mysql-shell build there)</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =================== SLIDE 4: SECURITY FEATURES =================== -->
+<section class="slide" id="slide-4">
+    <span class="slide-number">04 / 06</span>
+    <div class="slide-content">
+        <div class="reveal">
+            <h2><span class="prompt">#</span> Security Features</h2>
+        </div>
+        <div class="grid reveal" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));">
+            <div class="card">
+                <h3><span class="success">◆</span> Non-root runtime</h3>
+                <p>USER mysql (uid 1001), no setuid binaries, cap-drop ALL compatible</p>
+            </div>
+            <div class="card">
+                <h3><span class="success">◆</span> No bash / no readline</h3>
+                <p>POSIX dash only. Kills libreadline → libtinfo → ncurses CVE chain (4 HIGHs)</p>
+            </div>
+            <div class="card">
+                <h3><span class="success">◆</span> Stubbed libsystemd</h3>
+                <p>30-line C stub compiled in build. sd_notify → return 0. Kills CVE-2026-29111</p>
+            </div>
+            <div class="card">
+                <h3><span class="success">◆</span> ldd-pruned libs</h3>
+                <p>Only shared libraries mysqld + plugins actually link. No unused Debian bloat</p>
+            </div>
+            <div class="card">
+                <h3><span class="success">◆</span> 2-line /etc/passwd</h3>
+                <p>Only root + mysql. No nobody, sshd, systemd-*, messagebus, _apt, daemon</p>
+            </div>
+            <div class="card">
+                <h3><span class="success">◆</span> Inline SBOM</h3>
+                <p>SPDX 2.3 at /usr/local/percona-server.spdx.json. DHI base is Docker-signed</p>
+            </div>
+        </div>
+        <div class="reveal" style="margin-top: var(--content-gap);">
+            <p style="color: var(--comment); font-size: var(--small-size);">
+                <span class="success">+</span> Supports --read-only rootfs &middot;
+                <span class="success">+</span> no-new-privileges &middot;
+                <span class="success">+</span> Full plugin set preserved (InnoDB, RocksDB, audit_log, keyring_vault)
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- =================== SLIDE 5: CVE IMPACT =================== -->
+<section class="slide" id="slide-5">
+    <span class="slide-number">05 / 06</span>
+    <div class="slide-content">
+        <div class="reveal">
+            <h2><span class="prompt">#</span> CVE Impact</h2>
+        </div>
+        <div class="metrics reveal">
+            <div class="metric">
+                <div class="value error">8</div>
+                <div class="label">HIGH CVEs before</div>
+            </div>
+            <div class="metric" style="font-size: var(--h2-size); display: flex; align-items: center; justify-content: center;">
+                <span class="green" style="font-size: var(--h2-size);">→</span>
+            </div>
+            <div class="metric">
+                <div class="value success">3</div>
+                <div class="label">HIGH CVEs after</div>
+            </div>
+            <div class="metric">
+                <div class="value" style="color: var(--cyan);">0</div>
+                <div class="label">CRITICAL</div>
+            </div>
+        </div>
+        <table class="compare-table reveal" style="margin-top: var(--content-gap);">
+            <thead>
+                <tr><th>CVE</th><th>Package</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>CVE-2026-29111</td><td class="removed">libsystemd0</td><td><span class="success">ELIMINATED</span> — stub .so</td></tr>
+                <tr><td>CVE-2025-69720</td><td class="removed">libtinfo6</td><td><span class="success">ELIMINATED</span> — no bash</td></tr>
+                <tr><td>CVE-2025-69720</td><td class="removed">ncurses-base/bin/term</td><td><span class="success">ELIMINATED</span> — no bash</td></tr>
+                <tr><td>CVE-2026-32280</td><td>telemetry-agent (Go)</td><td><span class="yellow">ACCEPTED</span> — needs Percona rebuild</td></tr>
+                <tr><td>CVE-2026-32282</td><td>telemetry-agent (Go)</td><td><span class="yellow">ACCEPTED</span> — needs Go ≥1.26.2</td></tr>
+                <tr><td>CVE-2026-33810</td><td>telemetry-agent (Go)</td><td><span class="yellow">ACCEPTED</span> — needs Go ≥1.26.2</td></tr>
+            </tbody>
+        </table>
+        <p class="reveal" style="color: var(--comment); font-size: var(--small-size); margin-top: var(--element-gap);">
+            3 remaining HIGHs are in the Go stdlib of percona-telemetry-agent. Set PERCONA_TELEMETRY_DISABLE=1 to exclude at runtime.
+        </p>
+    </div>
+</section>
+
+<!-- =================== SLIDE 6: RESULTS & NEXT =================== -->
+<section class="slide" id="slide-6">
+    <span class="slide-number">06 / 06</span>
+    <div class="slide-content">
+        <div class="reveal">
+            <h2><span class="prompt">#</span> What Ships Today</h2>
+        </div>
+        <div class="grid reveal" style="grid-template-columns: 1fr 1fr; margin-top: var(--content-gap);">
+            <div>
+                <h3 style="margin-bottom: var(--element-gap);">Deliverables</h3>
+                <div class="code-block">
+                    Dockerfile.hardened<br>
+                    libsystemd-stub.c<br>
+                    ps-entry-hardened.sh<br>
+                    telemetry-agent-supervisor-hardened.sh<br>
+                    test-hardened.sh <span class="comment"># 5-tier, 25+ assertions</span><br>
+                    README-hardened.md<br>
+                    README-hardened-short.md
+                </div>
+            </div>
+            <div>
+                <h3 style="margin-bottom: var(--element-gap);">Image</h3>
+                <div class="code-block">
+                    <span class="prompt">$</span> docker pull \<br>
+                    &nbsp;&nbsp;evgeniypatlan/test-images:\<br>
+                    &nbsp;&nbsp;<span class="string">percona-server-8.4-hardened</span><br>
+                    <br>
+                    <span class="comment"># ~300-400 MB vs ~700 MB</span><br>
+                    <span class="comment"># 0 CRITICAL, 3 HIGH (Go only)</span><br>
+                    <span class="comment"># uid 1001, dash, no apt</span>
+                </div>
+            </div>
+        </div>
+        <div class="reveal" style="margin-top: var(--content-gap);">
+            <h3 style="margin-bottom: var(--element-gap);">Next steps</h3>
+            <div style="display: flex; gap: var(--content-gap); flex-wrap: wrap;">
+                <span class="tag">Percona: rebuild telemetry-agent with Go 1.26.2</span>
+                <span class="tag">aarch64 variant</span>
+                <span class="tag">CI integration in percona-docker</span>
+                <span class="tag">Promote to percona/ org on Hub</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =================== JAVASCRIPT =================== -->
+<script>
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    const total = slides.length;
+    const progress = document.getElementById('progress');
+    const navContainer = document.getElementById('navDots');
+
+    // build nav dots
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot';
+        dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+        dot.addEventListener('click', () => slides[i].scrollIntoView({ behavior: 'smooth' }));
+        navContainer.appendChild(dot);
+    });
+    const dots = navContainer.querySelectorAll('.nav-dot');
+
+    // intersection observer for reveal + active dot
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // reveal children
+                entry.target.querySelectorAll('.reveal').forEach((el, i) => {
+                    setTimeout(() => el.classList.add('visible'), i * 120);
+                });
+                // update progress + dots
+                const idx = Array.from(slides).indexOf(entry.target);
+                progress.style.width = ((idx + 1) / total * 100) + '%';
+                dots.forEach((d, j) => d.classList.toggle('active', j === idx));
+            }
+        });
+    }, { threshold: 0.5 });
+    slides.forEach(s => observer.observe(s));
+
+    // keyboard navigation
+    document.addEventListener('keydown', e => {
+        const current = Math.round(window.scrollY / window.innerHeight);
+        if ((e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') && current < total - 1) {
+            e.preventDefault();
+            slides[current + 1].scrollIntoView({ behavior: 'smooth' });
+        }
+        if ((e.key === 'ArrowUp' || e.key === 'PageUp') && current > 0) {
+            e.preventDefault();
+            slides[current - 1].scrollIntoView({ behavior: 'smooth' });
+        }
+        if (e.key === 'Home') { e.preventDefault(); slides[0].scrollIntoView({ behavior: 'smooth' }); }
+        if (e.key === 'End') { e.preventDefault(); slides[total - 1].scrollIntoView({ behavior: 'smooth' }); }
+    });
+
+    // touch swipe
+    let touchStart = 0;
+    document.addEventListener('touchstart', e => { touchStart = e.touches[0].clientY; }, { passive: true });
+    document.addEventListener('touchend', e => {
+        const diff = touchStart - e.changedTouches[0].clientY;
+        const current = Math.round(window.scrollY / window.innerHeight);
+        if (Math.abs(diff) > 50) {
+            const target = diff > 0 ? Math.min(current + 1, total - 1) : Math.max(current - 1, 0);
+            slides[target].scrollIntoView({ behavior: 'smooth' });
+        }
+    }, { passive: true });
+})();
+</script>
+</body>
+</html>

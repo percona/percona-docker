@@ -1,0 +1,328 @@
+# percona-docker/percona-server-8.4/Dockerfile.hardened
+#
+# Hardened Percona Server 8.4 — single-target linear multi-stage build on DHI.
+#
+# Produces perconalab/percona-server:8.4-hardened — a lean, distroless-style
+# runtime with:
+#   - Non-root mysqld (uid 1001)
+#   - DHI debian-base:trixie runtime (signed, SBOM, CVE-scanned)
+#   - ldd-pruned library closure (only libs mysqld + plugins + entrypoint need)
+#   - Minimal /etc/passwd (root + mysql only)
+#   - Percona telemetry agent + supervisor
+#   - POSIX /bin/sh (dash) for the entrypoint — NO bash, NO libreadline,
+#     NO libtinfo/ncurses (kills those CVE surfaces)
+#   - NO mysql client, mysqlsh, mysqldump, mysql_upgrade (use a separate
+#     client container via docker exec/run if you need interactive access)
+#
+# Build:
+#   docker build --build-arg REPO_CHANNEL=testing \
+#       -t perconalab/percona-server:8.4-hardened \
+#       -f Dockerfile.hardened .
+
+# =============================================================================
+# Stage 1 — package-install
+# =============================================================================
+
+FROM dhi.io/debian-base:trixie-dev AS package-install
+
+ARG REPO_CHANNEL=testing
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates wget gnupg gpgv curl lsb-release bsdutils \
+        gcc libc6-dev; \
+    groupadd -g 1001 mysql; \
+    useradd -u 1001 -r -g 1001 -s /usr/sbin/nologin \
+            -d /var/lib/mysql -c "Percona Server" mysql; \
+    wget -q -O /tmp/percona-release.deb \
+        https://repo.percona.com/apt/percona-release_latest.generic_all.deb; \
+    dpkg -i /tmp/percona-release.deb; \
+    rm /tmp/percona-release.deb; \
+    percona-release disable all; \
+    percona-release enable pdps-8.4.8 ${REPO_CHANNEL}; \
+    percona-release enable telemetry ${REPO_CHANNEL}; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        percona-server-server \
+        percona-server-client \
+        percona-server-rocksdb \
+        percona-telemetry-agent \
+        libjemalloc2 \
+        dash \
+        mawk; \
+    rm -rf /var/lib/apt/lists/*; \
+    /usr/sbin/mysqld --version; \
+    test -x /bin/dash
+
+# Compile and install a stub libsystemd.so.0 — see libsystemd-stub.c for
+# rationale. Eliminates CVE-2026-29111 without breaking mysqld (the ELF
+# loader is still satisfied, sd_notify/sd_notifyf/sd_booted/... are real
+# exported symbols that all return 0). Done in a single RUN so the /build
+# temp dir doesn't leak into an intermediate layer.
+COPY libsystemd-stub.c /build/libsystemd-stub.c
+RUN set -eux; \
+    gcc -shared -fPIC -Wl,-soname,libsystemd.so.0 \
+        -o /build/libsystemd.so.0 /build/libsystemd-stub.c; \
+    REAL_LIB="$(readlink -f /usr/lib/x86_64-linux-gnu/libsystemd.so.0)"; \
+    echo "Real libsystemd target: ${REAL_LIB}"; \
+    cp /build/libsystemd.so.0 "${REAL_LIB}"; \
+    cp /build/libsystemd.so.0 /usr/lib/x86_64-linux-gnu/libsystemd.so.0; \
+    rm -rf /build; \
+    /usr/sbin/mysqld --version; \
+    nm -D /usr/lib/x86_64-linux-gnu/libsystemd.so.0 | grep -q 'T sd_notify'
+
+# Baked config + SBOM + plugin dir detection + marker files
+RUN set -eux; \
+    mkdir -p /etc/mysql/conf.d /etc/default; \
+    printf '[mysqld]\nhost_cache_size=0\nskip-name-resolve\n' \
+        > /etc/mysql/conf.d/docker.cnf; \
+    printf 'LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2\nTHP_SETTING=never\n' \
+        > /etc/default/mysql; \
+    \
+    psVersion="$(dpkg-query -W -f='${Version}' percona-server-server)"; \
+    mkdir -p /usr/local; \
+    printf '{"spdxVersion":"SPDX-2.3","SPDXID":"SPDXRef-DOCUMENT","name":"percona-server-sbom","packages":[{"name":"percona-server-server","versionInfo":"%s","SPDXID":"SPDXRef-Package--percona-server-server","supplier":"Organization: Percona","externalRefs":[{"referenceCategory":"PACKAGE-MANAGER","referenceType":"purl","referenceLocator":"pkg:deb/debian/percona-server-server@%s?os_name=debian&os_version=trixie"}],"licenseDeclared":"GPL-2.0"}]}\n' \
+        "${psVersion}" "${psVersion}" > /usr/local/percona-server.spdx.json; \
+    \
+    PLUGIN_DIR="$(find /usr/lib -maxdepth 5 -name 'ha_rocksdb.so' 2>/dev/null | head -1 | xargs -r dirname || true)"; \
+    if [ -z "${PLUGIN_DIR}" ]; then \
+        PLUGIN_DIR="$(find /usr/lib -maxdepth 5 -name 'auth_socket.so' 2>/dev/null | head -1 | xargs -r dirname || true)"; \
+    fi; \
+    [ -n "${PLUGIN_DIR}" ] || { echo 'ERROR: could not detect MySQL plugin dir' >&2; exit 1; }; \
+    echo "Detected plugin dir: ${PLUGIN_DIR}"; \
+    mkdir -p /var/lib/pshardened; \
+    echo "${PLUGIN_DIR}" > /var/lib/pshardened/plugin_dir; \
+    \
+    printf '{ "read_local_manifest": true }\n' > /usr/sbin/mysqld.my; \
+    chmod 0644 /usr/sbin/mysqld.my; \
+    printf '{ "read_local_config": true }\n' > "${PLUGIN_DIR}/component_keyring_vault.cnf"; \
+    chmod 0644 "${PLUGIN_DIR}/component_keyring_vault.cnf"
+
+# =============================================================================
+# Stage 2 — assemble: build the /runtime tree
+# =============================================================================
+
+FROM package-install AS assemble
+
+RUN set -eux; \
+    PLUGIN_DIR="$(cat /var/lib/pshardened/plugin_dir)"; \
+    MYSQL_LIB_DIR="$(dirname "${PLUGIN_DIR}")"; \
+    \
+    mkdir -p \
+        /runtime/bin \
+        /runtime/var/lib/mysql \
+        /runtime/var/lib/mysql-files \
+        /runtime/var/run/mysqld \
+        /runtime/var/log/percona \
+        /runtime/docker-entrypoint-initdb.d \
+        /runtime/etc /runtime/etc/default \
+        /runtime/usr/sbin /runtime/usr/bin \
+        /runtime/usr/local/bin /runtime/usr/local \
+        /runtime/usr/share; \
+    \
+    # --- core mysqld binary + marker file ---
+    cp -a /usr/sbin/mysqld    /runtime/usr/sbin/; \
+    cp -a /usr/sbin/mysqld.my /runtime/usr/sbin/; \
+    \
+    # --- minimal userland: dash (POSIX /bin/sh) + coreutils subset ---
+    # NO bash, NO libreadline, NO ncurses (kills libtinfo CVE surface)
+    cp -aL /bin/dash /runtime/bin/dash; \
+    ln -sf dash /runtime/bin/sh; \
+    \
+    # --- selected binaries for healthcheck, entrypoint, telemetry ---
+    # mysqladmin: healthcheck + auth test
+    # mysql client / mysqldump / mysqlsh / mysql_upgrade / mysql_tzinfo_to_sql
+    #   are deliberately NOT included (attack surface + they need libreadline).
+    for b in mysqladmin percona-telemetry-agent my_print_defaults \
+             sed cat ls cp mv rm mkdir chmod chown mktemp head tail \
+             sleep id env readlink dirname basename grep awk find printf tee getent; do \
+        src="$(command -v "$b" 2>/dev/null || true)"; \
+        [ -n "$src" ] && cp -aL "$src" /runtime/usr/bin/ || true; \
+    done; \
+    \
+    # --- mysql lib tree wholesale (plugin/ + private/ for ICU regex data) ---
+    mkdir -p "/runtime${MYSQL_LIB_DIR}"; \
+    cp -a "${MYSQL_LIB_DIR}/." "/runtime${MYSQL_LIB_DIR}/"; \
+    \
+    # --- jemalloc (LD_PRELOAD'd, not linked — ldd mysqld won't see it) ---
+    JEMALLOC_SRC="$(find /usr/lib -name 'libjemalloc.so.2' 2>/dev/null | head -1)"; \
+    [ -n "${JEMALLOC_SRC}" ] || { echo 'ERROR: libjemalloc.so.2 not found' >&2; exit 1; }; \
+    JEMALLOC_DIR="$(dirname "${JEMALLOC_SRC}")"; \
+    mkdir -p "/runtime${JEMALLOC_DIR}"; \
+    cp -L "${JEMALLOC_SRC}" "/runtime${JEMALLOC_DIR}/libjemalloc.so.2"; \
+    \
+    # --- shared-library closure via ldd ---
+    LIBS="/runtime/usr/sbin/mysqld /runtime/bin/dash ${JEMALLOC_SRC}"; \
+    for so in $(find "${MYSQL_LIB_DIR}" -name '*.so*' 2>/dev/null); do LIBS="${LIBS} $so"; done; \
+    for b in /runtime/usr/bin/*; do [ -f "$b" ] && LIBS="${LIBS} $b"; done; \
+    for f in $LIBS; do \
+        ldd "$f" 2>/dev/null \
+          | awk '/=>/ {print $3}; /^[[:space:]]*\//{print $1}' \
+          | grep -vE '\(0x|ld-linux' \
+          | while read -r lib; do \
+                [ -n "$lib" ] && [ -f "$lib" ] || continue; \
+                libdir="$(dirname "$lib" | sed 's|^/lib/|/usr/lib/|; s|^/lib$|/usr/lib|')"; \
+                mkdir -p "/runtime${libdir}"; \
+                cp -Ln "$lib" "/runtime${libdir}/" 2>/dev/null || true; \
+            done; \
+    done; \
+    \
+    # --- share data (errmsg.sys, SQL bootstraps, charsets, ICU) ---
+    for d in /usr/share/mysql /usr/share/mysql-8.4 /usr/share/icu; do \
+        [ -d "$d" ] && cp -a "$d" "/runtime${d%/*}/" || true; \
+    done; \
+    \
+    # --- config ---
+    [ -d /etc/mysql ] && cp -a /etc/mysql /runtime/etc/ || true; \
+    cp /etc/default/mysql /runtime/etc/default/mysql; \
+    \
+    # --- SBOM ---
+    cp /usr/local/percona-server.spdx.json /runtime/usr/local/; \
+    \
+    # --- ownership & permissions ---
+    chown -R 1001:1001 \
+        /runtime/var/lib/mysql \
+        /runtime/var/lib/mysql-files \
+        /runtime/var/run/mysqld \
+        /runtime/var/log/percona \
+        /runtime/docker-entrypoint-initdb.d \
+        /runtime/etc/mysql; \
+    chmod 0750 /runtime/var/lib/mysql /runtime/var/lib/mysql-files; \
+    chmod 0755 /runtime/var/run/mysqld /runtime/docker-entrypoint-initdb.d; \
+    chmod -R a+rX /runtime/etc/mysql; \
+    \
+    # --- minimal /etc/passwd, /etc/group, nsswitch ---
+    grep '^root:'  /etc/passwd  > /runtime/etc/passwd; \
+    grep '^mysql:' /etc/passwd >> /runtime/etc/passwd; \
+    grep '^root:'  /etc/group   > /runtime/etc/group; \
+    grep '^mysql:' /etc/group  >> /runtime/etc/group; \
+    printf 'passwd:  files\ngroup:   files\nhosts:   files dns\n' \
+        > /runtime/etc/nsswitch.conf
+
+COPY ps-entry-hardened.sh                      /runtime/usr/local/bin/docker-entrypoint.sh
+COPY telemetry-agent-supervisor-hardened.sh    /runtime/usr/bin/telemetry-agent-supervisor.sh
+RUN chmod 0755 /runtime/usr/local/bin/docker-entrypoint.sh \
+               /runtime/usr/bin/telemetry-agent-supervisor.sh
+
+# =============================================================================
+# Stage 3 — final hardened image
+# =============================================================================
+
+FROM dhi.io/debian-base:trixie
+
+# DHI base ships with USER=nonroot as default. Override to root so we
+# can COPY files and RUN cleanup commands. We switch to mysql (uid 1001)
+# at the end, before CMD.
+USER root
+
+ENV PERCONA_TELEMETRY_CHECK_INTERVAL=86400 \
+    PERCONA_TELEMETRY_HISTORY_KEEP_INTERVAL=604800 \
+    PERCONA_TELEMETRY_RESEND_INTERVAL=60 \
+    PERCONA_TELEMETRY_URL=https://check.percona.com/v1/telemetry/GenericReport
+
+LABEL name="Percona Server (Hardened)" \
+      vendor="Percona" \
+      release="8.4" \
+      summary="Percona Server 8.4 LTS — hardened image (DHI)" \
+      description="Percona Server 8.4 LTS built on Docker Hardened Images. Non-root mysqld, distroless-style userland (no bash, no mysql client, no package manager), minimal /etc/passwd, SBOM. Supports MYSQL_ROOT_PASSWORD + *.sql files in /docker-entrypoint-initdb.d via mysqld --init-file. For interactive mysql client / mysqlsh, use a separate client container." \
+      maintainer="Percona Development <info@percona.com>" \
+      org.opencontainers.image.authors="info@percona.com" \
+      org.opencontainers.image.source="https://github.com/percona/percona-docker" \
+      org.opencontainers.image.vendor="Percona" \
+      org.opencontainers.image.title="Percona Server 8.4 Hardened" \
+      org.opencontainers.image.base.name="dhi.io/debian-base:trixie"
+
+COPY --from=assemble /runtime/etc/passwd        /etc/passwd
+COPY --from=assemble /runtime/etc/group         /etc/group
+COPY --from=assemble /runtime/etc/nsswitch.conf /etc/nsswitch.conf
+COPY --from=assemble /runtime/etc/mysql/        /etc/mysql/
+COPY --from=assemble /runtime/etc/default/      /etc/default/
+COPY --from=assemble /runtime/bin/              /bin/
+COPY --from=assemble /runtime/usr/sbin/         /usr/sbin/
+COPY --from=assemble /runtime/usr/bin/          /usr/bin/
+COPY --from=assemble /runtime/usr/lib/          /usr/lib/
+COPY --from=assemble /runtime/usr/local/        /usr/local/
+COPY --from=assemble /runtime/usr/share/        /usr/share/
+COPY --chown=1001:1001 --from=assemble /runtime/var/lib/mysql/             /var/lib/mysql/
+COPY --chown=1001:1001 --from=assemble /runtime/var/lib/mysql-files/       /var/lib/mysql-files/
+COPY --chown=1001:1001 --from=assemble /runtime/var/run/mysqld/            /var/run/mysqld/
+COPY --chown=1001:1001 --from=assemble /runtime/var/log/percona/           /var/log/percona/
+COPY --chown=1001:1001 --from=assemble /runtime/docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d/
+
+# Strip bash + libreadline + ncurses files the DHI base image ships but we
+# don't want. bash is dep-installed by the base, and it pulls libreadline →
+# libtinfo → ncurses which are CVE-prone (CVE-2025-69720 et al.). Our
+# entrypoint uses dash (/bin/sh), mysqld / mysqladmin / the telemetry agent
+# don't link readline, so we can safely remove the lot.
+#
+# ALSO edit /var/lib/dpkg/status to drop the package stanzas for everything
+# we've stripped (and for libsystemd0, whose .so file is our stub). Trivy
+# identifies Debian packages by reading the dpkg status file, not by
+# scanning file content — so leaving stale stanzas would leave the CVEs
+# reported even though the vulnerable code is gone from the image.
+RUN set -eux; \
+    rm -f  /bin/bash /usr/bin/bash /usr/bin/rbash \
+           /usr/lib/x86_64-linux-gnu/libreadline.so.* \
+           /usr/lib/x86_64-linux-gnu/libhistory.so.* \
+           /usr/lib/x86_64-linux-gnu/libtinfo.so.* \
+           /usr/lib/x86_64-linux-gnu/libncurses.so.* \
+           /usr/lib/x86_64-linux-gnu/libncursesw.so.* \
+           /usr/lib/x86_64-linux-gnu/libtic.so.* \
+           /usr/lib/x86_64-linux-gnu/libmenu.so.* \
+           /usr/lib/x86_64-linux-gnu/libpanel.so.* \
+           /usr/lib/x86_64-linux-gnu/libform.so.*; \
+    rm -rf /usr/share/terminfo /etc/terminfo /lib/terminfo \
+           /usr/share/bash-completion /etc/bash_completion.d \
+           /etc/bash.bashrc /root/.bashrc /root/.bash_profile /root/.bash_logout; \
+    \
+    # Drop stale dpkg entries for packages whose files we stripped or
+    # replaced. Handle BOTH formats:
+    #   - monolithic /var/lib/dpkg/status (traditional Debian layout)
+    #   - /var/lib/dpkg/status.d/<package> (distroless / DHI layout, one
+    #     file per package)
+    # Diagnostic: list what's actually there so the build output shows us
+    # which layout we're on.
+    echo "--- dpkg db layout ---"; \
+    ls -la /var/lib/dpkg/ 2>/dev/null || echo "no /var/lib/dpkg"; \
+    ls /var/lib/dpkg/status.d/ 2>/dev/null | head -20 || echo "no status.d"; \
+    echo "--- end dpkg db ---"; \
+    \
+    BAD_PKGS='bash libreadline8 libhistory8 libtinfo6 libncurses6 libncursesw6 ncurses-base ncurses-bin ncurses-term libsystemd0 libsystemd-shared'; \
+    \
+    # status.d/ format: one file per package, plus optional .md5sums sidecar
+    if [ -d /var/lib/dpkg/status.d ]; then \
+        for pkg in $BAD_PKGS; do \
+            rm -f "/var/lib/dpkg/status.d/${pkg}" \
+                  "/var/lib/dpkg/status.d/${pkg}.md5sums" \
+                  "/var/lib/dpkg/status.d/${pkg}.sha256sums" \
+                  "/var/lib/dpkg/status.d/${pkg}.conffiles"; \
+        done; \
+    fi; \
+    \
+    # monolithic status file: edit out matching stanzas
+    if [ -f /var/lib/dpkg/status ] && [ -s /var/lib/dpkg/status ]; then \
+        awk '/^Package: / { skip = ($2 ~ /^(bash|libreadline8|libhistory8|libtinfo6|libncurses6|libncursesw6|ncurses-base|ncurses-bin|ncurses-term|libsystemd0|libsystemd-shared)$/) } !skip { print } /^$/ { skip = 0 }' \
+            /var/lib/dpkg/status > /var/lib/dpkg/status.new; \
+        mv /var/lib/dpkg/status.new /var/lib/dpkg/status; \
+    fi; \
+    \
+    echo "--- dpkg db after cleanup ---"; \
+    ls /var/lib/dpkg/status.d/ 2>/dev/null | head -20 || true; \
+    echo "--- end ---"; \
+    \
+    # Verify that mysqld and our shell still work after the cleanup
+    /bin/sh -c 'test -x /usr/sbin/mysqld && test -x /bin/dash && test -L /bin/sh'
+
+VOLUME ["/var/lib/mysql"]
+EXPOSE 3306 33060
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD mysqladmin ping -h127.0.0.1 || exit 1
+
+USER mysql
+WORKDIR /var/lib/mysql
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["mysqld"]
