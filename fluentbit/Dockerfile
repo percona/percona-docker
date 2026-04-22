@@ -64,18 +64,33 @@ RUN set -ex; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
     rm -rf /var/cache /tmp/go-cron.tar.gz
 
+
 # Install supercronic for cron
 ARG SUPERCRONIC_VERSION=v0.2.44
 RUN set -ex; \
+    cd /tmp; \
     arch=$(uname -m); \
     case "$arch" in \
-        x86_64)  sc_arch=amd64 ;; \
-        aarch64) sc_arch=arm64 ;; \
-        *)       echo "unsupported architecture: $arch" && exit 1 ;; \
+        x86_64) \
+            SUPERCRONIC=supercronic-linux-amd64; \
+            SUPERCRONIC_SHA1SUM=6eb0a8e1e6673675dc67668c1a9b6409f79c37bc ;; \
+        i386|i686) \
+            SUPERCRONIC=supercronic-linux-386; \
+            SUPERCRONIC_SHA1SUM=58c094ebdff4c29286a3bb6152d64a5070d9682a ;; \
+        armv7l|armv6l|armhf) \
+            SUPERCRONIC=supercronic-linux-arm; \
+            SUPERCRONIC_SHA1SUM=4f69f55febc78fbb10f1c0c85b907682b4da9300 ;; \
+        aarch64) \
+            SUPERCRONIC=supercronic-linux-arm64; \
+            SUPERCRONIC_SHA1SUM=6c6cba4cde1dd4a1dd1e7fb23498cde1b57c226c ;; \
+        *) \
+            echo "unsupported architecture: $arch" && exit 1 ;; \
     esac; \
-    curl -fsSLo /usr/bin/supercronic \
-        "https://github.com/aptible/supercronic/releases/download/${SUPERCRONIC_VERSION}/supercronic-linux-${sc_arch}"; \
-    chmod +x /usr/bin/supercronic
+    curl -fsSLO "https://github.com/aptible/supercronic/releases/download/${SUPERCRONIC_VERSION}/${SUPERCRONIC}"; \
+    echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c -; \
+    chmod +x "${SUPERCRONIC}"; \
+    mv "${SUPERCRONIC}" "/usr/local/bin/${SUPERCRONIC}"; \
+    ln -sf "/usr/local/bin/${SUPERCRONIC}" /usr/bin/supercronic
 
 RUN groupadd -g 1001 mysql
 RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
