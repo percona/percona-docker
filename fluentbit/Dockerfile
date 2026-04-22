@@ -64,6 +64,19 @@ RUN set -ex; \
     tar xvf /tmp/go-cron.tar.gz -C /usr/bin; \
     rm -rf /var/cache /tmp/go-cron.tar.gz
 
+# Install supercronic for cron
+ARG SUPERCRONIC_VERSION=v0.2.44
+RUN set -ex; \
+    arch=$(uname -m); \
+    case "$arch" in \
+        x86_64)  sc_arch=amd64 ;; \
+        aarch64) sc_arch=arm64 ;; \
+        *)       echo "unsupported architecture: $arch" && exit 1 ;; \
+    esac; \
+    curl -fsSLo /usr/bin/supercronic \
+        "https://github.com/aptible/supercronic/releases/download/${SUPERCRONIC_VERSION}/supercronic-linux-${sc_arch}"; \
+    chmod +x /usr/bin/supercronic
+
 RUN groupadd -g 1001 mysql
 RUN useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -c "Default Application User" mysql
