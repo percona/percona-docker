@@ -4,6 +4,16 @@ set -o xtrace
 
 export PATH=$PATH:/opt/fluent-bit/bin
 
+exec_cron() {
+    logrotate_cron_cmd="logrotate -s /opt/percona/logrotate/logrotate.status /opt/percona/logrotate/logrotate-${SERVICE_TYPE}.conf;/usr/bin/find /var/lib/mysql/ -name 'GRA_*.log' -mtime +7 -delete"
+    if [ -f /usr/bin/supercronic ]; then
+        printf '0 0 * * * %s\n' "$logrotate_cron_cmd" > /tmp/crontab
+        exec supercronic /tmp/crontab
+    else
+        exec go-cron "0 0 * * *" sh -c "$logrotate_cron_cmd"
+    fi
+}
+
 if [  "$1" = 'logrotate' ]; then
     if [[ $EUID != 1001 ]]; then
         # logrotate requires UID in /etc/passwd
@@ -22,12 +32,3 @@ else
 fi
 
 
-exec_cron() {
-    logrotate_cron_cmd="logrotate -s /opt/percona/logrotate/logrotate.status /opt/percona/logrotate/logrotate-${SERVICE_TYPE}.conf;/usr/bin/find /var/lib/mysql/ -name 'GRA_*.log' -mtime +7 -delete"
-    if [ -f /usr/bin/supercronic ]; then
-        printf '0 0 * * * %s\n' "$logrotate_cron_cmd" > /tmp/crontab
-        exec supercronic /tmp/crontab
-    else
-        exec go-cron "0 0 * * *" sh -c "$logrotate_cron_cmd"
-    fi
-}
