@@ -106,7 +106,8 @@ RUN set -ex; \
         percona-postgis35_${PPG_MAJOR_VERSION}-gui \
         percona-postgis35_${PPG_MAJOR_VERSION}-llvmjit \
         percona-postgis35_${PPG_MAJOR_VERSION}-utils \
-        percona-wal2json${PPG_MAJOR_VERSION}; \
+        percona-wal2json${PPG_MAJOR_VERSION} \
+        percona-pg_cron_${PPG_MAJOR_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
     chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
