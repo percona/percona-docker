@@ -82,7 +82,7 @@ RUN groupadd -g 1001 mysql; \
 
 # we need licenses from docs
 RUN set -ex; \
-	curl -Lf -o /tmp/percona-xtrabackup.rpm https://repo.percona.com/pxb-9x-innovation/yum/release/9/RPMS/x86_64/percona-xtrabackup-84-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/percona-xtrabackup.rpm https://repo.percona.com/pxb-9x-innovation/yum/release/9/RPMS/x86_64/percona-xtrabackup-96-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
 	curl -Lf -o /tmp/percona-server-shared.rpm https://repo.percona.com/ps-9x-innovation/yum/release/9/RPMS/x86_64/percona-server-shared-${FULL_PERCONA_VERSION}.x86_64.rpm; \
 	curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-garbd-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
 	curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-client-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
@@ -94,7 +94,7 @@ RUN set -ex; \
 	rm -rf /var/cache/dnf /var/cache/yum /var/lib/mysql
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN cp /usr/share/doc/percona-xtrabackup-84/LICENSE /licenses/LICENSE.xtrabackup; \
+RUN cp /usr/share/doc/percona-xtrabackup-96/LICENSE /licenses/LICENSE.xtrabackup; \
 	cp /usr/share/doc/percona-xtradb-cluster-garbd-3/COPYING /licenses/LICENSE.garbd; \
 	curl -o /licenses/LICENSE.aws-cli https://raw.githubusercontent.com/aws/aws-cli/refs/heads/master/LICENSE.txt
 
