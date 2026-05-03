@@ -120,7 +120,7 @@ RUN set -ex; \
     curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/aarch64/percona-xtradb-cluster-shared-${FULL_PERCONA_VERSION}.aarch64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/aarch64/percona-xtradb-cluster-client-${FULL_PERCONA_VERSION}.aarch64.rpm; \
     curl -Lf -o /tmp/percona-xtradb-cluster-icu-data-files.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/aarch64/percona-xtradb-cluster-icu-data-files-${FULL_PERCONA_VERSION}.aarch64.rpm; \
-    rpmkeys --checksig /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm; \
+    rpmkeys --checksig /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-icu-data-files.rpm; \
     rpm -iv /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-icu-data-files.rpm --nodeps; \
     microdnf clean all; \
     rm -rf /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-icu-data-files.rpm; \
