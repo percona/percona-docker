@@ -39,6 +39,7 @@ RUN set -ex; \
     #microdnf -y update bind-export-libs; \
     microdnf -y update glibc; \
     microdnf -y update libgcrypt; \
+    microdnf -y update libcap; \
     microdnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
