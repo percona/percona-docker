@@ -13,7 +13,7 @@ RUN microdnf -y update; \
 
 ARG PXC_REPO=testing
 ARG PS_REPO=release
-ARG PXB_REPO=release
+ARG PXB_REPO=testing
 ARG TOOLS_REPO=release
 
 ENV XTRABACKUP_VERSION 9.6.0-1.1

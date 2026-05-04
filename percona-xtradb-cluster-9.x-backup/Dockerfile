@@ -18,7 +18,7 @@ ENV PXB_VERSION=9.6.0-1.1
 ENV PS_VERSION=9.6.0-1.1
 
 ENV PXC_VERSION=9.6.0-1.1
-ENV PXC_REPO=release
+ENV PXC_REPO=testing
 
 ENV OS_VER=el9
 ENV FULL_PERCONA_VERSION="$PS_VERSION.$OS_VER"
@@ -82,8 +82,8 @@ RUN groupadd -g 1001 mysql; \
 
 # we need licenses from docs
 RUN set -ex; \
-	curl -Lf -o /tmp/percona-xtrabackup.rpm https://repo.percona.com/pxb-9x-innovation/yum/release/9/RPMS/x86_64/percona-xtrabackup-96-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
-	curl -Lf -o /tmp/percona-server-shared.rpm https://repo.percona.com/ps-9x-innovation/yum/release/9/RPMS/x86_64/percona-server-shared-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/percona-xtrabackup.rpm https://repo.percona.com/pxb-9x-innovation/yum/testing/9/RPMS/x86_64/percona-xtrabackup-96-${FULL_PERCONA_XTRABACKUP_VERSION}.x86_64.rpm; \
+	curl -Lf -o /tmp/percona-server-shared.rpm https://repo.percona.com/ps-9x-innovation/yum/testing/9/RPMS/x86_64/percona-server-shared-${FULL_PERCONA_VERSION}.x86_64.rpm; \
 	curl -Lf -o /tmp/percona-xtradb-cluster-garbd.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-garbd-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
 	curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-client-${FULL_PERCONA_XTRADBCLUSTER_VERSION}.x86_64.rpm; \
 	rpmkeys --checksig /tmp/percona-xtradb-cluster-garbd.rpm /tmp/percona-xtrabackup.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-server-shared.rpm; \
