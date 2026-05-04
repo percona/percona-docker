@@ -12,8 +12,8 @@ RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en
 
 ARG PXC_REPO=testing
-ARG PS_REPO=release
-ARG PXB_REPO=release
+ARG PS_REPO=testing
+ARG PXB_REPO=testing
 ARG TOOLS_REPO=release
 
 ENV XTRABACKUP_VERSION 9.6.0-1.1

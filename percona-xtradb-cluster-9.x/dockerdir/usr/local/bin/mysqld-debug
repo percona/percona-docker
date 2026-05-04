@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -o xtrace
+
+touch /tmp/recovery-case
+if [[ "$@" == *--skip-networking* ]]; then
+    exec /usr/sbin/mysqld-ps "$@" 
+fi
+
+/usr/sbin/mysqld-ps "$@" || sleep infinity
