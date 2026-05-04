@@ -9,7 +9,7 @@ LABEL name="Percona XtraDB Cluster" \
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ARG PXC_REPO=release
+ARG PXC_REPO=testing
 
 ENV PXC_VERSION 9.6.0-1.1
 ENV PXC_REPO ${PXC_REPO}
