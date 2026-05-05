@@ -1,6 +1,6 @@
 [mysqld]
 
-mysql-native-password=ON
+#mysql-native-password=ON
 require_secure_transport=OFF
 datadir=/var/lib/mysql
 socket=/tmp/mysql.sock
