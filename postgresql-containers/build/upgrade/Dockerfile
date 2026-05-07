@@ -47,8 +47,9 @@ RUN set -ex; \
         ${GNUPGHOME}/RPM-GPG-KEY-oracle \
         ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     microdnf install -y findutils yum-utils; \
-    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oraclelinux-release-el9-1.0-15.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oracle-epel-release-el9-1.0-1.el9.x86_64.rpm; \
+    ARCH=$(uname -m); \
+    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/${ARCH}/getPackage/oraclelinux-release-el9-1.0-15.el9.${ARCH}.rpm; \
+    curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/${ARCH}/getPackage/oracle-epel-release-el9-1.0-1.el9.${ARCH}.rpm; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpm --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-oracle ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
@@ -60,13 +61,11 @@ RUN set -ex; \
 
 RUN set -ex; \
     yum-config-manager --disable ol9_appstream; \
-    microdnf --disablerepo="ubi-9-appstream-rpms" -y install \
-        llvm; \
     microdnf -y clean all
 
 RUN set -ex; \
     microdnf --enablerepo="ol9_appstream" -y install \
-        annobin-12.31-2.el9.x86_64; \
+        annobin-12.31-2.el9.${ARCH}; \
     microdnf -y clean all
 
 RUN set -ex; \
