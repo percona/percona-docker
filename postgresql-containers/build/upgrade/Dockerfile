@@ -144,7 +144,7 @@ COPY bin/upgrade/ /opt/crunchy/bin
 COPY bin/common /opt/crunchy/bin
 COPY conf/upgrade/ /opt/crunchy/conf
 COPY bin/relocate-extensions.sh /usr/local/bin/relocate-extensions.sh
-COPY LICENSE /licenses/LICENSE.Dockerfile
+COPY licenses/LICENSE.txt /licenses/LICENSE.Dockerfile
 
 RUN chown -R postgres:postgres /opt/crunchy /pgolddata /pgnewdata && \
     chmod -R g=u /opt/crunchy /pgolddata /pgnewdata
