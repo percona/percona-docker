@@ -60,16 +60,7 @@ RUN set -ex; \
     percona-release enable ppg-${PG_MAJOR} release
 
 RUN set -ex; \
-    yum-config-manager --disable ol9_appstream; \
-    microdnf -y clean all
-
-RUN set -ex; \
-    microdnf --enablerepo="ol9_appstream" -y install \
-        annobin-12.31-2.el9.${ARCH}; \
-    microdnf -y clean all
-
-RUN set -ex; \
-    yum-config-manager --disable ol9_developer_EPEL ol9_UEKR7 ol9_baseos_latest; \
+    yum-config-manager --disable ol9_developer_EPEL ol9_UEKR7 ol9_baseos_latest ol9_appstream; \
     microdnf -y install \
         bind-utils \
         gettext \
@@ -153,6 +144,7 @@ COPY bin/upgrade/ /opt/crunchy/bin
 COPY bin/common /opt/crunchy/bin
 COPY conf/upgrade/ /opt/crunchy/conf
 COPY bin/relocate-extensions.sh /usr/local/bin/relocate-extensions.sh
+COPY licenses/LICENSE.txt /licenses/LICENSE.Dockerfile
 
 RUN chown -R postgres:postgres /opt/crunchy /pgolddata /pgnewdata && \
     chmod -R g=u /opt/crunchy /pgolddata /pgnewdata
