@@ -106,6 +106,7 @@ RUN set -ex; \
         percona-postgis35_${PG_MAJOR//.}-llvmjit \
         percona-postgis35_${PG_MAJOR//.}-utils \
         percona-pg_repack${PG_MAJOR//.} \
+        percona-pg_cron_${PG_MAJOR//.} \
         nss_wrapper \
         lz4 \
         unzip; \
@@ -132,6 +133,10 @@ RUN for pg_version in 17 16 15 14 13 12; do \
                 percona-postgis35_${pg_version} \
                 percona-postgis35_${pg_version}-llvmjit \
                 percona-pg_repack${pg_version}; \
+        fi; \
+        if [[ "${pg_version}" -ge 14 ]]; then \
+            microdnf -y install --nodocs \
+                percona-pg_cron_${pg_version}; \
         fi; \
 
         if [[ "${pg_version}" -ge 17 ]]; then \
