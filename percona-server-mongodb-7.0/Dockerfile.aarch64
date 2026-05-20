@@ -53,6 +53,7 @@ RUN set -ex; \
         oniguruma \
         cyrus-sasl-gssapi \
         cyrus-sasl-plain \
+        krb5-libs \
         policycoreutils; \
         \
     ARCH="$(uname -m)"; \
