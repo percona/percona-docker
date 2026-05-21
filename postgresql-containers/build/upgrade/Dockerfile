@@ -101,6 +101,7 @@ RUN set -ex; \
         percona-pgvector_${PG_MAJOR//.} \
         percona-pgvector_${PG_MAJOR//.}-llvmjit \
         percona-pg_tde${PG_MAJOR//.} \
+        percona-pg_oidc_validator${PG_MAJOR//.} \
         percona-postgis35_${PG_MAJOR//.} \
         percona-postgis35_${PG_MAJOR//.}-client \
         percona-postgis35_${PG_MAJOR//.}-llvmjit \
