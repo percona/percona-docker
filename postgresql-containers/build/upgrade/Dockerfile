@@ -143,7 +143,7 @@ RUN for pg_version in 17 16 15 14 13 12; do \
         if [[ "${pg_version}" -ge 17 ]]; then \
             microdnf -y install --nodocs percona-pg_tde${pg_version}; \
         fi; \
-    done && rpm -e percona-telemetry-agent --nodeps && microdnf -y clean all && rm -rf /var/cache/dnf /var/cache/yum
+    done && microdnf -y clean all && rm -rf /var/cache/dnf /var/cache/yum
 
 RUN mkdir -p /opt/crunchy/bin /pgolddata /pgnewdata /opt/crunchy/conf
 COPY bin/upgrade/ /opt/crunchy/bin
