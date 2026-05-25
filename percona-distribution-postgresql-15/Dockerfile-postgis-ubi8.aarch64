@@ -1,0 +1,201 @@
+FROM redhat/ubi8-minimal
+
+LABEL name="Percona Distribution for PostgreSQL" \
+      description="Essential / key PostgreSQL15 components. Percona Distribution for PostgreSQL features core components, tools and add-ons from the community, tested to work together in demanding enterprise environments." \
+      vendor="Percona" \
+      summary="Percona base selection of PostgreSQL15 components" \
+      maintainer="Percona Development <info@percona.com>" \
+      org.opencontainers.image.authors="info@percona.com"
+
+RUN microdnf -y update; \
+    microdnf -y install glibc-langpack-en; \
+	microdnf -y install systemd-rpm-macros
+
+ENV PPG_VERSION 15.18-1
+ENV PPG_MAJOR_VERSION 15
+ENV PPG_MINOR_VERSION 18
+ENV OS_VER el8
+ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
+ENV PPG_REPO testing
+ENV PPG_REPO_VERSION "${PPG_MAJOR_VERSION}.${PPG_MINOR_VERSION}"
+
+# check repository package signature in secure way
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D; \
+    gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
+    gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    microdnf install -y findutils; \
+    curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
+    rpmkeys --checksig /tmp/percona-release.rpm; \
+    rpm -i /tmp/percona-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
+    percona-release enable ppg-${PPG_REPO_VERSION} ${PPG_REPO};
+
+# Bring in OL8 AppStream / CRB and upstream Fedora EPEL 8 repo definitions
+# for postgis runtime deps absent from UBI8.
+RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 76FD3DB13AB67410B89DB10E82562EA9AD986DA3; \
+    gpg --batch --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle; \
+    rpmkeys --import /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle; \
+    curl -Lf -o /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8 https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-8; \
+    rpmkeys --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8; \
+    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/aarch64/getPackage/oraclelinux-release-el8-1.0-38.el8.aarch64.rpm; \
+    curl -Lf -o /tmp/epel-release.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; \
+    rpmkeys --checksig /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    rpm -i /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    sed -i 's/^enabled=1/enabled=0/' /etc/yum.repos.d/oracle-linux-ol8.repo \
+                                     /etc/yum.repos.d/uek-ol8.repo \
+                                     /etc/yum.repos.d/epel.repo \
+                                     /etc/yum.repos.d/epel-modular.repo 2>/dev/null || true
+
+RUN set -ex; \
+    microdnf -y update; \
+    microdnf -y install \
+        bind-utils \
+        gettext \
+        hostname \
+        perl \
+        tar \
+        bzip2 \
+        lz4 \
+        procps-ng; \
+    microdnf -y install  \
+        nss_wrapper \
+        shadow-utils \
+        libpq \
+        libedit; \
+    microdnf -y reinstall tzdata; \
+    microdnf clean all
+
+ENV PGDATA /data/db
+ENV PGROOT="/usr/pgsql-${PPG_MAJOR_VERSION}"
+ENV PATH="/pgdata:${PGROOT}/bin:${PATH}"
+
+# PostGIS runtime deps + every transitive non-Percona dep that the postgis
+# stack will pull in. We pre-install all of these here in a single RUN with
+# --enablerepo so the next RUN (the actual percona-* install) can use the
+# default repo set.
+RUN set -ex; \
+    microdnf install -y \
+        --enablerepo=ol8_baseos_latest \
+        --enablerepo=ol8_appstream \
+        --enablerepo=ol8_codeready_builder \
+        --enablerepo=epel \
+        perl-JSON \
+        perl-DBD-Pg \
+        libssh2 \
+        libarrow \
+        snappy \
+        re2 \
+        boost-atomic \
+        boost-chrono \
+        boost-date-time \
+        boost-filesystem \
+        boost-program-options \
+        boost-regex \
+        boost-serialization \
+        boost-system \
+        boost-thread \
+        python3-click \
+        python3-wcwidth \
+        hdf5 \
+        xerces-c \
+        netcdf \
+        libaec \
+        libgta \
+        freexl \
+        libdeflate \
+        cfitsio \
+        armadillo \
+        libqhull_r \
+        minizip; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
+
+# gpsbabel is a transitive Requires of percona-postgis35_*-utils and Percona's
+# gdal38-libs RPM.
+RUN set -ex; \
+    curl -Lf -o /tmp/gpsbabel.rpm https://yum.oracle.com/repo/OracleLinux/OL8/developer/EPEL/aarch64/getPackage/gpsbabel-1.6.0-3.el8.aarch64.rpm; \
+    rpmkeys --checksig /tmp/gpsbabel.rpm; \
+    rpm -i --nodeps /tmp/gpsbabel.rpm; \
+    rm -f /tmp/gpsbabel.rpm
+
+RUN set -ex; \
+    microdnf install -y \
+        percona-postgresql${PPG_MAJOR_VERSION}-server \
+        percona-postgresql${PPG_MAJOR_VERSION}-contrib \
+        percona-postgresql-common \
+        percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
+        percona-pg_repack${PPG_MAJOR_VERSION} \
+        percona-pgaudit${PPG_MAJOR_VERSION} \
+        percona-pgaudit${PPG_MAJOR_VERSION}_set_user \
+        percona-pgbackrest \
+	percona-pgvector_${PPG_MAJOR_VERSION} \
+        percona-postgresql${PPG_MAJOR_VERSION}-llvmjit \
+        percona-pgvector_${PPG_MAJOR_VERSION}-llvmjit \
+        python3-etcd \
+        percona-postgis35_${PPG_MAJOR_VERSION} \
+        percona-postgis35_${PPG_MAJOR_VERSION}-client \
+        percona-postgis35_${PPG_MAJOR_VERSION}-gui \
+        percona-postgis35_${PPG_MAJOR_VERSION}-llvmjit \
+        percona-postgis35_${PPG_MAJOR_VERSION}-utils \
+        percona-wal2json${PPG_MAJOR_VERSION} \
+        percona-pg_cron_${PPG_MAJOR_VERSION}; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
+    chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
+
+# percona-patroni install also runs with NO --enablerepo for the same reason;
+# python3-click was pre-installed in the runtime-deps RUN above.
+RUN set -ex; \
+    microdnf -y update; \
+    microdnf install -y \
+        percona-patroni; \
+    microdnf clean all
+
+RUN set -ex; \
+    sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-${PPG_MAJOR_VERSION}/share/postgresql.conf.sample; \
+    grep -F "listen_addresses = '*'" /usr/pgsql-${PPG_MAJOR_VERSION}/share/postgresql.conf.sample
+
+COPY LICENSE /licenses/LICENSE.Dockerfile
+RUN cp /usr/share/doc/percona-postgresql${PPG_MAJOR_VERSION}/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
+
+ENV GOSU_VERSION=1.11
+RUN set -eux; \
+    curl -Lf -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-arm64; \
+    curl -Lf -o /usr/bin/gosu.asc https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-arm64.asc; \
+    \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+    gpg --batch --verify /usr/bin/gosu.asc /usr/bin/gosu; \
+    rm -rf "$GNUPGHOME" /usr/bin/gosu.asc; \
+    \
+    chmod +x /usr/bin/gosu; \
+    curl -f -o /licenses/LICENSE.gosu https://raw.githubusercontent.com/tianon/gosu/${GOSU_VERSION}/LICENSE
+
+COPY entrypoint.sh /entrypoint.sh
+
+VOLUME ["/data/db"]
+
+RUN rm -f /etc/pgbackrest.conf
+
+# add volumes to allow override of pg_hba.conf and postgresql.conf
+# add volumes to offer a restore feature
+# add volumes to allow storage of postgres WAL segment files
+# add volumes for pgbackrest to write to
+# The VOLUME directive must appear after all RUN directives to ensure the proper
+# volume permissions are applied when building the image
+VOLUME ["/sshd", "/pgconf", "/pgdata", "/pgwal", "/backrestrepo"]
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+EXPOSE 5432
+
+USER 26
+
+CMD ["postgres"]
