@@ -45,7 +45,7 @@ COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" pbs
 
-RUN mkdir -p /var/lib/binlog-server/buffer /var/log/binlog-server \
+RUN mkdir -p /var/lib/binlog-server/buffer /var/lib/binlog-server/data /var/log/binlog-server \
  && chown -R 1001:1001 /var/lib/binlog-server /var/log/binlog-server \
  && chmod -R 0775 /var/lib/binlog-server /var/log/binlog-server
 
