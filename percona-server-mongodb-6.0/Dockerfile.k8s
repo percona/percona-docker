@@ -18,7 +18,7 @@ plus additional enterprise-grade functionality."
 LABEL org.opencontainers.image.license="SSPLv1"
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 6.0.27-21
+ENV PSMDB_VERSION 6.0.28-22
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
@@ -60,6 +60,8 @@ RUN set -ex; \
         procps-ng \
         cyrus-sasl-gssapi \
         cyrus-sasl-plain \
+        libcap \
+        krb5-libs \
         policycoreutils; \
         \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-60/yum/${PSMDB_REPO}/9/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
