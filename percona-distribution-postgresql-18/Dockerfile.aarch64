@@ -81,7 +81,8 @@ RUN set -ex; \
     microdnf install -y \
         percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
-        percona-postgresql-common \
+        percona-postgresql-common-1:290-1.el9 \
+        percona-postgresql-client-common-1:290-1.el9 \
         percona-pg_tde${PPG_MAJOR_VERSION} \
         percona-pg_oidc_validator${PPG_MAJOR_VERSION} \
         percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
@@ -114,7 +115,6 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/epel-release.rpm /tmp/oraclelinux-release.rpm;
 
 RUN set -ex; \
-    microdnf -y update; \
     microdnf install -y --enablerepo="ol9_developer_EPEL"\
         python3-click \
         percona-patroni; \
