@@ -23,9 +23,9 @@ RUN microdnf -y update; \
 
 ARG PPG_REPO=testing
 
-ENV PPG_VERSION 18.3-1
+ENV PPG_VERSION 18.4-1
 ENV PPG_MAJOR_VERSION 18
-ENV PPG_MINOR_VERSION 3
+ENV PPG_MINOR_VERSION 4
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO ${PPG_REPO}
@@ -83,7 +83,8 @@ RUN set -ex; \
     microdnf install -y \
         percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
-        percona-postgresql-common \
+        percona-postgresql-common-1:290-1.el9 \
+        percona-postgresql-client-common-1:290-1.el9 \
         percona-pg_tde${PPG_MAJOR_VERSION} \
         percona-pg_oidc_validator${PPG_MAJOR_VERSION} \
         percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
@@ -95,7 +96,8 @@ RUN set -ex; \
         percona-postgresql${PPG_MAJOR_VERSION}-llvmjit \
         percona-pgvector_${PPG_MAJOR_VERSION}-llvmjit \
         python3-etcd \
-        percona-wal2json${PPG_MAJOR_VERSION}; \
+        percona-wal2json${PPG_MAJOR_VERSION} \
+        percona-pg_cron_${PPG_MAJOR_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
     chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
@@ -115,7 +117,6 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/epel-release.rpm /tmp/oraclelinux-release.rpm;
 
 RUN set -ex; \
-    microdnf -y update; \
     microdnf install -y --enablerepo="ol9_developer_EPEL"\
         python3-click \
         percona-patroni; \

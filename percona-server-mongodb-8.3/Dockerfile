@@ -1,53 +1,61 @@
 FROM redhat/ubi9-minimal
 
+LABEL name="Percona Server for MongoDB" \
+	release="8.3" \
+	vendor="Percona" \
+	summary="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition" \
+	description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
+	maintainer="Percona Development <info@percona.com>"
 LABEL org.opencontainers.image.authors="info@percona.com"
-
-ENV PSMDB_VERSION 6.0.28-22
-ENV OS_VER el9
-ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
-ENV K8S_TOOLS_VERSION "0.5.0"
-ENV PSMDB_REPO release
-
-# Do not report during Docker image creation.
-ARG PERCONA_TELEMETRY_DISABLE=1
 
 # check repository package signature in secure way
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8; \
-    gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-8 ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-    microdnf install -y findutils; \
+    gpg --batch --export --armor 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1 > ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial ${GNUPGHOME}/RPM-GPG-KEY-EPEL-9; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
+    microdnf install -y findutils; \
     rpm -i /tmp/percona-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
-    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
-    percona-release enable psmdb-60 ${PSMDB_REPO}
+    rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
+
+ENV PSMDB_VERSION 8.3.0-1
+ENV OS_VER el9
+ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
+ENV K8S_TOOLS_VERSION "0.5.0"
+ENV PSMDB_REPO experimental
+ENV GLIBC_TUNABLES=glibc.pthread.rseq=0
+
+# Do not report during Docker image creation.
+ARG PERCONA_TELEMETRY_DISABLE=1
 
 RUN set -ex; \
-    microdnf install -y jq
-
-RUN set -ex; \
+    percona-release enable psmdb-83 ${PSMDB_REPO}; \
+    percona-release enable telemetry ${PSMDB_REPO}; \
+    #microdnf config-manager --enable ol8_u4_security_validation; \
+    #microdnf -y update bind-export-libs; \
+    #microdnf -y update glibc; \
+    microdnf -y update libgcrypt; \
+    microdnf -y update libcap; \
     microdnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
         percona-mongodb-mongosh \
         numactl \
         numactl-libs \
-        shadow-utils \
         procps-ng \
+        jq \
         tar \
+        oniguruma \
         cyrus-sasl-gssapi \
         cyrus-sasl-plain \
-        libcap \
-        krb5-libs \
         policycoreutils; \
         \
-    curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-60/yum/${PSMDB_REPO}/9/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-83/yum/${PSMDB_REPO}/9/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
     rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
@@ -90,6 +98,19 @@ RUN chown 1001:1001 /usr/local/percona
 ENV CALL_HOME_OPTIONAL_PARAMS=" -s ${OS_VER}"
 
 COPY ps-entry.sh /entrypoint.sh
+COPY telemetry-agent-supervisor.sh /usr/bin/
+RUN set -ex; \
+    chown  mongodb /usr/bin/telemetry-agent-supervisor.sh; \
+    chown  mongodb /usr/bin/percona-telemetry-agent; \
+    chown  mongodb /usr/local/percona/telemetry/history; \
+    chown  mongodb:percona-telemetry /usr/local/percona/telemetry/psmdb; \
+    chown  mongodb:percona-telemetry /usr/local/percona/telemetry/psmdbs; \
+    chmod ug+rwx /usr/bin/telemetry-agent-supervisor.sh; \
+    chmod -R go+w /var/log/percona
+ENV PERCONA_TELEMETRY_CHECK_INTERVAL=86400
+ENV PERCONA_TELEMETRY_HISTORY_KEEP_INTERVAL=604800
+ENV PERCONA_TELEMETRY_RESEND_INTERVAL=60
+ENV PERCONA_TELEMETRY_URL=https://check.percona.com/v1/telemetry/GenericReport
 
 ENTRYPOINT ["/entrypoint.sh"]
 

@@ -23,7 +23,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-ENV PSMDB_VERSION 8.0.20-8
+ENV PSMDB_VERSION 8.0.23-10
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
@@ -40,6 +40,7 @@ RUN set -ex; \
     #microdnf -y update bind-export-libs; \
     #microdnf -y update glibc; \
     microdnf -y update libgcrypt; \
+    microdnf -y update libcap; \
     microdnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
         percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
@@ -52,6 +53,7 @@ RUN set -ex; \
         oniguruma \
         cyrus-sasl-gssapi \
         cyrus-sasl-plain \
+        krb5-libs \
         policycoreutils; \
         \
     curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-80/yum/${PSMDB_REPO}/9/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \

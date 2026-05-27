@@ -21,9 +21,9 @@ RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en; \
 	microdnf -y install systemd-rpm-macros
 
-ENV PPG_VERSION 16.13-1
+ENV PPG_VERSION 16.14-1
 ENV PPG_MAJOR_VERSION 16
-ENV PPG_MINOR_VERSION 13
+ENV PPG_MINOR_VERSION 14
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO testing
@@ -70,8 +70,7 @@ ENV PATH="/pgdata:${PGROOT}/bin:${PATH}"
 COPY --from=downloader /downloaded-packages.tar.gz .
 RUN tar -xvzf downloaded-packages.tar.gz; \
 	cd downloaded-packages; \
-        rpm -ivh perl-*.rpm; \
-        rpm -ivh perl-JSON*.rpm; \
+        rpm -Uvh --replacepkgs *.rpm; \
         rpm -ivh libssh2*.rpm; \
 	rm -f /downloaded-packages.tar.gz; \
 	cd -; \
@@ -81,7 +80,8 @@ RUN set -ex; \
     microdnf install -y \
         percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
-        percona-postgresql-common \
+        percona-postgresql-common-1:290-1.el9 \
+        percona-postgresql-client-common-1:290-1.el9 \
         percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
         percona-pg_repack${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION} \
@@ -91,7 +91,8 @@ RUN set -ex; \
         percona-postgresql${PPG_MAJOR_VERSION}-llvmjit \
         percona-pgvector_${PPG_MAJOR_VERSION}-llvmjit \
         python3-etcd \
-        percona-wal2json${PPG_MAJOR_VERSION}; \
+        percona-wal2json${PPG_MAJOR_VERSION} \
+        percona-pg_cron_${PPG_MAJOR_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
     chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
@@ -111,7 +112,6 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/epel-release.rpm /tmp/oraclelinux-release.rpm;
       
 RUN set -ex; \
-    microdnf -y update; \
     microdnf install -y --enablerepo="ol9_developer_EPEL"\
         python3-click \ 
         percona-patroni; \

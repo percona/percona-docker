@@ -1,7 +1,7 @@
 FROM redhat/ubi9-minimal
 
 LABEL name="Percona Server for MongoDB" \
-	release="7.0" \
+	release="8.3" \
 	vendor="Percona" \
 	summary="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition" \
 	description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
@@ -23,21 +23,23 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-ENV PSMDB_VERSION 7.0.34-19
+ENV PSMDB_VERSION 8.3.0-1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
-ENV PSMDB_REPO release
+ENV PSMDB_REPO experimental
+ENV GLIBC_TUNABLES=glibc.pthread.rseq=0
 
 # Do not report during Docker image creation.
 ARG PERCONA_TELEMETRY_DISABLE=1
 
 RUN set -ex; \
-    percona-release enable psmdb-70 ${PSMDB_REPO}; \
+    sed -i "s|x86_64|x86_64 aarch64|" /usr/bin/percona-release; \
+    percona-release enable psmdb-83 ${PSMDB_REPO}; \
     percona-release enable telemetry ${PSMDB_REPO}; \
-    #microdnf config-manager --enable ol9_u4_security_validation; \
+    #microdnf config-manager --enable ol8_u4_security_validation; \
     #microdnf -y update bind-export-libs; \
-    microdnf -y update glibc; \
+    #microdnf -y update glibc; \
     microdnf -y update libgcrypt; \
     microdnf -y update libcap; \
     microdnf -y install \
@@ -52,10 +54,13 @@ RUN set -ex; \
         oniguruma \
         cyrus-sasl-gssapi \
         cyrus-sasl-plain \
-        krb5-libs \
         policycoreutils; \
         \
-    curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-70/yum/${PSMDB_REPO}/9/RPMS/x86_64/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+	echo test
+
+RUN set -ex; \
+    ARCH="$(uname -m)"; \
+    curl -Lf -o /tmp/Percona-Server-MongoDB-server.rpm http://repo.percona.com/psmdb-83/yum/${PSMDB_REPO}/9/RPMS/${ARCH}/percona-server-mongodb-server-${FULL_PERCONA_VERSION}.${ARCH}.rpm; \
     rpmkeys --checksig /tmp/Percona-Server-MongoDB-server.rpm; \
     rpm -iv /tmp/Percona-Server-MongoDB-server.rpm --nodeps; \
     rm -rf /tmp/Percona-Server-MongoDB-server.rpm; \
@@ -74,8 +79,17 @@ RUN cp /usr/share/doc/percona-server-mongodb-server/LICENSE-Community.txt /licen
 
 ENV GOSU_VERSION=1.11
 RUN set -eux; \
-    curl -Lf -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64; \
-    curl -Lf -o /usr/bin/gosu.asc https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64.asc; \
+    ARCH="$(uname -m)"; \
+    case "${ARCH}" in \
+        aarch64 ) \
+          GOSU_ARCH="arm64"; \
+          ;; \
+        x86_64 ) \
+          GOSU_ARCH="amd64"; \
+          ;; \
+    esac; \
+    curl -Lf -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${GOSU_ARCH}; \
+    curl -Lf -o /usr/bin/gosu.asc https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${GOSU_ARCH}.asc; \
     \
     export GNUPGHOME="$(mktemp -d)"; \
     gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \

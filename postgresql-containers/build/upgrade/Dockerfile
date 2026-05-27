@@ -47,8 +47,9 @@ RUN set -ex; \
         ${GNUPGHOME}/RPM-GPG-KEY-oracle \
         ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     microdnf install -y findutils yum-utils; \
-    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oraclelinux-release-el9-1.0-15.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oracle-epel-release-el9-1.0-1.el9.x86_64.rpm; \
+    ARCH=$(uname -m); \
+    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/${ARCH}/getPackage/oraclelinux-release-el9-1.0-15.el9.${ARCH}.rpm; \
+    curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/${ARCH}/getPackage/oracle-epel-release-el9-1.0-1.el9.${ARCH}.rpm; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpm --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-oracle ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
@@ -59,18 +60,7 @@ RUN set -ex; \
     percona-release enable ppg-${PG_MAJOR} release
 
 RUN set -ex; \
-    yum-config-manager --disable ol9_appstream; \
-    microdnf --disablerepo="ubi-9-appstream-rpms" -y install \
-        llvm; \
-    microdnf -y clean all
-
-RUN set -ex; \
-    microdnf --enablerepo="ol9_appstream" -y install \
-        annobin-12.31-2.el9.x86_64; \
-    microdnf -y clean all
-
-RUN set -ex; \
-    yum-config-manager --disable ol9_developer_EPEL ol9_UEKR7 ol9_baseos_latest; \
+    yum-config-manager --disable ol9_developer_EPEL ol9_UEKR7 ol9_baseos_latest ol9_appstream; \
     microdnf -y install \
         bind-utils \
         gettext \
@@ -111,11 +101,13 @@ RUN set -ex; \
         percona-pgvector_${PG_MAJOR//.} \
         percona-pgvector_${PG_MAJOR//.}-llvmjit \
         percona-pg_tde${PG_MAJOR//.} \
+        percona-pg_oidc_validator${PG_MAJOR//.} \
         percona-postgis35_${PG_MAJOR//.} \
         percona-postgis35_${PG_MAJOR//.}-client \
         percona-postgis35_${PG_MAJOR//.}-llvmjit \
         percona-postgis35_${PG_MAJOR//.}-utils \
         percona-pg_repack${PG_MAJOR//.} \
+        percona-pg_cron_${PG_MAJOR//.} \
         nss_wrapper \
         lz4 \
         unzip; \
@@ -143,6 +135,10 @@ RUN for pg_version in 17 16 15 14 13 12; do \
                 percona-postgis35_${pg_version}-llvmjit \
                 percona-pg_repack${pg_version}; \
         fi; \
+        if [[ "${pg_version}" -ge 14 ]]; then \
+            microdnf -y install --nodocs \
+                percona-pg_cron_${pg_version}; \
+        fi; \
 
         if [[ "${pg_version}" -ge 17 ]]; then \
             microdnf -y install --nodocs percona-pg_tde${pg_version}; \
@@ -154,6 +150,7 @@ COPY bin/upgrade/ /opt/crunchy/bin
 COPY bin/common /opt/crunchy/bin
 COPY conf/upgrade/ /opt/crunchy/conf
 COPY bin/relocate-extensions.sh /usr/local/bin/relocate-extensions.sh
+COPY licenses/LICENSE.txt /licenses/LICENSE.Dockerfile
 
 RUN chown -R postgres:postgres /opt/crunchy /pgolddata /pgnewdata && \
     chmod -R g=u /opt/crunchy /pgolddata /pgnewdata
