@@ -81,7 +81,7 @@ RUN set -ex; \
 COPY --from=downloader /downloaded-packages.tar.gz .
 RUN tar -xvzf downloaded-packages.tar.gz; \
     cd downloaded-packages; \
-    rpm -Uvh --replacepkgs *.rpm; \
+    rpm -Uvh --replacepkgs --replacefiles --oldpackage *.rpm; \
     rpm -ivh libssh2*.rpm; \
     rm -f /downloaded-packages.tar.gz; \
     cd -; \
