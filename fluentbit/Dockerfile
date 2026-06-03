@@ -7,6 +7,16 @@ LABEL name="Fluent Bit" \
       summary="Fluent Bit is a lightweight and high performance log processor" \
       org.opencontainers.image.authors="info@percona.com"
 
+ENV PERCONA_SERVER_VERSION=8.0.45
+ENV PERCONA_SERVER_PERC_VERSION=36
+ENV PERCONA_SERVER_BUILD_VERSION=1
+
+# install exact version of PS for repeatability
+ENV PERCONA_VERSION=${PERCONA_SERVER_VERSION}-${PERCONA_SERVER_PERC_VERSION}.${PERCONA_SERVER_BUILD_VERSION}.el9
+
+# install exact version of Fluent Bit for repeatability
+ENV FLUENTBIT_VERSION=5.0.6-1
+
 RUN export GNUPGHOME="$(mktemp -d)" \
     && gpg --keyserver https://packages.fluentbit.io/fluentbit.key --recv-keys C3C0A28534B9293EAF51FABD9F9DDC083888C1CD \
     && gpg --export --armor C3C0A28534B9293EAF51FABD9F9DDC083888C1CD > ${GNUPGHOME}/RPM-GPG-KEY-Fluent \
@@ -22,14 +32,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && rpm -i /tmp/percona-release.rpm \
     && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
     && rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-    && percona-release setup pdpxc-8.0.42 \
+    && percona-release setup pdpxc-${PERCONA_SERVER_VERSION} \
     && percona-release enable psmdb-80 release
-
-# install exact version of PS for repeatability
-ENV PERCONA_VERSION=8.0.42-33.1.el9
-
-# install exact version of Fluent Bit for repeatability
-ENV FLUENTBIT_VERSION=4.0.1-1
 
 # Add Fluent Bit repo
 RUN printf "%s\n" \
