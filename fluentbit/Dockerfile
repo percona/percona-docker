@@ -7,6 +7,16 @@ LABEL name="Fluent Bit" \
       summary="Fluent Bit is a lightweight and high performance log processor" \
       org.opencontainers.image.authors="info@percona.com"
 
+ENV PERCONA_SERVER_VERSION=8.0.45
+ENV PERCONA_SERVER_PERC_VERSION=36
+ENV PERCONA_SERVER_BUILD_VERSION=1
+
+# install exact version of PS for repeatability
+ENV PERCONA_VERSION=${PERCONA_SERVER_VERSION}-${PERCONA_SERVER_PERC_VERSION}.${PERCONA_SERVER_BUILD_VERSION}.el9
+
+# install exact version of Fluent Bit for repeatability
+ENV FLUENTBIT_VERSION=5.0.6-1
+
 RUN export GNUPGHOME="$(mktemp -d)" \
     && gpg --keyserver https://packages.fluentbit.io/fluentbit.key --recv-keys C3C0A28534B9293EAF51FABD9F9DDC083888C1CD \
     && gpg --export --armor C3C0A28534B9293EAF51FABD9F9DDC083888C1CD > ${GNUPGHOME}/RPM-GPG-KEY-Fluent \
@@ -22,14 +32,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && rpm -i /tmp/percona-release.rpm \
     && rm -rf "$GNUPGHOME" /tmp/percona-release.rpm \
     && rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY \
-    && percona-release setup pdpxc-8.0.42 \
+    && percona-release setup pdpxc-${PERCONA_SERVER_VERSION} \
     && percona-release enable psmdb-80 release
-
-# install exact version of PS for repeatability
-ENV PERCONA_VERSION=8.0.42-33.1.el9
-
-# install exact version of Fluent Bit for repeatability
-ENV FLUENTBIT_VERSION=4.0.1-1
 
 # Add Fluent Bit repo
 RUN printf "%s\n" \
@@ -66,23 +70,23 @@ RUN set -ex; \
 
 
 # Install supercronic for cron
-ARG SUPERCRONIC_VERSION=v0.2.44
+ARG SUPERCRONIC_VERSION=v0.2.46
 RUN set -ex; \
     cd /tmp; \
     arch=$(uname -m); \
     case "$arch" in \
         x86_64) \
             SUPERCRONIC=supercronic-linux-amd64; \
-            SUPERCRONIC_SHA1SUM=6eb0a8e1e6673675dc67668c1a9b6409f79c37bc ;; \
+            SUPERCRONIC_SHA1SUM=5bcefed628e32adc08e32634db2d10e9230dbca0 ;; \
         i386|i686) \
             SUPERCRONIC=supercronic-linux-386; \
-            SUPERCRONIC_SHA1SUM=58c094ebdff4c29286a3bb6152d64a5070d9682a ;; \
+            SUPERCRONIC_SHA1SUM=7630904df9a240b6e0f8171cac46ec799fbe1ad9 ;; \
         armv7l|armv6l|armhf) \
             SUPERCRONIC=supercronic-linux-arm; \
-            SUPERCRONIC_SHA1SUM=4f69f55febc78fbb10f1c0c85b907682b4da9300 ;; \
+            SUPERCRONIC_SHA1SUM=04be50a960eafa325185d037c9b4ad6cd88a0e0b ;; \
         aarch64) \
             SUPERCRONIC=supercronic-linux-arm64; \
-            SUPERCRONIC_SHA1SUM=6c6cba4cde1dd4a1dd1e7fb23498cde1b57c226c ;; \
+            SUPERCRONIC_SHA1SUM=639ab81a72771990790df7ee87d9acfe88e5fa83 ;; \
         *) \
             echo "unsupported architecture: $arch" && exit 1 ;; \
     esac; \
