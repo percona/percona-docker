@@ -57,7 +57,6 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
     rpm -i /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpmm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
-    percona-release enable ppg-${PG_MAJOR} release; \
     percona-release enable ppg-${PG_MAJOR}-extras testing
 
 RUN set -ex; \
@@ -98,7 +97,6 @@ RUN tar -xvzf downloaded-packages.tar.gz; \
         rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
 
 RUN set -ex; \
-    percona-release enable ppg-${PG_MAJOR}-extras testing; \
     microdnf -y install --nodocs\
         --enablerepo="ol9_developer_EPEL" \
         percona-postgresql${PG_MAJOR//.}-contrib \
