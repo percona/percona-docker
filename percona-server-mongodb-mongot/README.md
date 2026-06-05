@@ -56,7 +56,7 @@ Exposed ports (defaults from the bundled `mongot.yml`):
 |---|---|
 | 27028 | gRPC query server (mongod ↔ mongot) |
 | 9946  | Prometheus metrics |
-| 8080  | health check |
+| 8080  | health endpoint |
 
 ## Bundled JDK
 
@@ -119,7 +119,7 @@ sudo chmod 0640   ./mongot.yml ./passwordFile
 # ConfigMap; the orchestrator handles the UID mapping for you.
 ```
 
-## Notes:
+## Notes
 
 - **netty-tcnative (native OpenSSL) doesn't load on UBI9.** The bundled
   mongot ships a netty-tcnative built against OpenSSL 1.0 (`libssl.so.10`),
@@ -127,7 +127,4 @@ sudo chmod 0640   ./mongot.yml ./passwordFile
   `netty-tcnative dynamic linking failed` at startup and falls back to the
   JDK SSL provider (JSSE). TLS to the mongod sync source and the mongot gRPC
   server (MTLS) still work — functionality is unaffected.
-  <!-- TODO(discuss): proper fix belongs in the mongot build (bundle the
-       static boringssl tcnative) so we get native TLS and drop the ERROR
-       log noise, rather than patching the image. -->
 
