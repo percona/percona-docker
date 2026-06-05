@@ -7,11 +7,14 @@ Container images for [Percona Search for MongoDB](https://github.com/percona/per
 
 ```bash
 # x86_64
-docker build -t percona/percona-server-mongodb-mongot:0.50.0 \
+docker buildx build --platform linux/amd64 \
+    -t percona/percona-server-mongodb-mongot:0.50.0 \
     -f Dockerfile .
 
-# aarch64
-docker build -t percona/percona-server-mongodb-mongot:0.50.0-arm64 \
+# aarch64 (buildx with an explicit platform, otherwise an amd64 host
+# would produce an amd64 image under the -arm64 tag)
+docker buildx build --platform linux/arm64 \
+    -t percona/percona-server-mongodb-mongot:0.50.0-arm64 \
     -f Dockerfile.aarch64 .
 ```
 
@@ -35,7 +38,9 @@ docker run -d \
 
 The image uses an entry point that forwards arguments to `mongot`, so you
 can point the daemon at a config in a different location without restating
-the binary (a plain `docker run` keeps the bundled default):
+the binary. A plain `docker run` falls back to the bundled config, which is
+only a placeholder — the container starts but won't connect to mongod until
+you mount a real config and password file as shown above:
 
 ```bash
 docker run -d \

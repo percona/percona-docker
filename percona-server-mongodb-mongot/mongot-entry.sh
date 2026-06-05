@@ -4,7 +4,7 @@
 #
 # This lets operators pass mongot options as arguments to the container, e.g.:
 #
-#     docker run ... percona/percona-mongot --config /path/to/mongot.yml
+#     docker run ... percona/percona-server-mongodb-mongot --config /path/to/mongot.yml
 #
 # while a plain `docker run` still starts mongot with the bundled default
 # config supplied via CMD. Any other command (e.g. `bash`) is execed as-is

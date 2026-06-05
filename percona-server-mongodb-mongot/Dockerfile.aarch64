@@ -29,6 +29,7 @@ ENV OS_VER=el9
 ENV FULL_MONGOT_VERSION="$MONGOT_VERSION.$OS_VER"
 LABEL org.opencontainers.image.version="$MONGOT_VERSION"
 
+# Check repository package signature in secure way.
 RUN set -ex; \
     export GNUPGHOME="$(mktemp -d)"; \
     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D 94E279EB8D8F25B21810ADF121EA45AB2F86D6A1; \
@@ -56,11 +57,10 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
+# Container runs as UID 1001 / GID 0 (OpenShift); re-chown the mongot tree so it stays read/writable.
 RUN set -ex; \
     useradd -u 1001 -r -g 0 -m -s /sbin/nologin \
             -c "Default Application User" mongodb; \
-    # re-chown the whole mongot tree to 1001:0
-    # so the container user (UID 1001 / GID 0) can actually read /etc/mongot.
     chown -R 1001:0 /var/lib/mongot /var/log/mongot /etc/mongot; \
     chmod -R g+rwX  /var/lib/mongot /var/log/mongot; \
     chmod -R g+rX   /etc/mongot
@@ -68,15 +68,13 @@ RUN set -ex; \
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/lib/percona-server-mongodb-mongot/LICENSE/LICENSE /licenses/LICENSE.Percona-Search-for-MongoDB
 
-# normalize args so operators can pass mongot flags directly
-# while a plain `docker run` falls back to CMD defaults.
 COPY mongot-entry.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
 
 USER 1001
 
 VOLUME ["/var/lib/mongot"]
 
+# 27028 grpc query server, 9946 metrics, 8080 health endpoint
 EXPOSE 27028 9946 8080
 
 ENTRYPOINT ["/entrypoint.sh"]

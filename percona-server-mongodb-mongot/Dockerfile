@@ -56,9 +56,7 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-# The RPM lays out /etc|/var/lib|/var/log/mongot as 0750 root|mongod:mongod
-# for the systemd service (User=mongod). The container runs as UID 1001 / GID 0
-# (OpenShift), so re-chown the whole tree to 1001:0 so it stays readable/writable.
+# Container runs as UID 1001 / GID 0 (OpenShift); re-chown the mongot tree so it stays read/writable.
 RUN set -ex; \
     useradd -u 1001 -r -g 0 -m -s /sbin/nologin \
             -c "Default Application User" mongodb; \
@@ -69,16 +67,13 @@ RUN set -ex; \
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/lib/percona-server-mongodb-mongot/LICENSE/LICENSE /licenses/LICENSE.Percona-Search-for-MongoDB
 
-# normalize args so operators can pass mongot flags directly
-# while a plain `docker run` falls back to CMD defaults.
 COPY mongot-entry.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
 
 USER 1001
 
 VOLUME ["/var/lib/mongot"]
 
-# 27028 grpc query server, 9946 metrics, 8080 health check
+# 27028 grpc query server, 9946 metrics, 8080 health endpoint
 EXPOSE 27028 9946 8080
 
 ENTRYPOINT ["/entrypoint.sh"]
