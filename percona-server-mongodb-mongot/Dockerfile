@@ -22,16 +22,6 @@ LABEL org.opencontainers.image.title="Percona Search for MongoDB" \
     org.opencontainers.image.documentation="https://github.com/percona/percona-mongot/blob/main/percona-packaging/PACKAGING.md" \
     org.opencontainers.image.source="https://github.com/percona/percona-mongot"
 
-# Supply-chain provenance: stamp the exact source revision and build
-# timestamp into the image so it can be mapped back to the code it was
-# built from (SBOM / vulnerability management / attestation flows).
-# These are ARG (not ENV) so they end up in the image manifest labels
-# only — they don't leak into the runtime environment.
-ARG VCS_REF=unknown
-ARG BUILD_DATE=unknown
-LABEL org.opencontainers.image.revision="$VCS_REF" \
-    org.opencontainers.image.created="$BUILD_DATE"
-
 ENV MONGOT_VERSION=0.50.0-1
 ENV MONGOT_REPO_CH=release
 ENV PSMDB_REPO=psmdb-83
@@ -66,20 +56,12 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-# The mongot RPM creates a `mongod` user during install (matching the PSMDB
-# convention). For OpenShift compatibility we also add a fixed-UID `mongodb`
-# user in group 0 and chown the data/log dirs to that group — OpenShift
-# assigns dynamic UIDs but always keeps group 0, so group-writable layout is
-# the portable choice.
+# The RPM lays out /etc|/var/lib|/var/log/mongot as 0750 root|mongod:mongod
+# for the systemd service (User=mongod). The container runs as UID 1001 / GID 0
+# (OpenShift), so re-chown the whole tree to 1001:0 so it stays readable/writable.
 RUN set -ex; \
     useradd -u 1001 -r -g 0 -m -s /sbin/nologin \
             -c "Default Application User" mongodb; \
-    # The RPM %post chowns /etc/mongot to root:mongod (0750) so that the
-    # systemd service (User=mongod) can read it. In the container we run
-    # as UID 1001 with primary group 0 (OpenShift convention) and never
-    # join the `mongod` supplementary group, so `chmod g+rX` on a
-    # mongod-owned dir buys us nothing. Re-chown the entire mongot tree
-    # (data, log, config) to 1001:0 to match the container's user model.
     chown -R 1001:0 /var/lib/mongot /var/log/mongot /etc/mongot; \
     chmod -R g+rwX  /var/lib/mongot /var/log/mongot; \
     chmod -R g+rX   /etc/mongot
@@ -87,15 +69,17 @@ RUN set -ex; \
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/lib/percona-server-mongodb-mongot/LICENSE/LICENSE /licenses/LICENSE.Percona-Search-for-MongoDB
 
+# normalize args so operators can pass mongot flags directly
+# while a plain `docker run` falls back to CMD defaults.
+COPY mongot-entry.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 USER 1001
 
 VOLUME ["/var/lib/mongot"]
 
-# 27028 grpc query server, 9946 metrics, 8080 health check (defaults from
-# /etc/mongot/mongot.yml; override by mounting your own config).
+# 27028 grpc query server, 9946 metrics, 8080 health check
 EXPOSE 27028 9946 8080
 
-# Default config has placeholders for syncSource.replicaSet and a
-# passwordFile path — mount /etc/mongot/mongot.yml and the password file
-# before starting the container.
-CMD ["/usr/bin/mongot", "--config", "/etc/mongot/mongot.yml"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["mongot", "--config", "/etc/mongot/mongot.yml"]

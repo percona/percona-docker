@@ -15,14 +15,6 @@ docker build -t percona/percona-server-mongodb-mongot:0.50.0-arm64 \
     -f Dockerfile.aarch64 .
 ```
 
-By default the build pulls the RPM from `psmdb-83/release`. To target a
-different channel (e.g. preview builds in `experimental`), edit
-`MONGOT_REPO_CH` in the Dockerfile or use:
-
-```bash
-docker build --build-arg MONGOT_REPO_CH=experimental -t ... .
-```
-
 ## Run
 
 The default config in `/etc/mongot/mongot.yml` has placeholders for the
@@ -39,6 +31,18 @@ docker run -d \
     -v $(pwd)/passwordFile:/etc/mongot/secrets/passwordFile:ro \
     -v mongot-data:/var/lib/mongot \
     percona/percona-server-mongodb-mongot:0.50.0
+```
+
+The image uses an entry point that forwards arguments to `mongot`, so you
+can point the daemon at a config in a different location without restating
+the binary (a plain `docker run` keeps the bundled default):
+
+```bash
+docker run -d \
+    --name mongot \
+    -v $(pwd)/custom.yml:/conf/mongot.yml:ro \
+    percona/percona-server-mongodb-mongot:0.50.0 \
+    --config /conf/mongot.yml
 ```
 
 Exposed ports (defaults from the bundled `mongot.yml`):
@@ -110,6 +114,15 @@ sudo chmod 0640   ./mongot.yml ./passwordFile
 # ConfigMap; the orchestrator handles the UID mapping for you.
 ```
 
-If you're on macOS Docker Desktop, the VM-mediated bind mounts often
-already remap ownership to whoever you bind-mount as, so the issue
-typically shows up only on Linux hosts and CI agents.
+## Notes:
+
+- **netty-tcnative (native OpenSSL) doesn't load on UBI9.** The bundled
+  mongot ships a netty-tcnative built against OpenSSL 1.0 (`libssl.so.10`),
+  which `ubi9-minimal` (OpenSSL 3.x) doesn't provide. mongot logs
+  `netty-tcnative dynamic linking failed` at startup and falls back to the
+  JDK SSL provider (JSSE). TLS to the mongod sync source and the mongot gRPC
+  server (MTLS) still work — functionality is unaffected.
+  <!-- TODO(discuss): proper fix belongs in the mongot build (bundle the
+       static boringssl tcnative) so we get native TLS and drop the ERROR
+       log noise, rather than patching the image. -->
+
