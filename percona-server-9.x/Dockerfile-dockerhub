@@ -47,7 +47,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release disable all; \
-    percona-release enable ps-9x-innovation ${PS_REPO}; \
+    percona-release enable ps-97-lts ${PS_REPO}; \
     percona-release enable mysql-shell ${PS_REPO}; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
     echo "$KEY_RPM_DOWNLOAD_SHA256 RPM-GPG-KEY-EPEL-9" | sha256sum --strict --check; \
