@@ -86,6 +86,10 @@ Set to `1` to allow the container to be started with enabled ROCKSDB engine.
 
 Set to `1` will skip starting the `mysqld` process and will run only the initialization part if MySQL was not initialized before.
 
+## `MYSQL_INIT_DB`
+
+Set to directory where initialization files reside.  This is an additional directory for initialzation, on top of the default directory, /docker-entrypoint-initdb.d
+
 # Notes, Tips, Gotchas
 
 ## Secure Container Startup
