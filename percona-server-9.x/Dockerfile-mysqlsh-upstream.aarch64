@@ -57,7 +57,7 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     #microdnf -y module disable mysql; \
     percona-release disable all; \
-    percona-release enable ps-9x-innovation ${PS_REPO}; \
+    percona-release enable ps-97-lts ${PS_REPO}; \
     percona-release enable telemetry ${PS_REPO}; \
     rm -rf /tmp/percona-*; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
