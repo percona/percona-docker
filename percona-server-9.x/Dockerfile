@@ -6,7 +6,7 @@
 FROM redhat/ubi9-minimal
 
 LABEL name="Percona Server" \
-      release="9.6" \
+      release="9.7" \
       vendor="Percona" \
       summary="Percona Server database server" \
       description="Percona Server is a fast, stable and true multi-user, multi-threaded SQL \
@@ -26,13 +26,13 @@ RUN set -ex; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
         -m -c "Default Application User" mysql
 
-ENV PS_VERSION 9.6.0-1.1
-ENV MYSQL_SHELL_VERSION 9.6.0-1
+ENV PS_VERSION 9.7.0-1.1
+ENV MYSQL_SHELL_VERSION 9.7.0-1
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
 ENV PS_REPO testing
-ENV PS_TELEMETRY_VERSION 9.6.0-1-1
+ENV PS_TELEMETRY_VERSION 9.7.0-1-1
 ENV CALL_HOME_DOWNLOAD_SHA256 5e84d2f1a5d57f44c46e6a1f16794d649d3de09fe8021f0294bc321c89e51068
 ENV KEY_RPM_DOWNLOAD_SHA256 fcf0eab4f05a1c0de6363ac4b707600a27a9d774e9b491059e59e6921b255a84
 ENV CALL_HOME_VERSION 0.1
@@ -57,7 +57,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release disable all; \
-    percona-release enable ps-9x-innovation ${PS_REPO}; \
+    percona-release enable ps-97-lts ${PS_REPO}; \
     percona-release enable telemetry ${PS_REPO}; \
     percona-release enable mysql-shell experimental; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
