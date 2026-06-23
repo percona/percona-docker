@@ -195,7 +195,16 @@ _parse_config() {
 		# if --config is specified, parse it into a JSON file so we can remove a few problematic keys (especially SSL-related keys)
 		# see https://docs.mongodb.com/manual/reference/configuration-options/
                 mongosh --norc --nodb --quiet --eval "load('/js-yaml.js'); JSON.stringify(jsyaml.load(fs.readFileSync($(_js_escape "$configPath"), 'utf8')))" > "$jsonConfigFile"
-		jq 'del(.systemLog, .processManagement, .net, .security)' "$jsonConfigFile" > "$tempConfigFile"
+		jq '
+			del(.systemLog, .processManagement, .net, .replication)
+			| if .security then
+				.security |= with_entries(
+					select(.key == "enableEncryption" or .key == "encryptionKeyFile" or .key == "encryptionCipherMode" or .key == "vault" or .key == "kmip")
+				)
+				| if .security == {} then del(.security) else . end
+			  else .
+			  end
+		' "$jsonConfigFile" > "$tempConfigFile"
 		return 0
 	fi
 
@@ -269,6 +278,9 @@ if [ "$originalArgOne" = 'mongod' ]; then
 
 	if [ -n "$shouldPerformInitdb" ]; then
 		mongodHackedArgs=( "$@" )
+		if _parse_config "$@"; then
+			_mongod_hack_ensure_arg_val --config "$tempConfigFile" "${mongodHackedArgs[@]}"
+		fi
 		_mongod_hack_ensure_arg_val --bind_ip 127.0.0.1 "${mongodHackedArgs[@]}"
 		_mongod_hack_ensure_arg_val --port 27017 "${mongodHackedArgs[@]}"
 		_mongod_hack_ensure_no_arg --bind_ip_all "${mongodHackedArgs[@]}"
