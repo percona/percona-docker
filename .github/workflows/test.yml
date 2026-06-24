@@ -8,6 +8,23 @@ on:
   workflow_dispatch:
 
 jobs:
+  community-unit-tests:
+    name: Community image unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Run unit tests
+        run: make test
+        working-directory: postgresql-containers/community
+
   build:
     name: PR test
     runs-on: ubuntu-latest
