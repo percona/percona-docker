@@ -293,6 +293,8 @@ def transform_run_block(block_lines: list) -> str:
         line = apply_package_transforms(line)
         line = apply_var_transforms(line)
         line = OL9_EPEL_REPO.sub('--enablerepo="pgdg-common" --enablerepo="epel"', line)
+        # gosu releases are arch-specific; replace the hardcoded amd64 with runtime detection
+        line = line.replace('gosu-amd64', "gosu-$(arch | sed 's/x86_64/amd64/;s/aarch64/arm64/')")
         result.append(line)
 
     result_text = '\n'.join(result)

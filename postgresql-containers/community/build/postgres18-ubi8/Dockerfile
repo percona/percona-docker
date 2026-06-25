@@ -119,8 +119,8 @@ RUN cp /usr/share/doc/postgresql${PG_MAJOR_VERSION}/COPYRIGHT /licenses/COPYRIGH
 
 ENV GOSU_VERSION=1.11
 RUN set -eux; \
-    curl -Lf -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64; \
-    curl -Lf -o /usr/bin/gosu.asc https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64.asc; \
+    curl -Lf -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(arch | sed 's/x86_64/amd64/;s/aarch64/arm64/'); \
+    curl -Lf -o /usr/bin/gosu.asc https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(arch | sed 's/x86_64/amd64/;s/aarch64/arm64/').asc; \
     \
     export GNUPGHOME="$(mktemp -d)"; \
     gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \

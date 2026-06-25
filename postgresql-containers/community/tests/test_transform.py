@@ -266,6 +266,17 @@ class TestTransformRunBlock:
         """)
         assert transform_run_block(block) == PGDG_VERSION_LOOP_BLOCK
 
+    def test_gosu_amd64_replaced_with_arch_detection(self):
+        block = self._block(r"""
+            RUN set -eux; \
+                curl -Lf -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64; \
+                curl -Lf -o /usr/bin/gosu.asc https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64.asc; \
+                chmod +x /usr/bin/gosu
+        """)
+        result = transform_run_block(block)
+        assert "gosu-amd64" not in result
+        assert "gosu-$(arch | sed 's/x86_64/amd64/;s/aarch64/arm64/')" in result
+
     def test_packages_to_remove_dropped_per_line(self):
         block = self._block("""
             RUN microdnf install -y \\
