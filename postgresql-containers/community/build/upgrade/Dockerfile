@@ -82,21 +82,24 @@ RUN for pg_version in 17 16 15 14; do \
         else \
             pgaudit_pkg="pgaudit_${pg_version}"; \
         fi; \
-        microdnf -y install --nodocs \
-            postgresql${pg_version}-server \
+        pkgs="postgresql${pg_version}-server \
             postgresql${pg_version}-contrib \
             postgresql${pg_version}-libs \
             ${pgaudit_pkg} \
             set_user_${pg_version} \
             wal2json_${pg_version} \
             pgvector_${pg_version} \
-            pg_repack_${pg_version} \
-            timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${pg_version} || true; \
+            pg_repack_${pg_version}"; \
+        [ "$(arch)" = "x86_64" ] && pkgs="$pkgs timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${pg_version}"; \
+        microdnf -y install --nodocs $pkgs; \
     done && microdnf -y clean all && rm -rf /var/cache/dnf /var/cache/yum
 
-RUN set -ex; \
+RUN [ "$(arch)" != "x86_64" ] && exit 0; \
+    EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \
+    [ "${PG_MAJOR}" -ge 18 ] && [ "${EL_VER}" -lt 9 ] && exit 0; \
+    set -ex; \
     microdnf -y install --nodocs \
-        timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${PG_MAJOR//.} || true; \
+        timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${PG_MAJOR//.}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 

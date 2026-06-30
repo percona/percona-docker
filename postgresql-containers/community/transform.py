@@ -105,16 +105,16 @@ PGDG_VERSION_LOOP_BLOCK = r"""RUN for pg_version in 17 16 15 14; do \
         else \
             pgaudit_pkg="pgaudit_${pg_version}"; \
         fi; \
-        microdnf -y install --nodocs \
-            postgresql${pg_version}-server \
+        pkgs="postgresql${pg_version}-server \
             postgresql${pg_version}-contrib \
             postgresql${pg_version}-libs \
             ${pgaudit_pkg} \
             set_user_${pg_version} \
             wal2json_${pg_version} \
             pgvector_${pg_version} \
-            pg_repack_${pg_version} \
-            timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${pg_version} || true; \
+            pg_repack_${pg_version}"; \
+        [ "$(arch)" = "x86_64" ] && pkgs="$pkgs timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${pg_version}"; \
+        microdnf -y install --nodocs $pkgs; \
     done && microdnf -y clean all && rm -rf /var/cache/dnf /var/cache/yum"""
 
 # Oracle-specific enablerepo flags (el8 or el9) → PGDG common + EPEL
@@ -162,43 +162,45 @@ EPEL_BLOCK = None
 
 # ── Community-only additions (not derived from Percona source Dockerfiles) ────
 #
-# TimescaleDB: https://packagecloud.io/timescale/timescaledb/el/9/
+# TimescaleDB: https://packagecloud.io/timescale/timescaledb/el/{EL_VER}/
 #   Package names: timescaledb-2-postgresql-{version}
-# Citus:        https://repos.citusdata.com/community/el/9/
+#   arm64: no packages published — skipped via arch guard
+# Citus: provided by the PGDG repository (no additional repo needed)
 #   Package names: citus_{version}
 #   Note: Citus is added to postgres images only — it is incompatible with pg_upgrade.
 #
 # $basearch in .repo files is a yum/dnf variable expanded at install time, not by bash.
 
-# Repo setup for postgres images (both TimescaleDB and Citus)
-# $basearch is a yum/dnf variable — escaped as \$basearch so bash does not expand it,
-# leaving the literal string $basearch in the .repo file for yum to expand at install time.
 EXTRA_REPOS_BLOCK = """\
 # ── Community additions ────────────────────────────────────────────────────────
 # These extensions are not part of the official Percona distribution.
-# They are installed from upstream third-party repositories.
 #   TimescaleDB source: https://packagecloud.io/timescale/timescaledb/el/{EL_VER}/
-#   Citus source:       https://repos.citusdata.com/community/el/{EL_VER}/
+#   Citus: provided by PGDG (no additional repo needed)
 ARG TIMESCALEDB_MAJOR=2
 
 RUN set -ex; \\
     EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \\
     printf "[timescale_timescaledb]\\nname=timescale_timescaledb\\nbaseurl=https://packagecloud.io/timescale/timescaledb/el/${EL_VER}/\\$basearch\\nrepo_gpgcheck=1\\ngpgcheck=0\\nenabled=1\\ngpgkey=https://packagecloud.io/timescale/timescaledb/gpgkey\\nsslverify=1\\nsslcacert=/etc/pki/tls/certs/ca-bundle.crt\\nmetadata_expire=300\\n" \\
         > /etc/yum.repos.d/timescale_timescaledb.repo; \\
-    printf "[citusdata_community]\\nname=citusdata_community\\nbaseurl=https://repos.citusdata.com/community/el/${EL_VER}/\\$basearch\\nrepo_gpgcheck=1\\ngpgcheck=1\\nenabled=1\\ngpgkey=https://repos.citusdata.com/community/gpgkey\\nsslverify=1\\nsslcacert=/etc/pki/tls/certs/ca-bundle.crt\\nmetadata_expire=300\\n" \\
-        > /etc/yum.repos.d/citusdata_community.repo; \\
     microdnf clean all"""
 
-# Install block for postgres images (|| true: packages may not exist for all PG/EL version combos)
+# Citus is installed unconditionally (PGDG ships arm64 packages).
+# TimescaleDB has no arm64 packages — guard with arch check.
 TIMESCALEDB_CITUS_INSTALL = """\
 RUN set -ex; \\
-    microdnf -y install --nodocs \\
-        timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${PG_MAJOR_VERSION} \\
-        citus_${PG_MAJOR_VERSION} || true; \\
+    pkgs=""; \\
+    EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \\
+    if [ "$(arch)" = "x86_64" ]; then \\
+        if [ "${PG_MAJOR_VERSION}" -lt 18 ] || [ "${EL_VER}" -ge 9 ]; then \\
+            pkgs="timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${PG_MAJOR_VERSION}"; \\
+        fi; \\
+    fi; \\
+    [ "${PG_MAJOR_VERSION}" -ge 16 ] && pkgs="$pkgs citus_${PG_MAJOR_VERSION}"; \\
+    [ -n "$pkgs" ] && microdnf -y install --nodocs $pkgs; \\
     microdnf clean all; \\
     rm -rf /var/cache/dnf /var/cache/yum"""
 
-# Repo setup + ARG declaration for upgrade image (TimescaleDB only; Citus omitted)
+# Repo setup for upgrade image (TimescaleDB only; Citus omitted — incompatible with pg_upgrade)
 TIMESCALEDB_REPO_ONLY_BLOCK = """\
 # ── Community additions ────────────────────────────────────────────────────────
 # These extensions are not part of the official Percona distribution.
@@ -212,11 +214,14 @@ RUN set -ex; \\
         > /etc/yum.repos.d/timescale_timescaledb.repo; \\
     microdnf clean all"""
 
-# Install block for the primary PG version in the upgrade image (uses ${PG_MAJOR//.})
+# TimescaleDB has no arm64 packages — skip entirely on non-x86_64.
 TIMESCALEDB_INSTALL_UPGRADE = """\
-RUN set -ex; \\
+RUN [ "$(arch)" != "x86_64" ] && exit 0; \\
+    EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \\
+    [ "${PG_MAJOR}" -ge 18 ] && [ "${EL_VER}" -lt 9 ] && exit 0; \\
+    set -ex; \\
     microdnf -y install --nodocs \\
-        timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${PG_MAJOR//.} || true; \\
+        timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${PG_MAJOR//.}; \\
     microdnf clean all; \\
     rm -rf /var/cache/dnf /var/cache/yum"""
 

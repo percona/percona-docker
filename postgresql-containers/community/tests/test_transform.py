@@ -23,6 +23,7 @@ from transform import (
     PGDG_REPO_BLOCK,
     PGDG_VERSION_LOOP_BLOCK,
     TIMESCALEDB_CITUS_INSTALL,
+    TIMESCALEDB_INSTALL_UPGRADE,
     UPGRADE_DOWNLOADER_MARKER,
     UPGRADE_EXTRACT_MARKER,
     UPGRADE_LOOP_MARKER,
@@ -345,12 +346,21 @@ class TestTransformRunBlock:
         assert 'ol8_developer_EPEL' not in result
         assert '--enablerepo="pgdg-common"' in result
 
-    def test_timescaledb_citus_install_has_or_true(self):
-        # Packages may not exist for all PG/EL version combos
-        assert '|| true' in TIMESCALEDB_CITUS_INSTALL
+    def test_timescaledb_citus_arch_guard(self):
+        assert '[ "$(arch)" = "x86_64" ]' in TIMESCALEDB_CITUS_INSTALL
+        assert '|| true' not in TIMESCALEDB_CITUS_INSTALL
 
-    def test_pgdg_loop_has_or_true(self):
-        assert '|| true' in PGDG_VERSION_LOOP_BLOCK
+    def test_timescaledb_el8_pg18_guard(self):
+        # timescaledb-2-postgresql-18 is not published for EL8 — skip when PG>=18 on EL<9
+        assert '[ "${PG_MAJOR_VERSION}" -lt 18 ] || [ "${EL_VER}" -ge 9 ]' in TIMESCALEDB_CITUS_INSTALL
+
+    def test_timescaledb_upgrade_el8_pg18_guard(self):
+        # Same constraint in upgrade image
+        assert '[ "${PG_MAJOR}" -ge 18 ] && [ "${EL_VER}" -lt 9 ] && exit 0' in TIMESCALEDB_INSTALL_UPGRADE
+
+    def test_pgdg_loop_arch_guard(self):
+        assert '[ "$(arch)" = "x86_64" ]' in PGDG_VERSION_LOOP_BLOCK
+        assert '|| true' not in PGDG_VERSION_LOOP_BLOCK
 
 
 # ── transform_other_line ──────────────────────────────────────────────────────
@@ -561,11 +571,11 @@ class TestCommunityAdditionsInjection:
         """))
         return src
 
-    def test_postgres_gets_timescaledb_citus_repos(self, tmp_path):
+    def test_postgres_gets_timescaledb_repo(self, tmp_path):
         src = self._minimal_postgres_src(tmp_path)
         result = transform(src)
         assert "timescale_timescaledb" in result
-        assert "citusdata_community" in result
+        assert "citusdata_community" not in result  # Citus comes from PGDG
 
     def test_postgres_gets_timescaledb_citus_install(self, tmp_path):
         src = self._minimal_postgres_src(tmp_path)
@@ -573,11 +583,11 @@ class TestCommunityAdditionsInjection:
         assert "timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${PG_MAJOR_VERSION}" in result
         assert "citus_${PG_MAJOR_VERSION}" in result
 
-    def test_postgres_timescaledb_install_has_or_true(self, tmp_path):
+    def test_postgres_timescaledb_arch_guard(self, tmp_path):
         src = self._minimal_postgres_src(tmp_path)
         result = transform(src)
-        # Find the citus install line and confirm || true follows
-        assert "citus_${PG_MAJOR_VERSION} || true" in result
+        assert '[ "$(arch)" = "x86_64" ]' in result
+        assert '|| true' not in result
 
     def test_postgres_community_injected_before_copy_license(self, tmp_path):
         src = self._minimal_postgres_src(tmp_path)
