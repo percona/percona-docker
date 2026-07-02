@@ -47,6 +47,7 @@ RUN set -ex; \
         percona-pgbackrest \
         procps-ng \
         gettext \
+        tar \
         nss_wrapper; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
