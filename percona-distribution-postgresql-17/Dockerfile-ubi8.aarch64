@@ -1,13 +1,3 @@
-FROM oraclelinux:8 AS downloader
-
-RUN yum install -y epel-release; \
-    yum config-manager --set-enabled ol8_codeready_builder; \
-    yum install -y --downloadonly perl-JSON; \
-    mkdir -p downloaded-packages; \
-    cp -rp /var/cache/dnf/ol8_appstream-*/packages/*.rpm downloaded-packages; \
-    yum install -y --downloadonly --downloaddir=downloaded-packages libssh2; \
-    tar -cvzf downloaded-packages.tar.gz downloaded-packages
-
 FROM redhat/ubi8-minimal
 
 LABEL name="Percona Distribution for PostgreSQL" \
@@ -45,6 +35,23 @@ RUN set -ex; \
     percona-release enable ppg-${PPG_REPO_VERSION} ${PPG_REPO};
 
 RUN set -ex; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 76FD3DB13AB67410B89DB10E82562EA9AD986DA3; \
+    gpg --batch --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle; \
+    rpmkeys --import /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle; \
+    curl -Lf -o /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8 https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-8; \
+    rpmkeys --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8; \
+    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/aarch64/getPackage/oraclelinux-release-el8-1.0-38.el8.aarch64.rpm; \
+    curl -Lf -o /tmp/epel-release.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; \
+    rpmkeys --checksig /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    rpm -i /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    sed -i 's/^enabled=1/enabled=0/' /etc/yum.repos.d/oracle-linux-ol8.repo \
+                                     /etc/yum.repos.d/uek-ol8.repo \
+                                     /etc/yum.repos.d/epel.repo \
+                                     /etc/yum.repos.d/epel-modular.repo 2>/dev/null || true
+
+RUN set -ex; \
     microdnf -y update; \
     microdnf -y install \
         bind-utils \
@@ -67,20 +74,23 @@ ENV PGDATA /data/db
 ENV PGROOT="/usr/pgsql-${PPG_MAJOR_VERSION}"
 ENV PATH="/pgdata:${PGROOT}/bin:${PATH}"
 
-COPY --from=downloader /downloaded-packages.tar.gz .
-RUN tar -xvzf downloaded-packages.tar.gz; \
-        cd downloaded-packages; \
-        rpm -ivh perl-*.rpm; \
-	    rpm -ivh perl-JSON*.rpm; \
-        rpm -ivh libssh2*.rpm; \
-        rm -f /downloaded-packages.tar.gz; \
-        cd -; \
-        rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
+RUN set -ex; \
+    microdnf install -y \
+        --enablerepo=ol8_baseos_latest \
+        --enablerepo=ol8_appstream \
+        --enablerepo=ol8_codeready_builder \
+        --enablerepo=epel \
+        perl-JSON \
+        libssh2 \
+        python3-click \
+        python3-wcwidth; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
 
 RUN set -ex; \
     microdnf install -y \
-        percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
-        percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
+        percona-postgresql${PPG_MAJOR_VERSION}-server \
+        percona-postgresql${PPG_MAJOR_VERSION}-contrib \
         percona-postgresql-common \
         percona-pg_tde${PPG_MAJOR_VERSION} \
         percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
@@ -99,23 +109,8 @@ RUN set -ex; \
     chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
 
 RUN set -ex; \
-    export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 ; \
-    gpg --batch --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-    gpg --batch --export --armor 76FD3DB13AB67410B89DB10E82562EA9AD986DA3 > /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle; \
-    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-    microdnf install -y yum-utils; \
-    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/aarch64/getPackage/oraclelinux-release-el8-1.0-38.el8.aarch64.rpm; \
-    curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/aarch64/getPackage/oracle-epel-release-el8-1.0-5.el8.aarch64.rpm; \
-    rpmkeys --checksig /tmp/epel-release.rpm; \
-    rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
-    rpm -i /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
-    rm -rf "$GNUPGHOME" /tmp/epel-release.rpm /tmp/oraclelinux-release.rpm;
-
-RUN set -ex; \
     microdnf -y update; \
-    microdnf install -y --enablerepo="ol8_developer_EPEL"\
-        python3-click \
+    microdnf install -y \
         percona-patroni; \
     microdnf clean all
 
