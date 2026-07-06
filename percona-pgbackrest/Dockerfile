@@ -38,6 +38,10 @@ RUN set -ex; \
     rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
     rpm -i /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    sed -i 's/^enabled=1/enabled=0/' /etc/yum.repos.d/oracle-linux-ol9.repo \
+                                     /etc/yum.repos.d/uek-ol9.repo \
+                                     /etc/yum.repos.d/oracle-epel-ol9.repo \
+                                     /etc/yum.repos.d/oracle-epel-modular-ol9.repo 2>/dev/null || true; \
     percona-release enable ppg-${PG_VERSION} ${PPG_REPO}
 
 RUN set -ex; \
