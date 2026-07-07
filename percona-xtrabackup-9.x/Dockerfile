@@ -94,7 +94,7 @@ RUN set -ex; \
     rm -rf /tmp/libev.rpm /tmp/awscliv2.zip /tmp/awscliv2.sig /tmp/aws /tmp/packages-microsoft-prod.rpm; \
     #dnf --setopt=install_weak_deps=False --best install -y \
     microdnf -y install \
-        percona-xtrabackup-96-${FULL_PERCONA_XTRABACKUP_VERSION} \
+        percona-xtrabackup-97-${FULL_PERCONA_XTRABACKUP_VERSION} \
         percona-xtradb-cluster-garbd \
         percona-server-shared-${FULL_PERCONA_VERSION} \
         percona-server-client-${FULL_PERCONA_VERSION} \
