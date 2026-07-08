@@ -22,7 +22,7 @@ LABEL org.opencontainers.image.title="Percona Search for MongoDB" \
     org.opencontainers.image.documentation="https://github.com/percona/percona-mongot/blob/main/percona-packaging/PACKAGING.md" \
     org.opencontainers.image.source="https://github.com/percona/percona-mongot"
 
-ENV MONGOT_VERSION=0.50.0-1
+ENV MONGOT_VERSION=0.51.0-1
 ENV MONGOT_REPO_CH=testing
 ENV PSMDB_REPO=psmdb-83
 ENV OS_VER=el9
