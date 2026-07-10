@@ -16,8 +16,8 @@ ARG PS_REPO=testing
 ARG PXB_REPO=testing
 ARG TOOLS_REPO=release
 
-ENV XTRABACKUP_VERSION 9.6.0-1.1
-ENV PS_VERSION 9.6.0-1.1
+ENV XTRABACKUP_VERSION 9.7.0-1.1
+ENV PS_VERSION 9.7.0-1.1
 ENV OS_VER el9
 ENV PXC_REPO ${PXC_REPO}
 ENV PS_REPO ${PS_REPO}
@@ -56,9 +56,9 @@ RUN set -ex; \
     microdnf install -y python3.12-pip; \
     #microdnf -y module disable mysql perl-DBD-MySQL; \
     percona-release disable all; \
-    percona-release enable ps-9x-innovation ${PS_REPO}; \
+    percona-release enable ps-97-lts ${PS_REPO}; \
     percona-release enable pxc-9x-innovation ${PXC_REPO}; \
-    percona-release enable pxb-9x-innovation ${PXB_REPO}; \
+    percona-release enable pxb-97-lts ${PXB_REPO}; \
     percona-release enable tools ${TOOLS_REPO}
 
 RUN set -ex; \
@@ -94,7 +94,7 @@ RUN set -ex; \
     rm -rf /tmp/libev.rpm /tmp/awscliv2.zip /tmp/awscliv2.sig /tmp/aws /tmp/packages-microsoft-prod.rpm; \
     #dnf --setopt=install_weak_deps=False --best install -y \
     microdnf -y install \
-        percona-xtrabackup-96-${FULL_PERCONA_XTRABACKUP_VERSION} \
+        percona-xtrabackup-97-${FULL_PERCONA_XTRABACKUP_VERSION} \
         percona-xtradb-cluster-garbd \
         percona-server-shared-${FULL_PERCONA_VERSION} \
         percona-server-client-${FULL_PERCONA_VERSION} \
