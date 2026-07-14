@@ -15,7 +15,7 @@ ENV PERCONA_SERVER_BUILD_VERSION=1
 ENV PERCONA_VERSION=${PERCONA_SERVER_VERSION}-${PERCONA_SERVER_PERC_VERSION}.${PERCONA_SERVER_BUILD_VERSION}.el9
 
 # install exact version of Fluent Bit for repeatability
-ENV FLUENTBIT_VERSION=5.0.6-1
+ENV FLUENTBIT_VERSION=5.0.9-1
 
 RUN export GNUPGHOME="$(mktemp -d)" \
     && gpg --keyserver https://packages.fluentbit.io/fluentbit.key --recv-keys C3C0A28534B9293EAF51FABD9F9DDC083888C1CD \
