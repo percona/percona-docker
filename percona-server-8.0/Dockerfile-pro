@@ -95,7 +95,10 @@ RUN set -ex; \
         selinux-policy \
         libatomic \
         libtirpc \
-        policycoreutils; \
+        perl \
+        numactl-libs \
+        policycoreutils \
+        percona-telemetry-agent; \
     microdnf -y update \
         #glibc \
         libnghttp2 \
@@ -107,10 +110,10 @@ RUN set -ex; \
     \
     rpm -iv /tmp/percona-server-shared-${PS_VERSION}.el9.x86_64.rpm; \
     rpm -iv /tmp/percona-server-client-${PS_VERSION}.el9.x86_64.rpm; \
+    rpm -iv /tmp/percona-icu-data-files-${PS_VERSION}.el9.x86_64.rpm; \
     rpm -iv /tmp/percona-server-server-${PS_VERSION}.el9.x86_64.rpm; \
     rpm -iv /tmp/percona-server-devel-${PS_VERSION}.el9.x86_64.rpm; \
     rpm -iv /tmp/percona-server-rocksdb-${PS_VERSION}.el9.x86_64.rpm; \
-    rpm -iv /tmp/percona-icu-data-files-${PS_VERSION}.el9.x86_64.rpm; \
     microdnf -y install \
         percona-mysql-shell-${FULL_MYSQL_SHELL_VERSION}; \
     microdnf clean all; \
