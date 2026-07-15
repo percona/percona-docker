@@ -83,6 +83,7 @@ RUN set -ex; \
         perl-JSON \
         libssh2 \
         python3-click \
+        python3.12-dns \
         python3-wcwidth; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
@@ -114,6 +115,11 @@ RUN set -ex; \
     microdnf install -y \
         percona-patroni; \
     microdnf clean all
+
+RUN set -ex; \
+    microdnf -y update; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
 
 RUN set -ex; \
     sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-${PPG_MAJOR_VERSION}/share/postgresql.conf.sample; \
