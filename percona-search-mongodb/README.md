@@ -8,13 +8,13 @@ Container images for [Percona Search for MongoDB](https://github.com/percona/per
 ```bash
 # x86_64
 docker buildx build --platform linux/amd64 \
-    -t percona/percona-server-mongodb-mongot:0.50.0 \
+    -t percona/percona-search-mongodb:1.70.1 \
     -f Dockerfile .
 
 # aarch64 (buildx with an explicit platform, otherwise an amd64 host
 # would produce an amd64 image under the -arm64 tag)
 docker buildx build --platform linux/arm64 \
-    -t percona/percona-server-mongodb-mongot:0.50.0-arm64 \
+    -t percona/percona-search-mongodb:1.70.1-arm64 \
     -f Dockerfile.aarch64 .
 ```
 
@@ -33,7 +33,7 @@ docker run -d \
     -v $(pwd)/mongot.yml:/etc/mongot/mongot.yml:ro \
     -v $(pwd)/passwordFile:/etc/mongot/secrets/passwordFile:ro \
     -v mongot-data:/var/lib/mongot \
-    percona/percona-server-mongodb-mongot:0.50.0
+    percona/percona-search-mongodb:1.70.1
 ```
 
 The image uses an entry point that forwards arguments to `mongot`, so you
@@ -46,7 +46,7 @@ you mount a real config and password file as shown above:
 docker run -d \
     --name mongot \
     -v $(pwd)/custom.yml:/conf/mongot.yml:ro \
-    percona/percona-server-mongodb-mongot:0.50.0 \
+    percona/percona-search-mongodb:1.70.1 \
     --config /conf/mongot.yml
 ```
 
@@ -61,7 +61,7 @@ Exposed ports (defaults from the bundled `mongot.yml`):
 ## Bundled JDK
 
 The image ships the full Adoptium Temurin 21 runtime under
-`/usr/lib/percona-server-mongodb-mongot/bin/jdk` (no system JDK
+`/usr/lib/percona-search-mongodb/bin/jdk` (no system JDK
 dependency). The `mongot` wrapper at `/usr/bin/mongot` resolves
 `JAVA_HOME` to the bundled JDK automatically.
 
@@ -69,7 +69,7 @@ dependency). The `mongot` wrapper at `/usr/bin/mongot` resolves
 
 | path | purpose |
 |---|---|
-| `/usr/lib/percona-server-mongodb-mongot/` | bundle (JDK, jars, native .so libs, launcher) |
+| `/usr/lib/percona-search-mongodb/` | bundle (JDK, jars, native .so libs, launcher) |
 | `/usr/bin/mongot` | thin wrapper that execs the bundled launcher |
 | `/etc/mongot/mongot.yml` | default config (placeholders, must be overridden) |
 | `/etc/sysconfig/mongot` | env file (unused in container — kept for parity with RPM install) |
