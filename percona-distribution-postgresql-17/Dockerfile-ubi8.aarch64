@@ -11,7 +11,7 @@ RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en; \
 	microdnf -y install systemd-rpm-macros
 
-ENV PPG_VERSION 17.10-1
+ENV PPG_VERSION 17.10-2
 ENV PPG_MAJOR_VERSION 17
 ENV PPG_MINOR_VERSION 10
 ENV OS_VER el8
@@ -119,6 +119,9 @@ RUN set -ex; \
     microdnf -y update; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
+
+RUN set -ex; \
+    rpm -e --nodeps perl-Archive-Tar perl-IO-Compress
 
 RUN set -ex; \
     sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-${PPG_MAJOR_VERSION}/share/postgresql.conf.sample; \
