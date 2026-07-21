@@ -1,20 +1,4 @@
-FROM oraclelinux:9 AS downloader
-
-RUN yum install -y epel-release; \
-    yum config-manager --set-enabled ol9_codeready_builder; \
-    yum install -y --downloadonly perl-JSON hdf5 xerces-c netcdf libaec libarrow libgta freexl libdeflate cfitsio armadillo gpsbabel libqhull_r boost-serialization minizip libkml librttopo; \
-    mkdir -p downloaded-packages; \
-    cp -rp /var/cache/dnf/ol9_appstream-*/packages/*.rpm downloaded-packages; \
-    cp -rp /var/cache/dnf/ol9_baseos_latest*/packages/*.rpm downloaded-packages; \
-    cp -rp /var/cache/dnf/ol9_developer_EPEL*/packages/*.rpm downloaded-packages; \
-    cp -rp /var/cache/dnf/ol9_codeready_builder*/packages/*.rpm downloaded-packages; \
-    yum install -y --downloadonly --downloaddir=downloaded-packages libssh2; \
-    cd downloaded-packages; \
-    rm -rf pcre2* brotli* dbus*; \
-    cd -; \
-    tar -cvzf downloaded-packages.tar.gz downloaded-packages
-
-FROM redhat/ubi9-minimal
+FROM redhat/ubi10-minimal
 
 LABEL name="Percona Distribution for PostgreSQL" \
       description="Essential / key PostgreSQL17 components. Percona Distribution for PostgreSQL features core components, tools and add-ons from the community, tested to work together in demanding enterprise environments." \
@@ -32,18 +16,18 @@ ARG PPG_REPO=testing
 ENV PPG_VERSION 17.10-1
 ENV PPG_MAJOR_VERSION 17
 ENV PPG_MINOR_VERSION 10
-ENV OS_VER el9
+ENV OS_VER el10
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO ${PPG_REPO}
 ENV PPG_REPO_VERSION "${PPG_MAJOR_VERSION}.${PPG_MINOR_VERSION}"
 
 # check repository package signature in secure way
 RUN set -ex; \
+    microdnf install -y gnupg2; \
     export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 99DB70FAE1D7CE227FB6488205B555B38483C65D; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5; \
     gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
-    gpg --batch --export --armor 99DB70FAE1D7CE227FB6488205B555B38483C65D > ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
-    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY ${GNUPGHOME}/RPM-GPG-KEY-centosofficial; \
+    rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY; \
     microdnf install -y findutils; \
     curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \
     rpmkeys --checksig /tmp/percona-release.rpm; \
@@ -52,19 +36,35 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable ppg-${PPG_REPO_VERSION} ${PPG_REPO};
 
+# Bring in OL10 AppStream / CRB and upstream Fedora EPEL 10 repo definitions
+# for postgis runtime deps absent from UBI10.
+RUN set -ex; \
+    curl -Lf -o /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle https://yum.oracle.com/RPM-GPG-KEY-oracle-ol10; \
+    rpmkeys --import /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle; \
+    curl -Lf -o /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-10 https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-10; \
+    rpmkeys --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-10; \
+    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL10/baseos/latest/x86_64/getPackage/oraclelinux-release-el10-1.0-19.el10.x86_64.rpm; \
+    curl -Lf -o /tmp/epel-release.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm; \
+    rpmkeys --checksig /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    rpm -i /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
+    sed -i 's/^enabled=1/enabled=0/' /etc/yum.repos.d/oracle-linux-ol10.repo \
+                                     /etc/yum.repos.d/uek-ol10.repo \
+                                     /etc/yum.repos.d/epel.repo \
+                                     /etc/yum.repos.d/epel-modular.repo 2>/dev/null || true
+
 RUN set -ex; \
     microdnf -y update; \
     microdnf -y install \
         bind-utils \
+        util-linux \
+        openssl \
         gettext \
         hostname \
         perl \
         tar \
         bzip2 \
         lz4 \
-        pcre2-utf16 \
-        brotli \
-        dbus-libs \
         procps-ng; \
     microdnf -y install  \
         nss_wrapper \
@@ -78,20 +78,63 @@ ENV PGDATA /data/db
 ENV PGROOT="/usr/pgsql-${PPG_MAJOR_VERSION}"
 ENV PATH="/pgdata:${PGROOT}/bin:${PATH}"
 
-COPY --from=downloader /downloaded-packages.tar.gz .
-RUN tar -xvzf downloaded-packages.tar.gz; \
-        ls -la downloaded-packages; \
-        cd downloaded-packages; \
-        rpm -Uvh --replacepkgs *.rpm; \
-        rpm -ivh libssh2*.rpm; \
-        rm -f /downloaded-packages.tar.gz; \
-        cd -; \
-        rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
+# PostGIS runtime deps + every transitive non-Percona dep that the postgis
+# stack will pull in. We pre-install all of these here in a single RUN with
+# --enablerepo so the next RUN (the actual percona-* install) can use the
+# default repo set.
+RUN set -ex; \
+    microdnf install -y \
+        --enablerepo=ol10_baseos_latest \
+        --enablerepo=ol10_appstream \
+        --enablerepo=ol10_codeready_builder \
+        --enablerepo=epel \
+        perl-JSON \
+        perl-DBD-Pg \
+        libssh2 \
+        libarrow \
+        snappy \
+        re2 \
+        boost-atomic \
+        boost-chrono \
+        boost-date-time \
+        boost-filesystem \
+        boost-program-options \
+        boost-regex \
+        boost-serialization \
+        boost-system \
+        boost-thread \
+        python3-click \
+        python3.12-dns \
+        python3-wcwidth \
+        hdf5 \
+        xerces-c \
+        netcdf \
+        libaec \
+        libgta \
+        freexl \
+        libdeflate \
+        cfitsio \
+        armadillo \
+        libqhull_r \
+        minizip \
+        libkml \
+        gtk2 \
+        librttopo; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
+
+# gpsbabel is a transitive Requires of percona-postgis35_*-utils and Percona's
+# gdal38-libs RPM.
+RUN set -ex; \
+    curl -Lf -o /tmp/gpsbabel.rpm https://yum.oracle.com/repo/OracleLinux/OL10/1/developer/EPEL/x86_64/getPackage/gpsbabel-1.9.0-7.el10_0.x86_64.rpm; \
+    rpmkeys --checksig /tmp/gpsbabel.rpm; \
+    rpm -i --nodeps /tmp/gpsbabel.rpm; \
+    rm -f /tmp/gpsbabel.rpm
 
 RUN set -ex; \
     microdnf install -y \
-        percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
-        percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
+        percona-postgresql${PPG_MAJOR_VERSION}-server \
+        percona-postgresql${PPG_MAJOR_VERSION}-contrib \
         percona-postgresql-common \
         percona-pg_tde${PPG_MAJOR_VERSION} \
         percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
@@ -100,9 +143,9 @@ RUN set -ex; \
         percona-pgaudit${PPG_MAJOR_VERSION}_set_user \
         percona-pgbackrest \
 	percona-pgvector_${PPG_MAJOR_VERSION} \
-	percona-postgresql${PPG_MAJOR_VERSION}-llvmjit \
-	percona-pgvector_${PPG_MAJOR_VERSION}-llvmjit \
-	python3-etcd \
+        percona-postgresql${PPG_MAJOR_VERSION}-llvmjit \
+        percona-pgvector_${PPG_MAJOR_VERSION}-llvmjit \
+        python3-etcd \
         percona-postgis35_${PPG_MAJOR_VERSION} \
         percona-postgis35_${PPG_MAJOR_VERSION}-client \
         percona-postgis35_${PPG_MAJOR_VERSION}-gui \
@@ -114,25 +157,21 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
     chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
 
+# percona-patroni install also runs with NO --enablerepo for the same reason;
+# python3-click was pre-installed in the runtime-deps RUN above.
 RUN set -ex; \
-    export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F ; \
-    gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-    gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle; \
-    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
-    microdnf install -y yum-utils; \
-    curl -Lf -o /tmp/oraclelinux-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oraclelinux-release-el9-1.0-15.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/epel-release.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/getPackage/oracle-epel-release-el9-1.0-1.el9.x86_64.rpm; \
-    rpmkeys --checksig /tmp/epel-release.rpm; \
-    rpmkeys --checksig /tmp/oraclelinux-release.rpm; \
-    rpm -i /tmp/oraclelinux-release.rpm /tmp/epel-release.rpm; \
-    rm -rf "$GNUPGHOME" /tmp/epel-release.rpm /tmp/oraclelinux-release.rpm;
-
-RUN set -ex; \
-    microdnf install -y --enablerepo="ol9_developer_EPEL"\
-        python3-click \
+    microdnf -y update; \
+    microdnf install -y \
         percona-patroni; \
     microdnf clean all
+
+RUN set -ex; \
+    microdnf -y update; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
+
+RUN set -ex; \
+    rpm -e --nodeps perl-Archive-Tar perl-IO-Compress
 
 RUN set -ex; \
     sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-${PPG_MAJOR_VERSION}/share/postgresql.conf.sample; \
