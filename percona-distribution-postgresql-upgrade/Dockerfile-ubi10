@@ -136,7 +136,7 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-RUN for pg_version in 17 16 15 14 13 12; do \
+RUN for pg_version in 17 16 15 14 13; do \
         percona-release enable ppg-${pg_version} release; \
         microdnf -y install --nodocs \
             percona-pgaudit${pg_version} \
