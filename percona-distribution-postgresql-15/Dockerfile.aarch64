@@ -80,8 +80,7 @@ RUN set -ex; \
     microdnf install -y \
         percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
-        percona-postgresql-common-1:290-1.el9 \
-        percona-postgresql-client-common-1:290-1.el9 \
+        percona-postgresql-common \
         percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
         percona-pg_repack${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION} \
