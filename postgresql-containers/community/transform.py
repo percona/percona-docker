@@ -37,6 +37,12 @@ BETA_MISSING_EXTENSIONS = (
 # Remove an entry once the pgaudit_{v} rpm appears in the PGDG repos.
 BETA_PGAUDIT_REF = {'19': '19beta1'}
 
+# Minimum pgBackRest version supporting the beta PG version. The PGDG rpm lags
+# behind the pgBackRest release (2.58 fails PG 19 with VersionNotSupportedError),
+# so the binary is built from the official dist tarball and layered over the rpm.
+# Remove an entry once the PGDG pgbackrest rpm reaches this version.
+BETA_PGBACKREST_VERSION = {'19': '2.59.0'}
+
 # Version token: either a literal number or a shell variable like ${PG_MAJOR_VERSION}
 _V = r'(\d+|\$\{[^}]+\})'
 # End-of-token boundary that works for both digit endings and shell-variable endings (which end in '}')
@@ -263,6 +269,46 @@ RUN set -ex; \\
 BETA_PGAUDIT_COPY = """\
 COPY --from=pgaudit-builder /usr/pgsql-{v}/lib/pgaudit.so /usr/pgsql-{v}/lib/
 COPY --from=pgaudit-builder /usr/pgsql-{v}/share/extension/pgaudit* /usr/pgsql-{v}/share/extension/
+
+"""
+
+# Builder stage compiling pgBackRest from the official dist tarball for beta PG
+# versions (the PGDG rpm does not support them yet). Inserted before the main FROM.
+BETA_PGBACKREST_BUILDER = """\
+# ── pgBackRest builder ────────────────────────────────────────────────────────
+# The PGDG pgbackrest rpm does not support PostgreSQL {v} yet — build
+# pgBackRest {pgbr} (first release with PG {v} support) from the official dist
+# tarball and overlay the binary. Drop this stage once the PGDG rpm catches up.
+FROM ${BASE_IMAGE} AS pgbackrest-builder
+
+ARG PGBACKREST_VERSION={pgbr}
+
+RUN set -ex; \\
+    EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \\
+    curl -Lf -o /tmp/epel-release.rpm \\
+        "https://dl.fedoraproject.org/pub/epel/epel-release-latest-${EL_VER}.noarch.rpm"; \\
+    rpm -i /tmp/epel-release.rpm; \\
+    rm /tmp/epel-release.rpm; \\
+    microdnf install -y \\
+        gcc make meson ninja-build pkgconf-pkg-config python3 \\
+        openssl-devel libxml2-devel zlib-devel bzip2-devel \\
+        lz4-devel libzstd-devel libyaml-devel libpq-devel \\
+        tar gzip; \\
+    microdnf clean all
+
+RUN set -ex; \\
+    curl -Lf -o /tmp/pgbackrest.tar.gz \\
+        "https://github.com/pgbackrest/pgbackrest/releases/download/release%2F${PGBACKREST_VERSION}/pgbackrest-${PGBACKREST_VERSION}.tar.gz"; \\
+    tar -xzf /tmp/pgbackrest.tar.gz -C /tmp; \\
+    meson setup /tmp/build "/tmp/pgbackrest-${PGBACKREST_VERSION}"; \\
+    ninja -C /tmp/build; \\
+    /tmp/build/src/pgbackrest version
+
+"""
+
+# Copied into the final stage of beta images: overlays the rpm-installed binary.
+BETA_PGBACKREST_COPY = """\
+COPY --from=pgbackrest-builder /tmp/build/src/pgbackrest /usr/bin/pgbackrest
 
 """
 
@@ -521,6 +567,18 @@ def transform(source_path: Path) -> str:
                 '\n' + builder + 'FROM ${BASE_IMAGE}\n',
                 1,
             )
+        # pgBackRest: the PGDG rpm does not support the beta PG version — build
+        # the required version from the dist tarball and overlay the binary.
+        pgbackrest_version = BETA_PGBACKREST_VERSION.get(pg_version)
+        if pgbackrest_version:
+            builder = (BETA_PGBACKREST_BUILDER
+                       .replace('{pgbr}', pgbackrest_version)
+                       .replace('{v}', pg_version))
+            result = result.replace(
+                'FROM ${BASE_IMAGE}\n',
+                '\n' + builder + 'FROM ${BASE_IMAGE}\n',
+                1,
+            )
 
     # Inject community-only additions
     if is_postgres and not is_beta:
@@ -532,12 +590,14 @@ def transform(source_path: Path) -> str:
             1,
         )
     elif is_postgres:
-        pgaudit_copy = ''
+        beta_copies = ''
         if BETA_PGAUDIT_REF.get(pg_version):
-            pgaudit_copy = BETA_PGAUDIT_COPY.replace('{v}', pg_version)
+            beta_copies += BETA_PGAUDIT_COPY.replace('{v}', pg_version)
+        if BETA_PGBACKREST_VERSION.get(pg_version):
+            beta_copies += BETA_PGBACKREST_COPY
         result = result.replace(
             'COPY LICENSE /licenses/LICENSE.Dockerfile',
-            BETA_NO_EXTRAS_NOTE + pgaudit_copy + 'COPY LICENSE /licenses/LICENSE.Dockerfile',
+            BETA_NO_EXTRAS_NOTE + beta_copies + 'COPY LICENSE /licenses/LICENSE.Dockerfile',
             1,
         )
     elif is_upgrade:

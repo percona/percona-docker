@@ -714,3 +714,19 @@ class TestBetaVersionHandling:
         result = transform(src)
         assert "FROM ${BASE_IMAGE} AS pgaudit-builder" in result
         assert "pgdg19-testing" in result
+
+    def test_beta_gets_pgbackrest_builder_stage(self, tmp_path):
+        result = transform(self._minimal_postgres_src(tmp_path))
+        assert "FROM ${BASE_IMAGE} AS pgbackrest-builder" in result
+        assert "PGBACKREST_VERSION=2.59.0" in result
+        assert "meson setup /tmp/build" in result
+
+    def test_beta_overlays_pgbackrest_binary(self, tmp_path):
+        result = transform(self._minimal_postgres_src(tmp_path))
+        copy_line = "COPY --from=pgbackrest-builder /tmp/build/src/pgbackrest /usr/bin/pgbackrest"
+        assert copy_line in result
+        assert result.find(copy_line) < result.find("COPY LICENSE /licenses/LICENSE.Dockerfile")
+
+    def test_non_beta_has_no_pgbackrest_builder(self, tmp_path):
+        result = transform(self._minimal_postgres_src(tmp_path, pg_version="18"))
+        assert "pgbackrest-builder" not in result

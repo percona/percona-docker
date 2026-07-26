@@ -43,6 +43,36 @@ RUN set -ex; \
     git clone --depth 1 --branch 19beta1 https://github.com/pgaudit/pgaudit.git /tmp/pgaudit; \
     make -C /tmp/pgaudit install USE_PGXS=1 PG_CONFIG=/usr/pgsql-19/bin/pg_config with_llvm=no
 
+
+# ── pgBackRest builder ────────────────────────────────────────────────────────
+# The PGDG pgbackrest rpm does not support PostgreSQL 19 yet — build
+# pgBackRest 2.59.0 (first release with PG 19 support) from the official dist
+# tarball and overlay the binary. Drop this stage once the PGDG rpm catches up.
+FROM ${BASE_IMAGE} AS pgbackrest-builder
+
+ARG PGBACKREST_VERSION=2.59.0
+
+RUN set -ex; \
+    EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \
+    curl -Lf -o /tmp/epel-release.rpm \
+        "https://dl.fedoraproject.org/pub/epel/epel-release-latest-${EL_VER}.noarch.rpm"; \
+    rpm -i /tmp/epel-release.rpm; \
+    rm /tmp/epel-release.rpm; \
+    microdnf install -y \
+        gcc make meson ninja-build pkgconf-pkg-config python3 \
+        openssl-devel libxml2-devel zlib-devel bzip2-devel \
+        lz4-devel libzstd-devel libyaml-devel libpq-devel \
+        tar gzip; \
+    microdnf clean all
+
+RUN set -ex; \
+    curl -Lf -o /tmp/pgbackrest.tar.gz \
+        "https://github.com/pgbackrest/pgbackrest/releases/download/release%2F${PGBACKREST_VERSION}/pgbackrest-${PGBACKREST_VERSION}.tar.gz"; \
+    tar -xzf /tmp/pgbackrest.tar.gz -C /tmp; \
+    meson setup /tmp/build "/tmp/pgbackrest-${PGBACKREST_VERSION}"; \
+    ninja -C /tmp/build; \
+    /tmp/build/src/pgbackrest version
+
 FROM ${BASE_IMAGE}
 
 LABEL name="Percona Distribution for PostgreSQL" \
@@ -127,6 +157,8 @@ RUN set -ex; \
 
 COPY --from=pgaudit-builder /usr/pgsql-19/lib/pgaudit.so /usr/pgsql-19/lib/
 COPY --from=pgaudit-builder /usr/pgsql-19/share/extension/pgaudit* /usr/pgsql-19/share/extension/
+
+COPY --from=pgbackrest-builder /tmp/build/src/pgbackrest /usr/bin/pgbackrest
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/postgresql${PG_MAJOR_VERSION}/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL

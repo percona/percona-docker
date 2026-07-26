@@ -19,7 +19,10 @@ the operator can work without Percona's own distribution packages.
 
 | Make target   | Image tag suffix                    | Description                          |
 |---------------|-------------------------------------|--------------------------------------|
-| `postgres19`  | `{TAG}-postgres19-community`        | PostgreSQL 19 **beta** (tech preview, PGDG testing repo; pgAudit from source, no other extensions) |
+| `postgres19`  | `{TAG}-postgres19-community` + `{TAG}-ppg19-postgres` | PostgreSQL 19 **beta** (tech preview, PGDG testing repo; pgAudit and pgBackRest 2.59 from source, no other extensions) |
+| `pgbackrest19`| `{TAG}-pgbackrest19`                | pgBackRest 2.59 (source-built) over the community pgbackrest image — required by PG 19 |
+| `pgbouncer19` | `{TAG}-pgbouncer19`                 | pgBouncer under the versioned name the operator CR expects |
+| `pg19`        | *(meta target)*                     | postgres19 + pgbackrest + pgbackrest19 + pgbouncer19 |
 | `postgres18`  | `{TAG}-postgres18-community`        | PostgreSQL 18 + extensions           |
 | `postgres17`  | `{TAG}-postgres17-community`        | PostgreSQL 17 + extensions           |
 | `postgres16`  | `{TAG}-postgres16-community`        | PostgreSQL 16 + extensions           |
