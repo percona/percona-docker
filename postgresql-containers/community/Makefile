@@ -35,7 +35,7 @@ test:
 	python3 -m pytest tests/ -v
 
 .PHONY: all postgres19 postgres18 postgres17 postgres16 postgres15 postgres14 pgbackrest pgbouncer upgrade \
-        postgres19-ubi8 postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgres14-ubi8 upgrade-ubi8 \
+        postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgres14-ubi8 upgrade-ubi8 \
         all-ubi8
 
 # postgres19 is deliberately NOT part of `all`: PostgreSQL 19 is in beta
@@ -82,10 +82,6 @@ upgrade:
 		-f build/upgrade/Dockerfile \
 		-t $(or $(IMAGE),$(UPGRADE_IMAGE)) \
 		../
-
-postgres19-ubi8:
-	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS_UBI8) \
-		-t $(or $(IMAGE),$(POSTGRES19_IMAGE)) build/postgres19-ubi8/
 
 postgres18-ubi8:
 	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS_UBI8) \

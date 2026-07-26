@@ -48,7 +48,6 @@ TARGETS["${REPO_ROOT}/percona-pgbouncer/Dockerfile"]="${SCRIPT_DIR}/build/pgboun
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-upgrade/Dockerfile"]="${SCRIPT_DIR}/build/upgrade/Dockerfile"
 
 # UBI8 variants (no pgbackrest/pgbouncer — no Dockerfile-ubi8 source exists for those)
-TARGETS["${SCRIPT_DIR}/sources/postgresql-19/Dockerfile-ubi8"]="${SCRIPT_DIR}/build/postgres19-ubi8/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-18/Dockerfile-ubi8"]="${SCRIPT_DIR}/build/postgres18-ubi8/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-17/Dockerfile-ubi8"]="${SCRIPT_DIR}/build/postgres17-ubi8/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-16/Dockerfile-ubi8"]="${SCRIPT_DIR}/build/postgres16-ubi8/Dockerfile"

@@ -33,7 +33,6 @@ the operator can work without Percona's own distribution packages.
 
 | Make target        | Image tag suffix                   | Description                     |
 |--------------------|------------------------------------|---------------------------------|
-| `postgres19-ubi8`  | `{TAG}-postgres19-community`       | PostgreSQL 19 **beta** (EL8)    |
 | `postgres18-ubi8`  | `{TAG}-postgres18-community`       | PostgreSQL 18 (EL8)             |
 | `postgres17-ubi8`  | `{TAG}-postgres17-community`       | PostgreSQL 17 (EL8)             |
 | `postgres16-ubi8`  | `{TAG}-postgres16-community`       | PostgreSQL 16 (EL8)             |
@@ -50,6 +49,8 @@ the operator can work without Percona's own distribution packages.
 > `transform.py`). The exception is **pgAudit**: upstream already supports PG 19,
 > so it is compiled from source (tag `19beta1`) in a dedicated builder stage
 > (see `BETA_PGAUDIT_REF`). `postgres19` is not part of `make all`; build it explicitly.
+> There is no EL8/UBI8 variant of postgres19: the PGDG testing repository for
+> EL8 is empty (PGDG does not build PG 19 beta packages for EL8).
 > The source Dockerfiles for 19 live in `sources/postgresql-19/`
 > (a version-bumped draft) because the real `percona-distribution-postgresql-19/`
 > directory is created by the PG distribution team only when ppg-19 is released.
