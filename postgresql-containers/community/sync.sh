@@ -30,7 +30,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 # source Dockerfile → community target Dockerfile
+#
+# PG 19 (beta): percona-distribution-postgresql-19 does not exist yet — that
+# directory is created by the PG distribution team when ppg-19 is released.
+# Until then a draft source (a version-bumped copy of the 18 one) lives under
+# sources/postgresql-19 in this directory. At GA: drop sources/ and point the
+# mapping to ${REPO_ROOT}/percona-distribution-postgresql-19 like every other version.
 declare -A TARGETS
+TARGETS["${SCRIPT_DIR}/sources/postgresql-19/Dockerfile"]="${SCRIPT_DIR}/build/postgres19/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-18/Dockerfile"]="${SCRIPT_DIR}/build/postgres18/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-17/Dockerfile"]="${SCRIPT_DIR}/build/postgres17/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-16/Dockerfile"]="${SCRIPT_DIR}/build/postgres16/Dockerfile"
@@ -41,6 +48,7 @@ TARGETS["${REPO_ROOT}/percona-pgbouncer/Dockerfile"]="${SCRIPT_DIR}/build/pgboun
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-upgrade/Dockerfile"]="${SCRIPT_DIR}/build/upgrade/Dockerfile"
 
 # UBI8 variants (no pgbackrest/pgbouncer — no Dockerfile-ubi8 source exists for those)
+TARGETS["${SCRIPT_DIR}/sources/postgresql-19/Dockerfile-ubi8"]="${SCRIPT_DIR}/build/postgres19-ubi8/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-18/Dockerfile-ubi8"]="${SCRIPT_DIR}/build/postgres18-ubi8/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-17/Dockerfile-ubi8"]="${SCRIPT_DIR}/build/postgres17-ubi8/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-16/Dockerfile-ubi8"]="${SCRIPT_DIR}/build/postgres16-ubi8/Dockerfile"

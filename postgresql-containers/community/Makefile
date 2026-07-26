@@ -15,6 +15,7 @@ BUILD_ARGS_UBI8 = \
 	--build-arg BASE_IMAGE=redhat/ubi8-minimal \
 	--build-arg TIMESCALEDB_MAJOR=$(TIMESCALEDB_MAJOR)
 
+POSTGRES19_IMAGE ?= $(REGISTRY):$(TAG)-postgres19-community
 POSTGRES18_IMAGE ?= $(REGISTRY):$(TAG)-postgres18-community
 POSTGRES17_IMAGE ?= $(REGISTRY):$(TAG)-postgres17-community
 POSTGRES16_IMAGE ?= $(REGISTRY):$(TAG)-postgres16-community
@@ -33,13 +34,19 @@ sync:
 test:
 	python3 -m pytest tests/ -v
 
-.PHONY: all postgres18 postgres17 postgres16 postgres15 postgres14 pgbackrest pgbouncer upgrade \
-        postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgres14-ubi8 upgrade-ubi8 \
+.PHONY: all postgres19 postgres18 postgres17 postgres16 postgres15 postgres14 pgbackrest pgbouncer upgrade \
+        postgres19-ubi8 postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgres14-ubi8 upgrade-ubi8 \
         all-ubi8
 
+# postgres19 is deliberately NOT part of `all`: PostgreSQL 19 is in beta
+# (packages come from the PGDG testing repo) — build it explicitly with `make postgres19`.
 all: postgres18 postgres17 postgres16 postgres15 postgres14 pgbackrest pgbouncer upgrade
 
 all-ubi8: postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgres14-ubi8 upgrade-ubi8
+
+postgres19:
+	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \
+		-t $(or $(IMAGE),$(POSTGRES19_IMAGE)) build/postgres19/
 
 postgres18:
 	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \
@@ -75,6 +82,10 @@ upgrade:
 		-f build/upgrade/Dockerfile \
 		-t $(or $(IMAGE),$(UPGRADE_IMAGE)) \
 		../
+
+postgres19-ubi8:
+	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS_UBI8) \
+		-t $(or $(IMAGE),$(POSTGRES19_IMAGE)) build/postgres19-ubi8/
 
 postgres18-ubi8:
 	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS_UBI8) \

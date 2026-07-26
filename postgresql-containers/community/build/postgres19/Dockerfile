@@ -10,13 +10,45 @@
 #   - pgvector*-llvmjit         (same)
 #   - postgis35_*               (requires libqhull_r from Oracle Linux extras, not in standard UBI9)
 
-ARG BASE_IMAGE=redhat/ubi8-minimal
+
+
+ARG BASE_IMAGE=redhat/ubi9-minimal
+
+# ── pgAudit builder ───────────────────────────────────────────────────────────
+# PGDG does not build the pgaudit_19 rpm for beta PG versions, but pgAudit
+# upstream already supports PostgreSQL 19 — compile it from source (19beta1).
+# Drop this stage once the pgaudit_19 rpm appears in the PGDG repos.
+FROM ${BASE_IMAGE} AS pgaudit-builder
+
+RUN set -ex; \
+    ARCH=$(uname -m); \
+    EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \
+    curl -Lf -o /tmp/pgdg-repo.rpm \
+        "https://download.postgresql.org/pub/repos/yum/reporpms/EL-${EL_VER}-${ARCH}/pgdg-redhat-repo-latest.noarch.rpm"; \
+    rpm -i /tmp/pgdg-repo.rpm; \
+    rm /tmp/pgdg-repo.rpm; \
+    printf "[pgdg19-testing]\nname=PGDG 19 testing\nbaseurl=https://download.postgresql.org/pub/repos/yum/testing/19/redhat/rhel-${EL_VER}-${ARCH}\nenabled=1\ngpgcheck=1\ngpgkey=https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-AARCH64-RHEL\n" \
+        > /etc/yum.repos.d/pgdg-19-testing.repo; \
+    microdnf -y install gcc make git redhat-rpm-config krb5-devel openssl-devel dnf dnf-plugins-core postgresql19; \
+    microdnf clean all
+
+# postgresql19-devel requires perl(IPC::Run), which lives in the RHEL CRB repo
+# and is unavailable in UBI images. It is only used by the devel package's
+# regression-test harness — PGXS extension builds do not need it — so install
+# the devel rpm without dependency resolution.
+RUN set -ex; \
+    dnf -y download --downloaddir /tmp postgresql19-devel; \
+    rpm -i --nodeps /tmp/postgresql19-devel-*.rpm; \
+    rm /tmp/postgresql19-devel-*.rpm; \
+    git clone --depth 1 --branch 19beta1 https://github.com/pgaudit/pgaudit.git /tmp/pgaudit; \
+    make -C /tmp/pgaudit install USE_PGXS=1 PG_CONFIG=/usr/pgsql-19/bin/pg_config with_llvm=no
+
 FROM ${BASE_IMAGE}
 
 LABEL name="Percona Distribution for PostgreSQL" \
-      description="Essential / key PostgreSQL17 components. Percona Distribution for PostgreSQL features core components, tools and add-ons from the community, tested to work together in demanding enterprise environments." \
+      description="Essential / key PostgreSQL19 components. Percona Distribution for PostgreSQL features core components, tools and add-ons from the community, tested to work together in demanding enterprise environments." \
       vendor="community" \
-      summary="Percona base selection of PostgreSQL17 components" \
+      summary="Percona base selection of PostgreSQL19 components" \
       maintainer="Percona Development <info@percona.com>" \
       org.opencontainers.image.authors="info@percona.com"
 
@@ -25,8 +57,8 @@ RUN microdnf -y update; \
 	microdnf -y install systemd-rpm-macros
 
 
-ENV PG_MAJOR_VERSION=17
-ENV OS_VER=el8
+ENV PG_MAJOR_VERSION=19
+ENV OS_VER=el9
 
 # Install PGDG and EPEL repositories
 RUN set -ex; \
@@ -38,8 +70,9 @@ RUN set -ex; \
         "https://dl.fedoraproject.org/pub/epel/epel-release-latest-${EL_VER}.noarch.rpm"; \
     rpm -i /tmp/pgdg-repo.rpm /tmp/epel-release.rpm; \
     rm /tmp/pgdg-repo.rpm /tmp/epel-release.rpm; \
+    printf "[pgdg19-testing]\nname=PGDG 19 testing\nbaseurl=https://download.postgresql.org/pub/repos/yum/testing/19/redhat/rhel-${EL_VER}-${ARCH}\nenabled=1\ngpgcheck=1\ngpgkey=https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-AARCH64-RHEL\n" \
+        > /etc/yum.repos.d/pgdg-19-testing.repo; \
     microdnf clean all
-
 
 RUN set -ex; \
     microdnf -y update; \
@@ -69,59 +102,31 @@ RUN set -ex; \
     microdnf install -y \
         postgresql${PG_MAJOR_VERSION}-server \
         postgresql${PG_MAJOR_VERSION}-contrib \
-        pg_repack_${PG_MAJOR_VERSION} \
-        pgaudit_${PG_MAJOR_VERSION} \
-        set_user_${PG_MAJOR_VERSION} \
         pgbackrest \
-	pgvector_${PG_MAJOR_VERSION} \
-        wal2json_${PG_MAJOR_VERSION} \
-        pg_cron_${PG_MAJOR_VERSION}; \
+        ; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
     chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
 
+
 RUN set -ex; \
-    microdnf -y update; \
-    microdnf install -y \
+    microdnf install -y --enablerepo="pgdg-common" --enablerepo="epel"\
         patroni; \
     microdnf clean all
-
-RUN set -ex; \
-    microdnf -y update; \
-    microdnf clean all; \
-    rm -rf /var/cache/dnf /var/cache/yum
-
-RUN set -ex; \
-    rpm -e --nodeps perl-Archive-Tar perl-IO-Compress
 
 RUN set -ex; \
     sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-${PG_MAJOR_VERSION}/share/postgresql.conf.sample; \
     grep -F "listen_addresses = '*'" /usr/pgsql-${PG_MAJOR_VERSION}/share/postgresql.conf.sample
 
 # ── Community additions ────────────────────────────────────────────────────────
-# These extensions are not part of the official Percona distribution.
-#   TimescaleDB source: https://packagecloud.io/timescale/timescaledb/el/{EL_VER}/
-#   Citus: provided by PGDG (no additional repo needed)
-ARG TIMESCALEDB_MAJOR=2
+# Skipped for beta PG versions: TimescaleDB and Citus do not publish packages
+# for PostgreSQL beta releases, and PGDG versioned extensions (pgvector,
+# pg_repack, set_user, wal2json, pg_cron) are not built for beta either.
+# pgAudit is the exception: upstream already supports this PG version, so it is
+# compiled from source in the pgaudit-builder stage (see top of file).
 
-RUN set -ex; \
-    EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \
-    printf "[timescale_timescaledb]\nname=timescale_timescaledb\nbaseurl=https://packagecloud.io/timescale/timescaledb/el/${EL_VER}/\$basearch\nrepo_gpgcheck=1\ngpgcheck=0\nenabled=1\ngpgkey=https://packagecloud.io/timescale/timescaledb/gpgkey\nsslverify=1\nsslcacert=/etc/pki/tls/certs/ca-bundle.crt\nmetadata_expire=300\n" \
-        > /etc/yum.repos.d/timescale_timescaledb.repo; \
-    microdnf clean all
-
-RUN set -ex; \
-    pkgs=""; \
-    EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \
-    if [ "$(arch)" = "x86_64" ]; then \
-        if [ "${PG_MAJOR_VERSION}" -lt 18 ] || [ "${EL_VER}" -ge 9 ]; then \
-            pkgs="timescaledb-${TIMESCALEDB_MAJOR}-postgresql-${PG_MAJOR_VERSION}"; \
-        fi; \
-    fi; \
-    [ "${PG_MAJOR_VERSION}" -ge 16 ] && pkgs="$pkgs citus_${PG_MAJOR_VERSION}"; \
-    [ -n "$pkgs" ] && microdnf -y install --nodocs $pkgs; \
-    microdnf clean all; \
-    rm -rf /var/cache/dnf /var/cache/yum
+COPY --from=pgaudit-builder /usr/pgsql-19/lib/pgaudit.so /usr/pgsql-19/lib/
+COPY --from=pgaudit-builder /usr/pgsql-19/share/extension/pgaudit* /usr/pgsql-19/share/extension/
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/postgresql${PG_MAJOR_VERSION}/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL

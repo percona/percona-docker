@@ -637,3 +637,80 @@ class TestCommunityAdditionsInjection:
         result = transform(src)
         assert 'vendor="community"' in result
         assert 'vendor="Percona"' not in result
+
+
+# ── Beta PG version handling ──────────────────────────────────────────────────
+
+class TestBetaVersionHandling:
+    def _minimal_postgres_src(self, tmp_path, pg_version="19"):
+        d = tmp_path / f"percona-distribution-postgresql-{pg_version}"
+        d.mkdir()
+        src = d / "Dockerfile"
+        src.write_text(textwrap.dedent(f"""\
+            FROM redhat/ubi9-minimal
+            ENV PPG_MAJOR_VERSION={pg_version}
+            RUN set -ex; \\
+                curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm; \\
+                rpm -i /tmp/percona-release.rpm
+            RUN microdnf install -y \\
+                    percona-postgresql{pg_version}-server \\
+                    percona-pgaudit${{PPG_MAJOR_VERSION}} \\
+                    percona-pgvector_${{PPG_MAJOR_VERSION}}; \\
+                microdnf clean all
+            COPY LICENSE /licenses/LICENSE.Dockerfile
+        """))
+        return src
+
+    def test_beta_uses_pgdg_testing_repo(self, tmp_path):
+        result = transform(self._minimal_postgres_src(tmp_path))
+        assert "pgdg19-testing" in result
+        assert "PGDG-RPM-GPG-KEY-AARCH64-RHEL" in result
+
+    def test_beta_strips_missing_extension_packages(self, tmp_path):
+        result = transform(self._minimal_postgres_src(tmp_path))
+        assert "pgvector_${PG_MAJOR_VERSION}" not in result
+        # the pgaudit rpm install line is stripped (rpm does not exist for beta)
+        assert "pgaudit_${PG_MAJOR_VERSION}" not in result
+
+    def test_beta_gets_pgaudit_builder_stage(self, tmp_path):
+        result = transform(self._minimal_postgres_src(tmp_path))
+        assert "FROM ${BASE_IMAGE} AS pgaudit-builder" in result
+        assert "--branch 19beta1" in result
+        assert "USE_PGXS=1 PG_CONFIG=/usr/pgsql-19/bin/pg_config" in result
+        # builder stage comes before the main image stage
+        assert result.find("AS pgaudit-builder") < result.rfind("FROM ${BASE_IMAGE}")
+
+    def test_beta_copies_pgaudit_artifacts(self, tmp_path):
+        result = transform(self._minimal_postgres_src(tmp_path))
+        copy_so = "COPY --from=pgaudit-builder /usr/pgsql-19/lib/pgaudit.so /usr/pgsql-19/lib/"
+        assert copy_so in result
+        assert "share/extension/pgaudit*" in result
+        assert result.find(copy_so) < result.find("COPY LICENSE /licenses/LICENSE.Dockerfile")
+
+    def test_beta_skips_timescaledb_and_citus(self, tmp_path):
+        result = transform(self._minimal_postgres_src(tmp_path))
+        assert "timescale_timescaledb" not in result
+        assert "citus_${PG_MAJOR_VERSION}" not in result
+
+    def test_non_beta_has_no_pgaudit_builder(self, tmp_path):
+        result = transform(self._minimal_postgres_src(tmp_path, pg_version="18"))
+        assert "pgaudit-builder" not in result
+        assert "pgdg18-testing" not in result
+
+    def test_beta_sources_layout_detected_as_postgres(self, tmp_path):
+        # beta drafts live under community-local sources/postgresql-NN, not
+        # percona-distribution-postgresql-NN — detection must handle both
+        d = tmp_path / "sources" / "postgresql-19"
+        d.mkdir(parents=True)
+        src = d / "Dockerfile"
+        src.write_text(textwrap.dedent("""\
+            FROM redhat/ubi9-minimal
+            ENV PPG_MAJOR_VERSION=19
+            RUN microdnf install -y \\
+                    percona-postgresql19-server; \\
+                microdnf clean all
+            COPY LICENSE /licenses/LICENSE.Dockerfile
+        """))
+        result = transform(src)
+        assert "FROM ${BASE_IMAGE} AS pgaudit-builder" in result
+        assert "pgdg19-testing" in result

@@ -19,6 +19,7 @@ the operator can work without Percona's own distribution packages.
 
 | Make target   | Image tag suffix                    | Description                          |
 |---------------|-------------------------------------|--------------------------------------|
+| `postgres19`  | `{TAG}-postgres19-community`        | PostgreSQL 19 **beta** (tech preview, PGDG testing repo; pgAudit from source, no other extensions) |
 | `postgres18`  | `{TAG}-postgres18-community`        | PostgreSQL 18 + extensions           |
 | `postgres17`  | `{TAG}-postgres17-community`        | PostgreSQL 17 + extensions           |
 | `postgres16`  | `{TAG}-postgres16-community`        | PostgreSQL 16 + extensions           |
@@ -32,6 +33,7 @@ the operator can work without Percona's own distribution packages.
 
 | Make target        | Image tag suffix                   | Description                     |
 |--------------------|------------------------------------|---------------------------------|
+| `postgres19-ubi8`  | `{TAG}-postgres19-community`       | PostgreSQL 19 **beta** (EL8)    |
 | `postgres18-ubi8`  | `{TAG}-postgres18-community`       | PostgreSQL 18 (EL8)             |
 | `postgres17-ubi8`  | `{TAG}-postgres17-community`       | PostgreSQL 17 (EL8)             |
 | `postgres16-ubi8`  | `{TAG}-postgres16-community`       | PostgreSQL 16 (EL8)             |
@@ -40,6 +42,20 @@ the operator can work without Percona's own distribution packages.
 | `upgrade-ubi8`     | `{TAG}-upgrade-community`          | pg_upgrade image (EL8)          |
 
 > pgBackRest and pgBouncer have no UBI8 variant (no upstream `Dockerfile-ubi8`).
+
+> **PostgreSQL 19 beta:** packages come from the [PGDG testing repository](https://download.postgresql.org/pub/repos/yum/testing/19/).
+> Only core packages exist for now (server, contrib, libs) — versioned extensions
+> (pgvector, pg_repack, set_user, wal2json, pg_cron), TimescaleDB and Citus
+> are not built for beta and are excluded automatically (see `BETA_VERSIONS` in
+> `transform.py`). The exception is **pgAudit**: upstream already supports PG 19,
+> so it is compiled from source (tag `19beta1`) in a dedicated builder stage
+> (see `BETA_PGAUDIT_REF`). `postgres19` is not part of `make all`; build it explicitly.
+> The source Dockerfiles for 19 live in `sources/postgresql-19/`
+> (a version-bumped draft) because the real `percona-distribution-postgresql-19/`
+> directory is created by the PG distribution team only when ppg-19 is released.
+> Once PG 19 goes GA, remove `'19'` from `BETA_VERSIONS` (and its `BETA_PGAUDIT_REF`
+> entry), drop `sources/`, point `sync.sh` at the real distribution directory,
+> and re-run `sync.sh --apply`.
 
 ---
 
