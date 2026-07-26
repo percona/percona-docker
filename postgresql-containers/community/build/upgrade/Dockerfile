@@ -117,8 +117,7 @@ VOLUME /pgolddata /pgnewdata
 
 ENV NSS_WRAPPER_SUBDIR="upgrade"
 
-ENTRYPOINT ["opt/crunchy/bin/uid_postgres.sh"]
-
+ENTRYPOINT ["/opt/crunchy/bin/uid_postgres.sh"]
 USER 26
 
 CMD ["/opt/crunchy/bin/start.sh"]
