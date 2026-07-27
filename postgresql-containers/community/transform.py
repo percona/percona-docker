@@ -18,31 +18,6 @@ PGAUDIT_LEGACY = {
     '15': ('pgaudit_${PG_MAJOR_VERSION}', 'pgaudit17_15'),
 }
 
-# PG major versions that are still in beta upstream. Their packages live in the
-# PGDG *testing* repository, and only core packages exist (no versioned
-# extensions, no TimescaleDB/Citus). Remove a version from this set once it
-# goes GA and its extensions appear in the stable PGDG repository.
-BETA_VERSIONS = {'19'}
-
-# Versioned extension packages that are not built for beta PG versions yet.
-# pgaudit_ stays in this list because the *rpm* does not exist — but pgAudit
-# itself is compiled from source instead (see BETA_PGAUDIT_REF below).
-BETA_MISSING_EXTENSIONS = (
-    'pg_repack_', 'pgaudit_', 'set_user_', 'pgvector_', 'wal2json_', 'pg_cron_',
-)
-
-# pgAudit upstream publishes source support for beta PG versions before PGDG
-# builds the rpm (https://github.com/pgaudit/pgaudit: branch REL_{v}_STABLE,
-# beta tags). Map beta PG version -> git ref to build from source.
-# Remove an entry once the pgaudit_{v} rpm appears in the PGDG repos.
-BETA_PGAUDIT_REF = {'19': '19beta1'}
-
-# Minimum pgBackRest version supporting the beta PG version. The PGDG rpm lags
-# behind the pgBackRest release (2.58 fails PG 19 with VersionNotSupportedError),
-# so the binary is built from the official dist tarball and layered over the rpm.
-# Remove an entry once the PGDG pgbackrest rpm reaches this version.
-BETA_PGBACKREST_VERSION = {'19': '2.59.0'}
-
 # Version token: either a literal number or a shell variable like ${PG_MAJOR_VERSION}
 _V = r'(\d+|\$\{[^}]+\})'
 # End-of-token boundary that works for both digit endings and shell-variable endings (which end in '}')
@@ -184,133 +159,6 @@ RUN set -ex; \\
 
 # Oracle EPEL blocks are skipped — EPEL is already included in PGDG_REPO_BLOCK above
 EPEL_BLOCK = None
-
-# Beta PG versions live in the PGDG *testing* repository, which the
-# pgdg-redhat-repo RPM does not enable. Written as an extra .repo file so the
-# stable repo definitions stay untouched. {v} is substituted via str.replace to
-# keep the ${EL_VER}/${ARCH} shell variables (defined in PGDG_REPO_BLOCK) intact.
-PGDG_BETA_TESTING_REPO = """\
-    printf "[pgdg{v}-testing]\\nname=PGDG {v} testing\\nbaseurl=https://download.postgresql.org/pub/repos/yum/testing/{v}/redhat/rhel-${EL_VER}-${ARCH}\\nenabled=1\\ngpgcheck=1\\ngpgkey=https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-AARCH64-RHEL\\n" \\
-        > /etc/yum.repos.d/pgdg-{v}-testing.repo; \\
-    microdnf clean all"""
-
-
-def pgdg_beta_repo_block(pg_version: str) -> str:
-    """PGDG repo block extended with the testing repository hosting beta packages."""
-    return PGDG_REPO_BLOCK.replace(
-        '    microdnf clean all',
-        PGDG_BETA_TESTING_REPO.replace('{v}', pg_version),
-    )
-
-
-def strip_beta_missing_extensions(text: str) -> str:
-    """Drop install lines for versioned extensions that PGDG does not build for
-    beta PG versions. Keeps the shell statement terminator when the dropped
-    line carried it (last package in the install list)."""
-    missing = tuple(p + '${PG_MAJOR_VERSION}' for p in BETA_MISSING_EXTENSIONS)
-    out = []
-    for line in text.split('\n'):
-        token = line.strip().rstrip('\\').strip()
-        terminated = token.endswith(';')
-        pkg = token.rstrip(';').strip()
-        if pkg in missing:
-            if terminated:
-                out.append('        ; \\')
-            continue
-        out.append(line)
-    return '\n'.join(out)
-
-
-BETA_NO_EXTRAS_NOTE = """\
-# ── Community additions ────────────────────────────────────────────────────────
-# Skipped for beta PG versions: TimescaleDB and Citus do not publish packages
-# for PostgreSQL beta releases, and PGDG versioned extensions (pgvector,
-# pg_repack, set_user, wal2json, pg_cron) are not built for beta either.
-# pgAudit is the exception: upstream already supports this PG version, so it is
-# compiled from source in the pgaudit-builder stage (see top of file).
-
-"""
-
-# Builder stage compiling pgAudit from source for beta PG versions.
-# Inserted before the main FROM; the shared ARG BASE_IMAGE covers both stages.
-BETA_PGAUDIT_BUILDER = """\
-# ── pgAudit builder ───────────────────────────────────────────────────────────
-# PGDG does not build the pgaudit_{v} rpm for beta PG versions, but pgAudit
-# upstream already supports PostgreSQL {v} — compile it from source ({tag}).
-# Drop this stage once the pgaudit_{v} rpm appears in the PGDG repos.
-FROM ${BASE_IMAGE} AS pgaudit-builder
-
-RUN set -ex; \\
-    ARCH=$(uname -m); \\
-    EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \\
-    curl -Lf -o /tmp/pgdg-repo.rpm \\
-        "https://download.postgresql.org/pub/repos/yum/reporpms/EL-${EL_VER}-${ARCH}/pgdg-redhat-repo-latest.noarch.rpm"; \\
-    rpm -i /tmp/pgdg-repo.rpm; \\
-    rm /tmp/pgdg-repo.rpm; \\
-    printf "[pgdg{v}-testing]\\nname=PGDG {v} testing\\nbaseurl=https://download.postgresql.org/pub/repos/yum/testing/{v}/redhat/rhel-${EL_VER}-${ARCH}\\nenabled=1\\ngpgcheck=1\\ngpgkey=https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-AARCH64-RHEL\\n" \\
-        > /etc/yum.repos.d/pgdg-{v}-testing.repo; \\
-    microdnf -y install gcc make git redhat-rpm-config krb5-devel openssl-devel dnf dnf-plugins-core postgresql{v}; \\
-    microdnf clean all
-
-# postgresql{v}-devel requires perl(IPC::Run), which lives in the RHEL CRB repo
-# and is unavailable in UBI images. It is only used by the devel package's
-# regression-test harness — PGXS extension builds do not need it — so install
-# the devel rpm without dependency resolution.
-RUN set -ex; \\
-    dnf -y download --downloaddir /tmp postgresql{v}-devel; \\
-    rpm -i --nodeps /tmp/postgresql{v}-devel-*.rpm; \\
-    rm /tmp/postgresql{v}-devel-*.rpm; \\
-    git clone --depth 1 --branch {tag} https://github.com/pgaudit/pgaudit.git /tmp/pgaudit; \\
-    make -C /tmp/pgaudit install USE_PGXS=1 PG_CONFIG=/usr/pgsql-{v}/bin/pg_config with_llvm=no
-
-"""
-
-# Copied into the final stage of beta images (placed with the beta note).
-BETA_PGAUDIT_COPY = """\
-COPY --from=pgaudit-builder /usr/pgsql-{v}/lib/pgaudit.so /usr/pgsql-{v}/lib/
-COPY --from=pgaudit-builder /usr/pgsql-{v}/share/extension/pgaudit* /usr/pgsql-{v}/share/extension/
-
-"""
-
-# Builder stage compiling pgBackRest from the official dist tarball for beta PG
-# versions (the PGDG rpm does not support them yet). Inserted before the main FROM.
-BETA_PGBACKREST_BUILDER = """\
-# ── pgBackRest builder ────────────────────────────────────────────────────────
-# The PGDG pgbackrest rpm does not support PostgreSQL {v} yet — build
-# pgBackRest {pgbr} (first release with PG {v} support) from the official dist
-# tarball and overlay the binary. Drop this stage once the PGDG rpm catches up.
-FROM ${BASE_IMAGE} AS pgbackrest-builder
-
-ARG PGBACKREST_VERSION={pgbr}
-
-RUN set -ex; \\
-    EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \\
-    curl -Lf -o /tmp/epel-release.rpm \\
-        "https://dl.fedoraproject.org/pub/epel/epel-release-latest-${EL_VER}.noarch.rpm"; \\
-    rpm -i /tmp/epel-release.rpm; \\
-    rm /tmp/epel-release.rpm; \\
-    microdnf install -y \\
-        gcc make meson ninja-build pkgconf-pkg-config python3 \\
-        openssl-devel libxml2-devel zlib-devel bzip2-devel \\
-        lz4-devel libzstd-devel libyaml-devel libpq-devel \\
-        tar gzip; \\
-    microdnf clean all
-
-RUN set -ex; \\
-    curl -Lf -o /tmp/pgbackrest.tar.gz \\
-        "https://github.com/pgbackrest/pgbackrest/releases/download/release%2F${PGBACKREST_VERSION}/pgbackrest-${PGBACKREST_VERSION}.tar.gz"; \\
-    tar -xzf /tmp/pgbackrest.tar.gz -C /tmp; \\
-    meson setup /tmp/build "/tmp/pgbackrest-${PGBACKREST_VERSION}"; \\
-    ninja -C /tmp/build; \\
-    /tmp/build/src/pgbackrest version
-
-"""
-
-# Copied into the final stage of beta images: overlays the rpm-installed binary.
-BETA_PGBACKREST_COPY = """\
-COPY --from=pgbackrest-builder /tmp/build/src/pgbackrest /usr/bin/pgbackrest
-
-"""
 
 # ── Community-only additions (not derived from Percona source Dockerfiles) ────
 #
@@ -517,10 +365,7 @@ def transform(source_path: Path) -> str:
     m = re.search(r'postgresql-(\d+)', str(source_path))
     pg_version = m.group(1) if m else None
 
-    # Postgres sources are the percona-distribution-postgresql-NN directories,
-    # or community-local drafts under sources/postgresql-NN for beta versions
-    # whose distribution directory does not exist yet.
-    is_postgres = bool(re.search(r'(?:percona-distribution-postgresql|sources/postgresql)-\d+', str(source_path)))
+    is_postgres = bool(re.search(r'percona-distribution-postgresql-\d+', str(source_path)))
     is_upgrade = 'build/upgrade' in str(source_path) or 'postgresql-upgrade' in str(source_path)
 
     output = [HEADER.rstrip(), '']
@@ -548,56 +393,13 @@ def transform(source_path: Path) -> str:
         wrong, correct = PGAUDIT_LEGACY[pg_version]
         result = result.replace(wrong, correct)
 
-    is_beta = pg_version in BETA_VERSIONS
-
-    # Beta versions: packages come from the PGDG testing repo, and the
-    # versioned extensions are not built for them yet.
-    if is_beta and is_postgres:
-        result = result.replace(PGDG_REPO_BLOCK, pgdg_beta_repo_block(pg_version), 1)
-        result = strip_beta_missing_extensions(result)
-        # pgAudit: no rpm for beta, but upstream supports it — build from source
-        # in a dedicated stage inserted before the main FROM.
-        pgaudit_ref = BETA_PGAUDIT_REF.get(pg_version)
-        if pgaudit_ref:
-            builder = (BETA_PGAUDIT_BUILDER
-                       .replace('{tag}', pgaudit_ref)
-                       .replace('{v}', pg_version))
-            result = result.replace(
-                'FROM ${BASE_IMAGE}\n',
-                '\n' + builder + 'FROM ${BASE_IMAGE}\n',
-                1,
-            )
-        # pgBackRest: the PGDG rpm does not support the beta PG version — build
-        # the required version from the dist tarball and overlay the binary.
-        pgbackrest_version = BETA_PGBACKREST_VERSION.get(pg_version)
-        if pgbackrest_version:
-            builder = (BETA_PGBACKREST_BUILDER
-                       .replace('{pgbr}', pgbackrest_version)
-                       .replace('{v}', pg_version))
-            result = result.replace(
-                'FROM ${BASE_IMAGE}\n',
-                '\n' + builder + 'FROM ${BASE_IMAGE}\n',
-                1,
-            )
-
     # Inject community-only additions
-    if is_postgres and not is_beta:
+    if is_postgres:
         # TimescaleDB + Citus: repo setup and install, placed just before COPY LICENSE
         inject = EXTRA_REPOS_BLOCK + '\n\n' + TIMESCALEDB_CITUS_INSTALL + '\n\n'
         result = result.replace(
             'COPY LICENSE /licenses/LICENSE.Dockerfile',
             inject + 'COPY LICENSE /licenses/LICENSE.Dockerfile',
-            1,
-        )
-    elif is_postgres:
-        beta_copies = ''
-        if BETA_PGAUDIT_REF.get(pg_version):
-            beta_copies += BETA_PGAUDIT_COPY.replace('{v}', pg_version)
-        if BETA_PGBACKREST_VERSION.get(pg_version):
-            beta_copies += BETA_PGBACKREST_COPY
-        result = result.replace(
-            'COPY LICENSE /licenses/LICENSE.Dockerfile',
-            BETA_NO_EXTRAS_NOTE + beta_copies + 'COPY LICENSE /licenses/LICENSE.Dockerfile',
             1,
         )
     elif is_upgrade:

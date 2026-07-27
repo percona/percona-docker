@@ -50,7 +50,11 @@ all: postgres18 postgres17 postgres16 postgres15 postgres14 pgbackrest pgbouncer
 
 all-ubi8: postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgres14-ubi8 upgrade-ubi8
 
-pg19: postgres19 pgbackrest pgbackrest19 pgbouncer19
+# Everything the operator needs for a PG 19 (beta) cluster, under the versioned
+# tags referenced by the CR. pgbackrest19 layers on an EXISTING community
+# pgbackrest image (override the base with PGBACKREST_IMAGE=..., or run
+# `make pgbackrest` first to refresh it).
+pg19: postgres19 pgbackrest19 pgbouncer19
 
 postgres19:
 	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \

@@ -48,18 +48,16 @@ the operator can work without Percona's own distribution packages.
 > **PostgreSQL 19 beta:** packages come from the [PGDG testing repository](https://download.postgresql.org/pub/repos/yum/testing/19/).
 > Only core packages exist for now (server, contrib, libs) — versioned extensions
 > (pgvector, pg_repack, set_user, wal2json, pg_cron), TimescaleDB and Citus
-> are not built for beta and are excluded automatically (see `BETA_VERSIONS` in
-> `transform.py`). The exception is **pgAudit**: upstream already supports PG 19,
-> so it is compiled from source (tag `19beta1`) in a dedicated builder stage
-> (see `BETA_PGAUDIT_REF`). `postgres19` is not part of `make all`; build it explicitly.
-> There is no EL8/UBI8 variant of postgres19: the PGDG testing repository for
-> EL8 is empty (PGDG does not build PG 19 beta packages for EL8).
-> The source Dockerfiles for 19 live in `sources/postgresql-19/`
-> (a version-bumped draft) because the real `percona-distribution-postgresql-19/`
-> directory is created by the PG distribution team only when ppg-19 is released.
-> Once PG 19 goes GA, remove `'19'` from `BETA_VERSIONS` (and its `BETA_PGAUDIT_REF`
-> entry), drop `sources/`, point `sync.sh` at the real distribution directory,
-> and re-run `sync.sh --apply`.
+> are not built for beta releases. The exceptions are **pgAudit** (upstream tag
+> `19beta1`) and **pgBackRest 2.59** (required by PG 19; the PGDG rpm is still
+> 2.58) — both compiled from source in builder stages.
+> Unlike other versions, `build/postgres19/Dockerfile` and
+> `build/pgbackrest19/Dockerfile` are **hand-maintained, not generated**:
+> ppg-19 does not exist yet, so there is no Percona source to derive them from.
+> There is no EL8/UBI8 variant: the PGDG testing repository for EL8 is empty.
+> `postgres19` is not part of `make all`; build the full set with `make pg19`.
+> At GA: delete the hand-maintained files, add
+> `percona-distribution-postgresql-19` mappings to `sync.sh`, and regenerate.
 
 ---
 

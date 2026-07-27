@@ -30,14 +30,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # source Dockerfile → community target Dockerfile
-#
-# PG 19 (beta): percona-distribution-postgresql-19 does not exist yet — that
-# directory is created by the PG distribution team when ppg-19 is released.
-# Until then a draft source (a version-bumped copy of the 18 one) lives under
-# sources/postgresql-19 in this directory. At GA: drop sources/ and point the
-# mapping to ${REPO_ROOT}/percona-distribution-postgresql-19 like every other version.
 declare -A TARGETS
-TARGETS["${SCRIPT_DIR}/sources/postgresql-19/Dockerfile"]="${SCRIPT_DIR}/build/postgres19/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-18/Dockerfile"]="${SCRIPT_DIR}/build/postgres18/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-17/Dockerfile"]="${SCRIPT_DIR}/build/postgres17/Dockerfile"
 TARGETS["${REPO_ROOT}/percona-distribution-postgresql-16/Dockerfile"]="${SCRIPT_DIR}/build/postgres16/Dockerfile"
