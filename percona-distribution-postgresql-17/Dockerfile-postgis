@@ -29,7 +29,7 @@ RUN microdnf -y update; \
 
 ARG PPG_REPO=testing
 
-ENV PPG_VERSION 17.10-1
+ENV PPG_VERSION 17.10-2
 ENV PPG_MAJOR_VERSION 17
 ENV PPG_MINOR_VERSION 10
 ENV OS_VER el9
@@ -92,8 +92,7 @@ RUN set -ex; \
     microdnf install -y \
         percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
-        percona-postgresql-common-1:290-1.el9 \
-        percona-postgresql-client-common-1:290-1.el9 \
+        percona-postgresql-common \
         percona-pg_tde${PPG_MAJOR_VERSION} \
         percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
         percona-pg_repack${PPG_MAJOR_VERSION} \

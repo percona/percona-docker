@@ -22,12 +22,12 @@ LABEL org.opencontainers.image.title="Percona Search for MongoDB" \
     org.opencontainers.image.documentation="https://github.com/percona/percona-mongot/blob/main/percona-packaging/PACKAGING.md" \
     org.opencontainers.image.source="https://github.com/percona/percona-mongot"
 
-ENV MONGOT_VERSION=0.51.0-1
-ENV MONGOT_REPO_CH=testing
-ENV PSMDB_REPO=psmdb-83
+ENV PS4M_VERSION=1.70.1-1
+ENV PS4M_REPO_CH=testing
+ENV PS4M_REPO=ps4m
 ENV OS_VER=el9
-ENV FULL_MONGOT_VERSION="$MONGOT_VERSION.$OS_VER"
-LABEL org.opencontainers.image.version="$MONGOT_VERSION"
+ENV FULL_PS4M_VERSION="$PS4M_VERSION.$OS_VER"
+LABEL org.opencontainers.image.version="$PS4M_VERSION"
 
 # Check repository package signature in secure way.
 RUN set -ex; \
@@ -44,7 +44,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     sed -i "s|x86_64|x86_64 aarch64|" /usr/bin/percona-release; \
-    percona-release enable ${PSMDB_REPO} ${MONGOT_REPO_CH}
+    percona-release enable ${PS4M_REPO} ${PS4M_REPO_CH}
 
 RUN set -ex; \
     microdnf -y update; \
@@ -53,7 +53,7 @@ RUN set -ex; \
         jq \
         oniguruma; \
     microdnf -y install \
-        percona-server-mongodb-mongot-${FULL_MONGOT_VERSION}; \
+        percona-search-mongodb-${FULL_PS4M_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
@@ -66,7 +66,7 @@ RUN set -ex; \
     chmod -R g+rX   /etc/mongot
 
 COPY LICENSE /licenses/LICENSE.Dockerfile
-RUN cp /usr/lib/percona-server-mongodb-mongot/LICENSE/LICENSE /licenses/LICENSE.Percona-Search-for-MongoDB
+RUN cp /usr/lib/percona-search-mongodb/LICENSE/LICENSE /licenses/LICENSE.Percona-Search-for-MongoDB
 
 COPY mongot-entry.sh /entrypoint.sh
 

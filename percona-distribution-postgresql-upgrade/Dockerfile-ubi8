@@ -175,6 +175,10 @@ RUN for pg_version in 17 16 15 14 13 12; do \
         fi; \
     done && microdnf -y clean all && rm -rf /var/cache/dnf /var/cache/yum
 
+# Remove unused perl modules pulled in by the perl metapackage
+RUN set -ex; \
+    rpm -e --nodeps perl-Archive-Tar perl-IO-Compress
+
 RUN mkdir -p /opt/crunchy/bin /pgolddata /pgnewdata /opt/crunchy/conf
 COPY bin/upgrade/ /opt/crunchy/bin
 COPY bin/common /opt/crunchy/bin

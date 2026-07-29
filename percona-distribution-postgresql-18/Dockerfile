@@ -23,7 +23,7 @@ RUN microdnf -y update; \
 
 ARG PPG_REPO=testing
 
-ENV PPG_VERSION 18.4-1
+ENV PPG_VERSION 18.4-2
 ENV PPG_MAJOR_VERSION 18
 ENV PPG_MINOR_VERSION 4
 ENV OS_VER el9
@@ -83,8 +83,7 @@ RUN set -ex; \
     microdnf install -y \
         percona-postgresql${PPG_MAJOR_VERSION}-server-${FULL_PERCONA_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-contrib-${FULL_PERCONA_VERSION} \
-        percona-postgresql-common-1:290-1.el9 \
-        percona-postgresql-client-common-1:290-1.el9 \
+        percona-postgresql-common \
         percona-pg_tde${PPG_MAJOR_VERSION} \
         percona-pg_oidc_validator${PPG_MAJOR_VERSION} \
         percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
