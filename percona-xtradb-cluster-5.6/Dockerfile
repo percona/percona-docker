@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:xenial-20210416
 MAINTAINER Percona Development <info@percona.com>
 
 RUN groupadd -g 1001 mysql
