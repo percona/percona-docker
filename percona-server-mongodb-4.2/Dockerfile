@@ -71,13 +71,19 @@ RUN set -eux; \
     curl -f -o /licenses/LICENSE.gosu https://raw.githubusercontent.com/tianon/gosu/${GOSU_VERSION}/LICENSE
 
 RUN set -ex; \
+    mkdir -p /opt/js-yaml/; \
+    curl -fSL https://registry.npmjs.org/js-yaml/-/js-yaml-4.1.0.tgz -o /opt/js-yaml/js-yaml.tgz; \
+    echo "0dae332559cf22b21c26ea70e732afd8303ff99412f9c3d9d209faa8882cf2ca  /opt/js-yaml/js-yaml.tgz" | sha256sum -c -; \
+    tar -xz --strip-components=1 -f /opt/js-yaml/js-yaml.tgz -C /opt/js-yaml; \
+    rm -rf /opt/js-yaml/js-yaml.tgz /opt/js-yaml/bin /opt/js-yaml/lib; \
+    ln -s /opt/js-yaml/dist/js-yaml.js /js-yaml.js;
+
+RUN set -ex; \
     curl -fSL https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/k8s-mongodb-initiator -o /usr/local/bin/k8s-mongodb-initiator; \
     curl -fSL  https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/mongodb-healthcheck -o /usr/local/bin/mongodb-healthcheck; \
     curl -fSL  https://github.com/percona/mongodb-orchestration-tools/releases/download/${K8S_TOOLS_VERSION}/SHA256SUMS -o /tmp/SHA256SUMS; \
-    curl -fSL https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js -o /js-yaml.js; \
     echo "$(grep 'k8s-mongodb-initiator' /tmp/SHA256SUMS | awk '{print $1}')" /usr/local/bin/k8s-mongodb-initiator | sha256sum -c -; \
     echo "$(grep 'mongodb-healthcheck' /tmp/SHA256SUMS   | awk '{print $1}')" /usr/local/bin/mongodb-healthcheck   | sha256sum -c -; \
-    echo "45dc3dd03dc07a06705a2c2989b8c7f709013f04bd5386e3279d4e447f07ebd7  /js-yaml.js" | sha256sum -c -; \
     rm -f /tmp/SHA256SUMS; \
     chmod 0755 /usr/local/bin/k8s-mongodb-initiator /usr/local/bin/mongodb-healthcheck
 
