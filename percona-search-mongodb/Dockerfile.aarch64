@@ -22,8 +22,8 @@ LABEL org.opencontainers.image.title="Percona Search for MongoDB" \
     org.opencontainers.image.documentation="https://github.com/percona/percona-mongot/blob/main/percona-packaging/PACKAGING.md" \
     org.opencontainers.image.source="https://github.com/percona/percona-mongot"
 
-ENV PS4M_VERSION=1.70.1-1
-ENV PS4M_REPO_CH=testing
+ENV PS4M_VERSION=1.70.3-1
+ENV PS4M_REPO_CH=release
 ENV PS4M_REPO=ps4m
 ENV OS_VER=el9
 ENV FULL_PS4M_VERSION="$PS4M_VERSION.$OS_VER"
