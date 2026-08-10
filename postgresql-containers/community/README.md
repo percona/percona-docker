@@ -49,8 +49,9 @@ the operator can work without Percona's own distribution packages.
 > Only core packages exist for now (server, contrib, libs) — versioned extensions
 > (pgvector, pg_repack, set_user, wal2json, pg_cron), TimescaleDB and Citus
 > are not built for beta releases. The exceptions are **pgAudit** (upstream tag
-> `19beta1`) and **pgBackRest 2.59** (required by PG 19; the PGDG rpm is still
-> 2.58) — both compiled from source in builder stages.
+> `19beta3`) and **pgBackRest 2.59** (required by PG 19) — both compiled from
+> source in builder stages, so the images do not depend on the PGDG rpm
+> catching up.
 > Unlike other versions, `build/postgres19/Dockerfile` and
 > `build/pgbackrest19/Dockerfile` are **hand-maintained, not generated**:
 > ppg-19 does not exist yet, so there is no Percona source to derive them from.

@@ -1,15 +1,19 @@
-name: Community image unit tests
+name: Community images
 
 on:
   pull_request:
     branches: [ main ]
     paths:
       - 'postgresql-containers/community/**'
+      - 'percona-distribution-postgresql-*/**'
+      - 'percona-pgbackrest/**'
+      - 'percona-pgbouncer/**'
+      - '.github/workflows/community-unit-tests.yml'
   workflow_dispatch:
 
 jobs:
-  community-unit-tests:
-    name: Community image unit tests
+  unit-tests:
+    name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,4 +27,86 @@ jobs:
 
       - name: Run unit tests
         run: make test
+        working-directory: postgresql-containers/community
+
+  sync-check:
+    name: Generated Dockerfiles are in sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # sync.sh always exits 0, so drift is detected by applying it and
+      # diffing the work tree: anything it rewrites means a source Dockerfile
+      # changed without the community copy being regenerated. No --force here:
+      # unchanged sources are deliberately left alone.
+      - name: Apply sync.sh
+        run: ./sync.sh --apply
+        working-directory: postgresql-containers/community
+
+      - name: Fail on drift
+        run: |
+          git checkout -- postgresql-containers/community/.source-hashes
+          if ! git diff --exit-code -- postgresql-containers/community/build/; then
+            echo "::error::community Dockerfiles are out of sync; run './sync.sh --apply' and commit the result"
+            exit 1
+          fi
+
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    needs: [unit-tests, sync-check]
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          # UBI9 / EL9
+          - postgres14
+          - postgres15
+          - postgres16
+          - postgres17
+          - postgres18
+          - pgbackrest
+          - pgbouncer
+          - upgrade
+          # UBI8 / EL8 (pgbackrest/pgbouncer have no upstream Dockerfile-ubi8,
+          # PG 19 has no EL8 packages in the PGDG testing repo)
+          - postgres14-ubi8
+          - postgres15-ubi8
+          - postgres16-ubi8
+          - postgres17-ubi8
+          - postgres18-ubi8
+          - upgrade-ubi8
+          # PG 19 beta (PGDG testing repo, EL9 only)
+          - postgres19
+          - pgbouncer19
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image (amd64, no push)
+        run: make ${{ matrix.target }} PLATFORMS=linux/amd64 OUTPUT=--load
+        working-directory: postgresql-containers/community
+
+  # pgbackrest19 layers on top of the community pgbackrest image, so it
+  # needs that image built in the same job
+  build-pgbackrest19:
+    name: Build pgbackrest19
+    runs-on: ubuntu-latest
+    needs: [unit-tests, sync-check]
+    steps:
+      - uses: actions/checkout@v3
+
+      # the docker driver (not docker-container) so the pgbackrest image
+      # loaded in the previous step is visible as the FROM base
+      - uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
+
+      - name: Build base pgbackrest image
+        run: make pgbackrest PLATFORMS=linux/amd64 OUTPUT=--load
+        working-directory: postgresql-containers/community
+
+      - name: Build pgbackrest19 on top of it
+        run: make pgbackrest19 PLATFORMS=linux/amd64 OUTPUT=--load
         working-directory: postgresql-containers/community

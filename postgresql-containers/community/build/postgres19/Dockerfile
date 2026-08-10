@@ -14,7 +14,7 @@ ARG BASE_IMAGE=redhat/ubi9-minimal
 
 # ── pgAudit builder ───────────────────────────────────────────────────────────
 # PGDG does not build the pgaudit_19 rpm for beta PG versions, but pgAudit
-# upstream already supports PostgreSQL 19 — compile it from source (19beta1).
+# upstream already supports PostgreSQL 19 — compile it from source (19beta3).
 # Drop this stage once the pgaudit_19 rpm appears in the PGDG repos.
 FROM ${BASE_IMAGE} AS pgaudit-builder
 
@@ -38,7 +38,7 @@ RUN set -ex; \
     dnf -y download --downloaddir /tmp postgresql19-devel; \
     rpm -i --nodeps /tmp/postgresql19-devel-*.rpm; \
     rm /tmp/postgresql19-devel-*.rpm; \
-    git clone --depth 1 --branch 19beta1 https://github.com/pgaudit/pgaudit.git /tmp/pgaudit; \
+    git clone --depth 1 --branch 19beta3 https://github.com/pgaudit/pgaudit.git /tmp/pgaudit; \
     make -C /tmp/pgaudit install USE_PGXS=1 PG_CONFIG=/usr/pgsql-19/bin/pg_config with_llvm=no
 
 
