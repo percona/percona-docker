@@ -56,6 +56,25 @@ all-ubi8: postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgr
 # `make pgbackrest` first to refresh it).
 pg19: postgres19 pgbackrest19 pgbouncer19
 
+# Print the image names each build group pushes, one per line. CI builds its
+# image summary from these instead of hard-coding tags, so the report stays in
+# lockstep with the *_IMAGE definitions above.
+.PHONY: list-images-all list-images-all-ubi8 list-images-pg19
+list-images-all:
+	@printf '%s\n' $(POSTGRES18_IMAGE) $(POSTGRES17_IMAGE) $(POSTGRES16_IMAGE) \
+		$(POSTGRES15_IMAGE) $(POSTGRES14_IMAGE) $(PGBACKREST_IMAGE) \
+		$(PGBOUNCER_IMAGE) $(UPGRADE_IMAGE)
+
+# the ubi8 targets reuse the same image variables (callers pass TAG=<tag>-ubi8);
+# pgbackrest and pgbouncer have no UBI8 variant
+list-images-all-ubi8:
+	@printf '%s\n' $(POSTGRES18_IMAGE) $(POSTGRES17_IMAGE) $(POSTGRES16_IMAGE) \
+		$(POSTGRES15_IMAGE) $(POSTGRES14_IMAGE) $(UPGRADE_IMAGE)
+
+list-images-pg19:
+	@printf '%s\n' $(POSTGRES19_IMAGE) $(POSTGRES19_PPG_IMAGE) \
+		$(PGBACKREST19_IMAGE) $(PGBOUNCER19_IMAGE)
+
 postgres19:
 	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \
 		-t $(or $(IMAGE),$(POSTGRES19_IMAGE)) $(if $(IMAGE),,-t $(POSTGRES19_PPG_IMAGE)) build/postgres19/
