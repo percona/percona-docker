@@ -94,6 +94,10 @@ RUN for pg_version in 17 16 15 14; do \
         microdnf -y install --nodocs $pkgs; \
     done && microdnf -y clean all && rm -rf /var/cache/dnf /var/cache/yum
 
+# Remove unused perl modules pulled in by the perl metapackage
+RUN set -ex; \
+    rpm -e --nodeps perl-Archive-Tar perl-IO-Compress
+
 RUN [ "$(arch)" != "x86_64" ] && exit 0; \
     EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \
     [ "${PG_MAJOR}" -ge 18 ] && [ "${EL_VER}" -lt 9 ] && exit 0; \
@@ -117,7 +121,8 @@ VOLUME /pgolddata /pgnewdata
 
 ENV NSS_WRAPPER_SUBDIR="upgrade"
 
-ENTRYPOINT ["/opt/crunchy/bin/uid_postgres.sh"]
+ENTRYPOINT ["opt/crunchy/bin/uid_postgres.sh"]
+
 USER 26
 
 CMD ["/opt/crunchy/bin/start.sh"]
