@@ -19,6 +19,10 @@ the operator can work without Percona's own distribution packages.
 
 | Make target   | Image tag suffix                    | Description                          |
 |---------------|-------------------------------------|--------------------------------------|
+| `postgres19`  | `{TAG}-postgres19-community` + `{TAG}-ppg19-postgres` | PostgreSQL 19 **beta** (tech preview, PGDG testing repo; pgAudit and pgBackRest 2.59 from source, no other extensions) |
+| `pgbackrest19`| `{TAG}-pgbackrest19`                | pgBackRest 2.59 (source-built) over the community pgbackrest image — required by PG 19 |
+| `pgbouncer19` | `{TAG}-pgbouncer19`                 | pgBouncer under the versioned name the operator CR expects |
+| `pg19`        | *(meta target)*                     | postgres19 + pgbackrest + pgbackrest19 + pgbouncer19 |
 | `postgres18`  | `{TAG}-postgres18-community`        | PostgreSQL 18 + extensions           |
 | `postgres17`  | `{TAG}-postgres17-community`        | PostgreSQL 17 + extensions           |
 | `postgres16`  | `{TAG}-postgres16-community`        | PostgreSQL 16 + extensions           |
@@ -40,6 +44,21 @@ the operator can work without Percona's own distribution packages.
 | `upgrade-ubi8`     | `{TAG}-upgrade-community`          | pg_upgrade image (EL8)          |
 
 > pgBackRest and pgBouncer have no UBI8 variant (no upstream `Dockerfile-ubi8`).
+
+> **PostgreSQL 19 beta:** packages come from the [PGDG testing repository](https://download.postgresql.org/pub/repos/yum/testing/19/).
+> Only core packages exist for now (server, contrib, libs) — versioned extensions
+> (pgvector, pg_repack, set_user, wal2json, pg_cron), TimescaleDB and Citus
+> are not built for beta releases. The exceptions are **pgAudit** (upstream tag
+> `19beta3`) and **pgBackRest 2.59** (required by PG 19) — both compiled from
+> source in builder stages, so the images do not depend on the PGDG rpm
+> catching up.
+> Unlike other versions, `build/postgres19/Dockerfile` and
+> `build/pgbackrest19/Dockerfile` are **hand-maintained, not generated**:
+> ppg-19 does not exist yet, so there is no Percona source to derive them from.
+> There is no EL8/UBI8 variant: the PGDG testing repository for EL8 is empty.
+> `postgres19` is not part of `make all`; build the full set with `make pg19`.
+> At GA: delete the hand-maintained files, add
+> `percona-distribution-postgresql-19` mappings to `sync.sh`, and regenerate.
 
 ---
 

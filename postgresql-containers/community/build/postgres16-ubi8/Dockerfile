@@ -10,8 +10,6 @@
 #   - pgvector*-llvmjit         (same)
 #   - postgis35_*               (requires libqhull_r from Oracle Linux extras, not in standard UBI9)
 
-
-
 ARG BASE_IMAGE=redhat/ubi8-minimal
 FROM ${BASE_IMAGE}
 
@@ -41,6 +39,7 @@ RUN set -ex; \
     rpm -i /tmp/pgdg-repo.rpm /tmp/epel-release.rpm; \
     rm /tmp/pgdg-repo.rpm /tmp/epel-release.rpm; \
     microdnf clean all
+
 
 RUN set -ex; \
     microdnf -y update; \
@@ -81,12 +80,19 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/cache/yum $PGDATA && mkdir -p $PGDATA /docker-entrypoint-initdb.d; \
     chown -R postgres:postgres $PGDATA docker-entrypoint-initdb.d
 
+RUN set -ex; \
+    microdnf -y update; \
+    microdnf install -y \
+        patroni; \
+    microdnf clean all
 
 RUN set -ex; \
     microdnf -y update; \
-    microdnf install -y --enablerepo="pgdg-common" --enablerepo="epel"\
-        patroni; \
-    microdnf clean all
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
+
+RUN set -ex; \
+    rpm -e --nodeps perl-Archive-Tar perl-IO-Compress
 
 RUN set -ex; \
     sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/pgsql-${PG_MAJOR_VERSION}/share/postgresql.conf.sample; \
