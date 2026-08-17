@@ -92,6 +92,16 @@ UPGRADE_EXTRACT_MARKER = re.compile(r'tar\s+-xvzf\s+downloaded-packages\.tar\.gz
 # gpsbabel download block (PostGIS dep from Oracle Linux EPEL; not needed without PostGIS)
 GPSBABEL_MARKER = re.compile(r'gpsbabel')
 
+# Perl metapackage cleanup — only valid when the transformed image still installs
+# perl. In the upgrade images the install block that pulls perl in is Oracle-specific
+# and gets dropped wholesale, so the cleanup must be dropped with it.
+PERL_CLEANUP_BLOCK = re.compile(
+    r'\n?# Remove unused perl modules pulled in by the perl metapackage\n'
+    r'RUN set -ex; \\\n'
+    r'\s*rpm -e --nodeps perl-Archive-Tar perl-IO-Compress\n'
+)
+PERL_PACKAGE_LINE = re.compile(r'^\s*perl \\$', re.M)
+
 # Multi-PG-version loop in upgrade image — replaced wholesale with PGDG equivalent
 UPGRADE_LOOP_MARKER = re.compile(r'for\s+pg_version\s+in\s+\d+.*\bdo\b')
 
@@ -387,6 +397,10 @@ def transform(source_path: Path) -> str:
             i += 1
 
     result = '\n'.join(output)
+
+    # Drop the perl cleanup when nothing in the transformed image installs perl
+    if not PERL_PACKAGE_LINE.search(result):
+        result = PERL_CLEANUP_BLOCK.sub('', result)
 
     # Apply pgaudit legacy name fixup for PG ≤ 15
     if pg_version and pg_version in PGAUDIT_LEGACY:
