@@ -3,7 +3,7 @@ FROM redhat/ubi9-minimal
 
 # Please don't remove old-style LABEL since it's needed for RedHat certification
 LABEL name="Percona XtraBackup" \
-      release="9.6" \
+      release="9.7" \
       vendor="Percona" \
       summary="Percona XtraBackup is an open-source hot backup utility for MySQL - based servers that doesn’t lock your database during the backup" \
       description="Percona XtraBackup works with MySQL, MariaDB, and Percona Server. It supports completely non-blocking backups of InnoDB, XtraDB, and HailDB storage engines. In addition, it can back up the following storage engines by briefly pausing writes at the end of the backup: MyISAM, Merge, and Archive, including partitioned tables, triggers, and database options." \
@@ -15,7 +15,7 @@ LABEL org.opencontainers.image.description="Percona XtraDB Cluster is a high ava
 helps enterprises avoid downtime and outages and meet expected customer experience."
 LABEL org.opencontainers.image.license="GPL"
 
-ENV PXC_VERSION 9.6.0-1.1
+ENV PXC_VERSION 9.7.1-1.1
 ENV PXC_REPO release
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PXC_VERSION.$OS_VER"
@@ -42,7 +42,7 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release enable telemetry ${PXC_REPO}; \
     percona-release enable pdpxc-84-lts ${PXC_REPO}; \
-    percona-release enable pxc-9x-innovation ${PXC_REPO}
+    percona-release enable pxc-97-lts ${PXC_REPO}
 
 RUN set -ex; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
@@ -90,9 +90,9 @@ RUN groupadd -g 1001 mysql; \
 
 # we need licenses from docs
 RUN set -ex; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-shared-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-client-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-icu-data-files.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-icu-data-files-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-shared.rpm https://repo.percona.com/pxc-97-lts/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-shared-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-client.rpm https://repo.percona.com/pxc-97-lts/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-client-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-icu-data-files.rpm https://repo.percona.com/pxc-97-lts/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-icu-data-files-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm; \
     rpm -iv /tmp/percona-xtradb-cluster-server.rpm /tmp/percona-xtradb-cluster-shared.rpm /tmp/percona-xtradb-cluster-client.rpm /tmp/percona-xtradb-cluster-icu-data-files.rpm --nodeps; \
     microdnf clean all; \
@@ -137,8 +137,8 @@ RUN if [[ -n $DEBUG ]] ; then \
     curl -Lf -o /tmp/strace.rpm https://downloads.percona.com/downloads/packaging/strace-6.12-1.el9.x86_64.rpm; \
     curl -Lf -o /tmp/bzip2.rpm https://downloads.percona.com/downloads/packaging/bzip2-1.0.8-8.el9.x86_64.rpm; \
     curl -Lf -o /tmp/slang.rpm https://downloads.percona.com/downloads/packaging/slang-2.3.2-11.el9.x86_64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
-    curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-9x-innovation/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-debuginfo.rpm https://repo.percona.com/pxc-97-lts/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
+    curl -Lf -o /tmp/percona-xtradb-cluster-server-debuginfo.rpm https://repo.percona.com/pxc-97-lts/yum/${PXC_REPO}/9/RPMS/x86_64/percona-xtradb-cluster-server-debuginfo-${FULL_PERCONA_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/telnet.rpm /tmp/tcpdump.rpm /tmp/perf.rpm /tmp/bzip2.rpm /tmp/slang.rpm /tmp/strace.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm; \
     rpm -i /tmp/telnet.rpm /tmp/tcpdump.rpm /tmp/perf.rpm /tmp/bzip2.rpm /tmp/slang.rpm /tmp/strace.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm --nodeps; \
     rm -rf /tmp/telnet.rpm /tmp/tcpdump.rpm /tmp/perf.rpm /tmp/bzip2.rpm /tmp/slang.rpm /tmp/strace.rpm /tmp/percona-xtradb-cluster-debuginfo.rpm /tmp/percona-xtradb-cluster-server-debuginfo.rpm; \
