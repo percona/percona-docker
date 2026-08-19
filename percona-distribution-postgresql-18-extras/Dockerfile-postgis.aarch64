@@ -27,9 +27,9 @@ RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en; \
 	microdnf -y install systemd-rpm-macros
 
-ENV PPG_VERSION 18.3-1
+ENV PPG_VERSION 18.6-1
 ENV PPG_MAJOR_VERSION 18
-ENV PPG_MINOR_VERSION 3
+ENV PPG_MINOR_VERSION 6
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO testing
@@ -100,21 +100,21 @@ RUN set -ex; \
         percona-ip4r_${PPG_MAJOR_VERSION} \
         percona-pg_cron_${PPG_MAJOR_VERSION} \
         percona-hll_${PPG_MAJOR_VERSION} \
+        percona-pgbackrest \
         percona-postgresql_anonymizer_${PPG_MAJOR_VERSION} \
         percona-pg_partman_${PPG_MAJOR_VERSION}; \
     microdnf clean all
 
 RUN set -ex; \
-    percona-release enable ppg-${PPG_REPO_VERSION} release; \
+    percona-release enable ppg-${PPG_REPO_VERSION} testing; \
     microdnf install -y \
-        percona-postgresql-common-1:290-1.el9 \
-        percona-postgresql-client-common-1:290-1.el9 \
+        percona-postgresql-common \
+        percona-postgresql-client-common \
         percona-pg_oidc_validator${PPG_MAJOR_VERSION} \
         percona-pg_stat_monitor${PPG_MAJOR_VERSION} \
         percona-pg_repack${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION}_set_user \
-        percona-pgbackrest \
 	    percona-pgvector_${PPG_MAJOR_VERSION} \
         percona-pgvector_${PPG_MAJOR_VERSION}-llvmjit \
         python3-etcd \
