@@ -21,6 +21,7 @@ POSTGRES19_IMAGE     ?= $(REGISTRY):$(TAG)-postgres19-community
 POSTGRES19_PPG_IMAGE ?= $(REGISTRY):$(TAG)-ppg19-postgres
 PGBACKREST19_IMAGE   ?= $(REGISTRY):$(TAG)-pgbackrest19
 PGBOUNCER19_IMAGE    ?= $(REGISTRY):$(TAG)-pgbouncer19
+UPGRADE19_IMAGE      ?= $(REGISTRY):$(TAG)-upgrade19
 POSTGRES18_IMAGE ?= $(REGISTRY):$(TAG)-postgres18-community
 POSTGRES17_IMAGE ?= $(REGISTRY):$(TAG)-postgres17-community
 POSTGRES16_IMAGE ?= $(REGISTRY):$(TAG)-postgres16-community
@@ -41,7 +42,7 @@ test:
 
 .PHONY: all postgres19 postgres18 postgres17 postgres16 postgres15 postgres14 pgbackrest pgbouncer upgrade \
         postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgres14-ubi8 upgrade-ubi8 \
-        all-ubi8 pg19 pgbackrest19 pgbouncer19
+        all-ubi8 pg19 pgbackrest19 pgbouncer19 upgrade19
 
 # postgres19 is deliberately NOT part of `all`: PostgreSQL 19 is in beta
 # (packages come from the PGDG testing repo) — build it explicitly with `make postgres19`
@@ -54,7 +55,7 @@ all-ubi8: postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgr
 # tags referenced by the CR. pgbackrest19 layers on an EXISTING community
 # pgbackrest image (override the base with PGBACKREST_IMAGE=..., or run
 # `make pgbackrest` first to refresh it).
-pg19: postgres19 pgbackrest19 pgbouncer19
+pg19: postgres19 pgbackrest19 pgbouncer19 upgrade19
 
 # Print the image names each build group pushes, one per line. CI builds its
 # image summary from these instead of hard-coding tags, so the report stays in
@@ -73,7 +74,7 @@ list-images-all-ubi8:
 
 list-images-pg19:
 	@printf '%s\n' $(POSTGRES19_IMAGE) $(POSTGRES19_PPG_IMAGE) \
-		$(PGBACKREST19_IMAGE) $(PGBOUNCER19_IMAGE)
+		$(PGBACKREST19_IMAGE) $(PGBOUNCER19_IMAGE) $(UPGRADE19_IMAGE)
 
 postgres19:
 	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \
@@ -87,6 +88,12 @@ pgbackrest19:
 pgbouncer19:
 	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \
 		-t $(or $(IMAGE),$(PGBOUNCER19_IMAGE)) build/pgbouncer/
+
+upgrade19:
+	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \
+		-f build/upgrade19/Dockerfile \
+		-t $(or $(IMAGE),$(UPGRADE19_IMAGE)) \
+		../
 
 postgres18:
 	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \
