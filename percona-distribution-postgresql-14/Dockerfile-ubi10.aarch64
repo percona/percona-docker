@@ -11,9 +11,9 @@ RUN microdnf -y update; \
     microdnf -y install glibc-langpack-en; \
 	microdnf -y install systemd-rpm-macros
 
-ENV PPG_VERSION 14.23-1
+ENV PPG_VERSION 14.24-1
 ENV PPG_MAJOR_VERSION 14
-ENV PPG_MINOR_VERSION 23
+ENV PPG_MINOR_VERSION 24
 ENV OS_VER el10
 ENV FULL_PERCONA_VERSION "${PPG_VERSION}.${OS_VER}"
 ENV PPG_REPO testing
