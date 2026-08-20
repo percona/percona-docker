@@ -169,6 +169,10 @@ RUN for pg_version in 17 16 15 14 13; do \
 RUN set -ex; \
     rpm -e --nodeps perl-Archive-Tar perl-IO-Compress
 
+# --nodeps so the percona-postgresql packages that Require the agent stay installed
+RUN set -ex; \
+    rpm -e --nodeps percona-telemetry-agent
+
 RUN mkdir -p /opt/crunchy/bin /pgolddata /pgnewdata /opt/crunchy/conf
 COPY bin/upgrade/ /opt/crunchy/bin
 COPY bin/common /opt/crunchy/bin
