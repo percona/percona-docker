@@ -12,11 +12,22 @@
 
 ARG BASE_IMAGE=redhat/ubi9-minimal
 
+# The PGDG testing repository keeps every prerelease and always offers the
+# newest one by default, so an unpinned build silently moves to the next beta.
+# That is not a harmless drift: PostgreSQL bumps the WAL page magic between
+# betas, and pgBackRest validates it, so the PostgreSQL beta and the pgBackRest
+# version above have to be bumped together, in one deliberate change.
+ARG PG19_RELEASE=beta3
+ARG PG19_RPM="19-${PG19_RELEASE}_1PGDG*"
+
 # ── pgAudit builder ───────────────────────────────────────────────────────────
 # PGDG does not build the pgaudit_19 rpm for beta PG versions, but pgAudit
-# upstream already supports PostgreSQL 19 — compile it from source (19beta3).
+# upstream already supports PostgreSQL 19 — compile it from source, from the
+# branch matching the pinned beta.
 # Drop this stage once the pgaudit_19 rpm appears in the PGDG repos.
 FROM ${BASE_IMAGE} AS pgaudit-builder
+ARG PG19_RELEASE
+ARG PG19_RPM
 
 RUN set -ex; \
     ARCH=$(uname -m); \
@@ -27,7 +38,8 @@ RUN set -ex; \
     rm /tmp/pgdg-repo.rpm; \
     printf "[pgdg19-testing]\nname=PGDG 19 testing\nbaseurl=https://download.postgresql.org/pub/repos/yum/testing/19/redhat/rhel-${EL_VER}-${ARCH}\nenabled=1\ngpgcheck=1\ngpgkey=https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-AARCH64-RHEL\n" \
         > /etc/yum.repos.d/pgdg-19-testing.repo; \
-    microdnf -y install gcc make git redhat-rpm-config krb5-devel openssl-devel dnf dnf-plugins-core postgresql19; \
+    microdnf -y install gcc make git redhat-rpm-config krb5-devel openssl-devel dnf dnf-plugins-core \
+        "postgresql19-${PG19_RPM}"; \
     microdnf clean all
 
 # postgresql19-devel requires perl(IPC::Run), which lives in the RHEL CRB repo
@@ -35,10 +47,10 @@ RUN set -ex; \
 # regression-test harness — PGXS extension builds do not need it — so install
 # the devel rpm without dependency resolution.
 RUN set -ex; \
-    dnf -y download --downloaddir /tmp postgresql19-devel; \
+    dnf -y download --downloaddir /tmp "postgresql19-devel-${PG19_RPM}"; \
     rpm -i --nodeps /tmp/postgresql19-devel-*.rpm; \
     rm /tmp/postgresql19-devel-*.rpm; \
-    git clone --depth 1 --branch 19beta3 https://github.com/pgaudit/pgaudit.git /tmp/pgaudit; \
+    git clone --depth 1 --branch "19${PG19_RELEASE}" https://github.com/pgaudit/pgaudit.git /tmp/pgaudit; \
     make -C /tmp/pgaudit install USE_PGXS=1 PG_CONFIG=/usr/pgsql-19/bin/pg_config with_llvm=no
 
 
@@ -48,7 +60,12 @@ RUN set -ex; \
 # tarball and overlay the binary. Drop this stage once the PGDG rpm catches up.
 FROM ${BASE_IMAGE} AS pgbackrest-builder
 
-ARG PGBACKREST_VERSION=2.59.0
+# Keep in sync with build/pgbackrest19/Dockerfile: pgBackRest validates the WAL
+# page magic, which PostgreSQL bumps between beta releases (19beta2 = 0xD120,
+# 19beta3 = 0xD121). A pgBackRest older than the running beta rejects every WAL
+# segment with VersionNotSupportedError, so archiving — and every backup that
+# waits for an archived segment — fails.
+ARG PGBACKREST_VERSION=2.59.1
 
 RUN set -ex; \
     EL_VER=$(. /etc/os-release && echo "${VERSION_ID%%.*}"); \
@@ -72,6 +89,7 @@ RUN set -ex; \
     /tmp/build/src/pgbackrest version
 
 FROM ${BASE_IMAGE}
+ARG PG19_RPM
 
 LABEL name="Percona Distribution for PostgreSQL" \
       description="Essential / key PostgreSQL19 components. Percona Distribution for PostgreSQL features core components, tools and add-ons from the community, tested to work together in demanding enterprise environments." \
@@ -128,8 +146,8 @@ ENV PATH="/pgdata:${PGROOT}/bin:${PATH}"
 
 RUN set -ex; \
     microdnf install -y \
-        postgresql${PG_MAJOR_VERSION}-server \
-        postgresql${PG_MAJOR_VERSION}-contrib \
+        "postgresql${PG_MAJOR_VERSION}-server-${PG19_RPM}" \
+        "postgresql${PG_MAJOR_VERSION}-contrib-${PG19_RPM}" \
         pgbackrest \
         ; \
     microdnf clean all; \
