@@ -70,23 +70,23 @@ RUN set -ex; \
 
 
 # Install supercronic for cron
-ARG SUPERCRONIC_VERSION=v0.2.47
+ARG SUPERCRONIC_VERSION=v0.2.49
 RUN set -ex; \
     cd /tmp; \
     arch=$(uname -m); \
     case "$arch" in \
         x86_64) \
             SUPERCRONIC=supercronic-linux-amd64; \
-            SUPERCRONIC_SHA1SUM=712d2ece75da6f6e530192a151488578153e4e96 ;; \
+            SUPERCRONIC_SHA1SUM=e63c11a9726b775a6a11801e81af4f3fb926aa68 ;; \
         i386|i686) \
             SUPERCRONIC=supercronic-linux-386; \
-            SUPERCRONIC_SHA1SUM=c3c8bd5d200c2b55cf2f9590542139f205194fb7 ;; \
+            SUPERCRONIC_SHA1SUM=e8e25a4672a3caf3cebee10ef418cad085926595 ;; \
         armv7l|armv6l|armhf) \
             SUPERCRONIC=supercronic-linux-arm; \
-            SUPERCRONIC_SHA1SUM=dcc8535b46bd9752fbbe177fddd7f6f0451da9a4 ;; \
+            SUPERCRONIC_SHA1SUM=c98e10fc30de1147bfef8d7f2722f43c0db04fe5 ;; \
         aarch64) \
             SUPERCRONIC=supercronic-linux-arm64; \
-            SUPERCRONIC_SHA1SUM=93323899ddca3f1198f1796a4bf4418ed1e7982e ;; \
+            SUPERCRONIC_SHA1SUM=0b6c5bb743e0b0dafed1132198c81807927ac413 ;; \
         *) \
             echo "unsupported architecture: $arch" && exit 1 ;; \
     esac; \
