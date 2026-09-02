@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal AS ubi9
+FROM registry.access.redhat.com/ubi10/ubi-minimal AS ubi10
 
 LABEL name="Fluent Bit" \
       description="Fluent Bit docker image" \
@@ -12,21 +12,19 @@ ENV PERCONA_SERVER_PERC_VERSION=36
 ENV PERCONA_SERVER_BUILD_VERSION=1
 
 # install exact version of PS for repeatability
-ENV PERCONA_VERSION=${PERCONA_SERVER_VERSION}-${PERCONA_SERVER_PERC_VERSION}.${PERCONA_SERVER_BUILD_VERSION}.el9
+ENV PERCONA_VERSION=${PERCONA_SERVER_VERSION}-${PERCONA_SERVER_PERC_VERSION}.${PERCONA_SERVER_BUILD_VERSION}.el10
 
 # install exact version of Fluent Bit for repeatability
 ENV FLUENTBIT_VERSION=5.1.1-1
 
-RUN export GNUPGHOME="$(mktemp -d)" \
+RUN microdnf install -y gnupg2 findutils \
+    && export GNUPGHOME="$(mktemp -d)" \
     && gpg --keyserver https://packages.fluentbit.io/fluentbit.key --recv-keys C3C0A28534B9293EAF51FABD9F9DDC083888C1CD \
     && gpg --export --armor C3C0A28534B9293EAF51FABD9F9DDC083888C1CD > ${GNUPGHOME}/RPM-GPG-KEY-Fluent \
-    && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 567E347AD0044ADE55BA8A5F199E2F91FD431D51 \
-    && gpg --batch --export --armor 567E347AD0044ADE55BA8A5F199E2F91FD431D51 > ${GNUPGHOME}/RPM-GPG-KEY-redhat-release \
-    && rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Fluent ${GNUPGHOME}/RPM-GPG-KEY-redhat-release \
-    && gpg --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 \
-    && gpg --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY \
+    && rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-Fluent \
+    && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 4D1BB29D63D98E422B2113B19334A25F8507EFA5 \
+    && gpg --batch --export --armor 4D1BB29D63D98E422B2113B19334A25F8507EFA5 > ${GNUPGHOME}/PERCONA-PACKAGING-KEY \
     && rpmkeys --import ${GNUPGHOME}/PERCONA-PACKAGING-KEY \
-    && microdnf install -y findutils \
     && curl -Lf -o /tmp/percona-release.rpm https://repo.percona.com/yum/percona-release-latest.noarch.rpm \
     && rpmkeys --checksig /tmp/percona-release.rpm \
     && rpm -i /tmp/percona-release.rpm \
@@ -39,7 +37,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 RUN printf "%s\n" \
     "[fluent-bit]" \
     "name=Fluent Bit" \
-    "baseurl=https://packages.fluentbit.io/centos/9/" \
+    "baseurl=https://packages.fluentbit.io/centos/10/" \
     "gpgcheck=1" \
     "gpgkey=https://packages.fluentbit.io/fluentbit.key" \
     "repo_gpgcheck=1" \
@@ -47,11 +45,10 @@ RUN printf "%s\n" \
     > /etc/yum.repos.d/fluent-bit.repo
 
 # Install packages
-# fluentbit does not have el8 repo and the doc suggests installing el7 rpm
+# PXC client is not published for el10; use Percona Server client for mysql CLI
 RUN set -ex; \
     microdnf install -y \
       hostname \
-      postgresql-libs \
       shadow-utils \
       yum-utils \
       fluent-bit-${FLUENTBIT_VERSION} \
@@ -59,7 +56,6 @@ RUN set -ex; \
       make \
       libpq \
       procps-ng \
-      compat-openssl11 \
       percona-mongodb-mongosh \
       percona-server-client-${PERCONA_VERSION} \
       tar \
