@@ -106,7 +106,7 @@ RUN set -ex; \
     microdnf clean all
 
 RUN set -ex; \
-    percona-release enable ppg-${PPG_REPO_VERSION} testing; \
+    percona-release enable ppg-${PPG_REPO_VERSION} release; \
     microdnf install -y \
         percona-postgresql-common \
         percona-postgresql-client-common \

@@ -100,13 +100,12 @@ RUN set -ex; \
         percona-ip4r_${PPG_MAJOR_VERSION} \
         percona-pg_cron_${PPG_MAJOR_VERSION} \
         percona-hll_${PPG_MAJOR_VERSION} \
-        percona-pgbackrest \
         percona-postgresql_anonymizer_${PPG_MAJOR_VERSION} \
         percona-pg_partman_${PPG_MAJOR_VERSION}; \
     microdnf clean all
 
 RUN set -ex; \
-    percona-release enable ppg-${PPG_REPO_VERSION} testing; \
+    percona-release enable ppg-${PPG_REPO_VERSION} release; \
     microdnf install -y \
         percona-postgresql-common \
         percona-postgresql-client-common \
@@ -115,6 +114,7 @@ RUN set -ex; \
         percona-pg_repack${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION} \
         percona-pgaudit${PPG_MAJOR_VERSION}_set_user \
+        percona-pgbackrest \
 	    percona-pgvector_${PPG_MAJOR_VERSION} \
         percona-pgvector_${PPG_MAJOR_VERSION}-llvmjit \
         python3-etcd \
