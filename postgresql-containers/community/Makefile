@@ -15,12 +15,8 @@ BUILD_ARGS_UBI8 = \
 	--build-arg BASE_IMAGE=redhat/ubi8-minimal \
 	--build-arg TIMESCALEDB_MAJOR=$(TIMESCALEDB_MAJOR)
 
-# PG 19 (beta): the versioned tags mirror the regular per-version naming used
-# by the operator CR (main-ppg19-postgres / main-pgbackrest19 / main-pgbouncer19).
 POSTGRES19_IMAGE     ?= $(REGISTRY):$(TAG)-postgres19-community
 POSTGRES19_PPG_IMAGE ?= $(REGISTRY):$(TAG)-ppg19-postgres
-PGBACKREST19_IMAGE   ?= $(REGISTRY):$(TAG)-pgbackrest19-community
-PGBOUNCER19_IMAGE    ?= $(REGISTRY):$(TAG)-pgbouncer19-community
 UPGRADE19_IMAGE      ?= $(REGISTRY):$(TAG)-upgrade19-community
 POSTGRES18_IMAGE ?= $(REGISTRY):$(TAG)-postgres18-community
 POSTGRES17_IMAGE ?= $(REGISTRY):$(TAG)-postgres17-community
@@ -42,7 +38,7 @@ test:
 
 .PHONY: all postgres19 postgres18 postgres17 postgres16 postgres15 postgres14 pgbackrest pgbouncer upgrade \
         postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgres14-ubi8 upgrade-ubi8 \
-        all-ubi8 pg19 pgbackrest19 pgbouncer19 upgrade19
+        all-ubi8 pg19 upgrade19
 
 # postgres19 is deliberately NOT part of `all`: PostgreSQL 19 is in beta
 # (packages come from the PGDG testing repo) — build it explicitly with `make postgres19`
@@ -51,11 +47,7 @@ all: postgres18 postgres17 postgres16 postgres15 postgres14 pgbackrest pgbouncer
 
 all-ubi8: postgres18-ubi8 postgres17-ubi8 postgres16-ubi8 postgres15-ubi8 postgres14-ubi8 upgrade-ubi8
 
-# Everything the operator needs for a PG 19 (beta) cluster, under the versioned
-# tags referenced by the CR. pgbackrest19 layers on an EXISTING community
-# pgbackrest image (override the base with PGBACKREST_IMAGE=..., or run
-# `make pgbackrest` first to refresh it).
-pg19: postgres19 pgbackrest19 pgbouncer19 upgrade19
+pg19: postgres19 upgrade19
 
 # Print the image names each build group pushes, one per line. CI builds its
 # image summary from these instead of hard-coding tags, so the report stays in
@@ -73,21 +65,11 @@ list-images-all-ubi8:
 		$(POSTGRES15_IMAGE) $(POSTGRES14_IMAGE) $(UPGRADE_IMAGE)
 
 list-images-pg19:
-	@printf '%s\n' $(POSTGRES19_IMAGE) $(POSTGRES19_PPG_IMAGE) \
-		$(PGBACKREST19_IMAGE) $(PGBOUNCER19_IMAGE) $(UPGRADE19_IMAGE)
+	@printf '%s\n' $(POSTGRES19_IMAGE) $(POSTGRES19_PPG_IMAGE) $(UPGRADE19_IMAGE)
 
 postgres19:
 	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \
 		-t $(or $(IMAGE),$(POSTGRES19_IMAGE)) $(if $(IMAGE),,-t $(POSTGRES19_PPG_IMAGE)) build/postgres19/
-
-pgbackrest19:
-	docker buildx build --platform $(PLATFORMS) $(OUTPUT) \
-		--build-arg BASE_IMAGE=$(PGBACKREST_IMAGE) \
-		-t $(or $(IMAGE),$(PGBACKREST19_IMAGE)) build/pgbackrest19/
-
-pgbouncer19:
-	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \
-		-t $(or $(IMAGE),$(PGBOUNCER19_IMAGE)) build/pgbouncer/
 
 upgrade19:
 	docker buildx build --platform $(PLATFORMS) $(OUTPUT) $(BUILD_ARGS) \

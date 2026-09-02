@@ -4,11 +4,11 @@
 # Percona source Dockerfile to derive this file from, and PostgreSQL 19 lives
 # in the PGDG *testing* repository (the stable yum/19 repository returns 404).
 #
-# It carries the PostgreSQL 19 target binaries next to the 18 source ones, so
-# pg_upgrade can move a cluster to 19. The job copies the old cluster's
-# shared_preload_libraries into the new postgresql.conf before running
-# pg_upgrade --check, which starts both servers — every preloaded library must
-# therefore exist for BOTH versions in this image.
+# It carries the PostgreSQL 19 target binaries next to every supported source
+# version (14-18), so pg_upgrade can move any of them to 19. The job copies the
+# old cluster's shared_preload_libraries into the new postgresql.conf before
+# running pg_upgrade --check, which starts both servers — every preloaded
+# library must therefore exist for BOTH versions in this image.
 #
 # For PostgreSQL 19 the testing repository ships the server packages only:
 # no pgaudit_19, set_user_19, wal2json_19, pgvector_19, pg_repack_19 or
@@ -90,26 +90,30 @@ RUN set -ex; \
         > /etc/yum.repos.d/pgdg-19-testing.repo; \
     microdnf clean all
 
-# Both sides of the upgrade: pg_upgrade ships with postgresql19-server and
-# needs the PostgreSQL 18 binaries to start the old cluster (--old-bindir).
-# Only 18 is installed as a source: it is the single upgrade path to 19 while
-# PostgreSQL 19 is in beta. contrib carries pg_stat_statements, which the
-# operator puts in shared_preload_libraries when PMM uses it as query source.
-# The other versioned extensions are left out on purpose: none of them is
-# built for 19, so a cluster using one cannot pass the pg_upgrade check for
-# loadable libraries no matter what this image contains.
 RUN set -ex; \
     microdnf -y install \
         "postgresql19-server-${PG19_RPM}" \
         "postgresql19-contrib-${PG19_RPM}" \
         "postgresql19-libs-${PG19_RPM}" \
-        postgresql18-server \
-        postgresql18-contrib \
-        postgresql18-libs \
-        pgaudit_18 \
         nss_wrapper \
         lz4; \
     microdnf -y reinstall tzdata; \
+    microdnf clean all; \
+    rm -rf /var/cache/dnf /var/cache/yum
+
+RUN set -ex; \
+    for pg_version in 18 17 16 15 14; do \
+        if [[ "${pg_version}" -lt 16 ]]; then \
+            pgaudit_pkg=$([[ "${pg_version}" -eq 14 ]] && echo pgaudit16_14 || echo pgaudit17_15); \
+        else \
+            pgaudit_pkg="pgaudit_${pg_version}"; \
+        fi; \
+        microdnf -y install --nodocs \
+            "postgresql${pg_version}-server" \
+            "postgresql${pg_version}-contrib" \
+            "postgresql${pg_version}-libs" \
+            "${pgaudit_pkg}"; \
+    done; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
