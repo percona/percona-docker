@@ -1,4 +1,4 @@
-FROM redhat/ubi8-minimal
+FROM redhat/ubi8-minimal:8.9-1108
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
