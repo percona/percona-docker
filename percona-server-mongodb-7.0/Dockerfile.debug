@@ -33,7 +33,7 @@ RUN set -ex; \
         gdb \
         nc \
         percona-server-mongodb-server-debuginfo-${FULL_PERCONA_VERSION} \
-        percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION} \
+        percona-server-mongodb-tools-debuginfo-${FULL_MONGO_TOOLS_VERSION} \
         percona-server-mongodb-mongos-debuginfo-${FULL_PERCONA_VERSION}; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
