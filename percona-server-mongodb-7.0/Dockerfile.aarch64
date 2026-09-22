@@ -54,6 +54,7 @@ RUN set -ex; \
         cyrus-sasl-gssapi \
         cyrus-sasl-plain \
         krb5-libs \
+        curl-minimal \
         policycoreutils; \
         \
     ARCH="$(uname -m)"; \
