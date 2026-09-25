@@ -78,12 +78,11 @@ RUN set -ex; \
     microdnf -y clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
-COPY --from=downloader /downloaded-packages.tar.gz .
-RUN tar -xvzf downloaded-packages.tar.gz; \
+RUN --mount=type=bind,from=downloader,source=/downloaded-packages.tar.gz,target=/downloaded-packages.tar.gz \
+    tar -xvzf downloaded-packages.tar.gz; \
     cd downloaded-packages; \
     rpm -Uvh --replacepkgs --replacefiles --oldpackage *.rpm; \
     rpm -ivh libssh2*.rpm; \
-    rm -f /downloaded-packages.tar.gz; \
     cd -; \
     rm -rf /downloaded-packages /var/cache/dnf /var/cache/yum
 
