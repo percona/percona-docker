@@ -84,7 +84,6 @@ RUN set -ex; \
         --enablerepo=epel \
         perl-JSON \
         libssh2 \
-        python3-click \
         python3.12-dns \
         python3-wcwidth; \
     microdnf clean all; \
@@ -104,7 +103,6 @@ RUN set -ex; \
 	percona-pgvector_${PPG_MAJOR_VERSION} \
         percona-postgresql${PPG_MAJOR_VERSION}-llvmjit \
         percona-pgvector_${PPG_MAJOR_VERSION}-llvmjit \
-        python3-etcd \
         percona-wal2json${PPG_MAJOR_VERSION} \
         percona-pg_cron_${PPG_MAJOR_VERSION}; \
     microdnf clean all; \
@@ -132,18 +130,14 @@ RUN set -ex; \
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-postgresql${PPG_MAJOR_VERSION}/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
 
-ENV GOSU_VERSION=1.11
+ENV GOSU_VERSION=1.19-13.15
 RUN set -eux; \
-    curl -Lf -o /usr/bin/gosu https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64; \
-    curl -Lf -o /usr/bin/gosu.asc https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64.asc; \
-    \
-    export GNUPGHOME="$(mktemp -d)"; \
-    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
-    gpg --batch --verify /usr/bin/gosu.asc /usr/bin/gosu; \
-    rm -rf "$GNUPGHOME" /usr/bin/gosu.asc; \
-    \
-    chmod +x /usr/bin/gosu; \
-    curl -f -o /licenses/LICENSE.gosu https://raw.githubusercontent.com/tianon/gosu/${GOSU_VERSION}/LICENSE
+    curl -Lf -o /tmp/gosu.rpm https://repo.percona.com/tools/yum/experimental/8/RPMS/x86_64/gosu-${GOSU_VERSION}.x86_64.rpm; \
+    rpmkeys --checksig /tmp/gosu.rpm; \
+    rpm -i /tmp/gosu.rpm; \
+    rm -f /tmp/gosu.rpm; \
+    gosu --version; \
+    cp /usr/share/licenses/gosu/LICENSE /licenses/LICENSE.gosu
 
 COPY entrypoint.sh /entrypoint.sh
 
