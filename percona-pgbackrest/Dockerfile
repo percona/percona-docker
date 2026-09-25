@@ -53,6 +53,8 @@ RUN set -ex; \
         gettext \
         tar \
         nss_wrapper; \
+    rpm -e oracle-epel-release-el9 yum-utils dnf dnf-plugins-core \
+        $(rpm -qa --qf '%{NAME}\n' | grep -E '^python'); \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
 
