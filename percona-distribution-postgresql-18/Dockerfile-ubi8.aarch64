@@ -82,7 +82,6 @@ RUN set -ex; \
         --enablerepo=epel \
         perl-JSON \
         libssh2 \
-        python3.12-dns \
         python3-wcwidth; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum
