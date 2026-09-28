@@ -101,7 +101,6 @@ RUN set -ex; \
         boost-serialization \
         boost-system \
         boost-thread \
-        python3.12-dns \
         python3-wcwidth \
         hdf5 \
         xerces-c \
