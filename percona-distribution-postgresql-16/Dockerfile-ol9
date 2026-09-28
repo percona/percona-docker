@@ -71,7 +71,7 @@ RUN set -ex; \
 COPY LICENSE /licenses/LICENSE.Dockerfile
 RUN cp /usr/share/doc/percona-postgresql16/COPYRIGHT /licenses/COPYRIGHT.PostgreSQL
 
-ENV GOSU_VERSION=1.19-13.9
+ENV GOSU_VERSION=1.19-14.1
 RUN set -eux; \
     curl -Lf -o /tmp/gosu.rpm https://repo.percona.com/tools/yum/experimental/9/RPMS/x86_64/gosu-${GOSU_VERSION}.x86_64.rpm; \
     rpmkeys --checksig /tmp/gosu.rpm; \
