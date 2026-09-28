@@ -28,10 +28,16 @@ RUN set -ex; \
     percona-release disable all; \
     percona-release enable ppg-${PG_VERSION} ${PPG_REPO}
 
-RUN ARCH=$(uname -m) && echo "Architecture is: $ARCH" && \
-    curl -o c-ares.rpm https://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/c-ares-1.19.1-2.el9.${ARCH}.rpm && \
-    rpm -i c-ares.rpm && \
-    rm -f c-ares.rpm
+RUN set -ex; \
+    ARCH=$(uname -m) && echo "Architecture is: $ARCH"; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F; \
+    gpg --batch --export --armor 3E6D826D3FBAB389C2F38E34BC4D06A08D8B756F > ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+    rpmkeys --import ${GNUPGHOME}/RPM-GPG-KEY-oracle; \
+    curl -Lf -o /tmp/c-ares.rpm https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/${ARCH}/getPackage/c-ares-1.19.1-2.el9_4.${ARCH}.rpm; \
+    rpmkeys --checksig /tmp/c-ares.rpm; \
+    rpm -i /tmp/c-ares.rpm; \
+    rm -rf "$GNUPGHOME" /tmp/c-ares.rpm
 
 RUN groupadd -g 1001 pgbouncer; \
     useradd -u 1001 -r -g 1001 -s /sbin/nologin \
