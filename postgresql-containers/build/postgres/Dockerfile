@@ -68,6 +68,12 @@ RUN set -ex; \
         percona-release enable ppg-13.21 release; \
     elif [ "$PG_MAJOR" = "14" ]; then \
         percona-release enable ppg-14.18 release; \
+    elif [ "$PG_MAJOR" = "15" ]; then \
+        percona-release enable ppg-15.13 release; \
+    elif [ "$PG_MAJOR" = "16" ]; then \
+        percona-release enable ppg-16.9 release; \
+    elif [ "$PG_MAJOR" = "17" ]; then \
+        percona-release enable ppg-17.5 release; \
     else \
         percona-release enable ppg-${PG_MAJOR} release; \
     fi
@@ -86,11 +92,15 @@ RUN set -ex; \
     sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/epel*.repo; \
     sed -i 's/install_langs C.utf8/install_langs all/' /etc/rpm/macros.image-language-conf; \
     microdnf -y module disable llvm-toolset; \
+    PG_PKG_VER=""; \
+    if [ "$PG_MAJOR" = "17" ]; then \
+        PG_PKG_VER="-17.5-2.el8"; \
+    fi; \
     microdnf -y install \
         libpq \
         llvm \
         glibc-all-langpacks \
-        percona-postgresql${PG_MAJOR%%.*}; \
+        percona-postgresql${PG_MAJOR%%.*}${PG_PKG_VER}; \
     microdnf -y clean all
 
 # Preserving PGVERSION out of paranoia
@@ -112,16 +122,20 @@ RUN set -ex; \
            /tmp/python3-psutil.rpm /tmp/python3-prettytable.rpm /tmp/python3-click.rpm
 
 RUN set -ex; \
+    PG_PKG_VER=""; \
+    if [ "$PG_MAJOR" = "17" ]; then \
+        PG_PKG_VER="-17.5-2.el8"; \
+    fi; \
     microdnf -y install \
         --enablerepo="epel" \
         percona-pgaudit${PG_MAJOR%%.*} \
         percona-pgaudit${PG_MAJOR%%.*}_set_user \
-        percona-pgbackrest \
-        percona-postgresql${PG_MAJOR%%.*}-contrib \
-        percona-postgresql${PG_MAJOR%%.*}-server \
-        percona-postgresql${PG_MAJOR%%.*}-libs \
+        percona-pgbackrest-2.55.0-1.el8 \
+        percona-postgresql${PG_MAJOR%%.*}-contrib${PG_PKG_VER} \
+        percona-postgresql${PG_MAJOR%%.*}-server${PG_PKG_VER} \
+        percona-postgresql${PG_MAJOR%%.*}-libs${PG_PKG_VER} \
         percona-pg_stat_monitor${PG_MAJOR%%.*} \
-        percona-postgresql${PG_MAJOR%%.*}-llvmjit \
+        percona-postgresql${PG_MAJOR%%.*}-llvmjit${PG_PKG_VER} \
         percona-wal2json${PG_MAJOR%%.*} \
         percona-pg_repack${PG_MAJOR%%.*} \
         psmisc \
