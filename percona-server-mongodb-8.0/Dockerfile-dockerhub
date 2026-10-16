@@ -21,6 +21,11 @@ RUN set -ex; \
 ENV PSMDB_VERSION 8.0.32-14
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
+# tools and mongosh are versioned on their own
+ENV MONGO_TOOLS_VERSION 100.19.1-1
+ENV FULL_MONGO_TOOLS_VERSION "$MONGO_TOOLS_VERSION.$OS_VER"
+ENV MONGOSH_VERSION 2.10.0-1
+ENV FULL_MONGOSH_VERSION "$MONGOSH_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
 ENV PSMDB_REPO testing
 ENV GLIBC_TUNABLES=glibc.pthread.rseq=0
@@ -38,8 +43,8 @@ RUN set -ex; \
     microdnf -y update libgcrypt; \
     microdnf -y install \
         percona-server-mongodb-mongos-${FULL_PERCONA_VERSION} \
-        percona-server-mongodb-tools-${FULL_PERCONA_VERSION} \
-        percona-mongodb-mongosh \
+        percona-server-mongodb-tools-${FULL_MONGO_TOOLS_VERSION} \
+        percona-mongodb-mongosh-${FULL_MONGOSH_VERSION} \
         numactl \
         numactl-libs \
         procps-ng \
