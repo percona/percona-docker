@@ -15,7 +15,7 @@ ENV PERCONA_SERVER_BUILD_VERSION=1
 ENV PERCONA_VERSION=${PERCONA_SERVER_VERSION}-${PERCONA_SERVER_PERC_VERSION}.${PERCONA_SERVER_BUILD_VERSION}.el9
 
 # install exact version of Fluent Bit for repeatability
-ENV FLUENTBIT_VERSION=5.1.2-1
+ENV FLUENTBIT_VERSION=5.1.4-1
 
 RUN export GNUPGHOME="$(mktemp -d)" \
     && gpg --keyserver https://packages.fluentbit.io/fluentbit.key --recv-keys C3C0A28534B9293EAF51FABD9F9DDC083888C1CD \
@@ -70,23 +70,23 @@ RUN set -ex; \
 
 
 # Install supercronic for cron
-ARG SUPERCRONIC_VERSION=v0.2.49
+ARG SUPERCRONIC_VERSION=v0.2.51
 RUN set -ex; \
     cd /tmp; \
     arch=$(uname -m); \
     case "$arch" in \
         x86_64) \
             SUPERCRONIC=supercronic-linux-amd64; \
-            SUPERCRONIC_SHA1SUM=e63c11a9726b775a6a11801e81af4f3fb926aa68 ;; \
+            SUPERCRONIC_SHA1SUM=1692066e350a88ff4d7d6474fe3c7a6c41ec5e89 ;; \
         i386|i686) \
             SUPERCRONIC=supercronic-linux-386; \
-            SUPERCRONIC_SHA1SUM=e8e25a4672a3caf3cebee10ef418cad085926595 ;; \
+            SUPERCRONIC_SHA1SUM=b63ac46670afcc816581516be82f3f1acf91e929 ;; \
         armv7l|armv6l|armhf) \
             SUPERCRONIC=supercronic-linux-arm; \
-            SUPERCRONIC_SHA1SUM=c98e10fc30de1147bfef8d7f2722f43c0db04fe5 ;; \
+            SUPERCRONIC_SHA1SUM=9224966499cd319ed85759e9b6442f885d920c4f ;; \
         aarch64) \
             SUPERCRONIC=supercronic-linux-arm64; \
-            SUPERCRONIC_SHA1SUM=0b6c5bb743e0b0dafed1132198c81807927ac413 ;; \
+            SUPERCRONIC_SHA1SUM=9d4c2000493215a1898502b2fc2dada3e8ea8c7a ;; \
         *) \
             echo "unsupported architecture: $arch" && exit 1 ;; \
     esac; \
