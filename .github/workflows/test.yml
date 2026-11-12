@@ -10,9 +10,18 @@ on:
 jobs:
   build:
     name: PR test
-    runs-on: ubuntu-latest
+    # pinned: PSMDB 8.0 refuses to start on Linux kernels >= 6.19 (SERVER-121912)
+    runs-on: ubuntu-22.04
 
     steps:
+      - name: Show runner kernel
+        run: |
+          uname -r
+          KMAJ=$(uname -r | cut -d. -f1); KMIN=$(uname -r | cut -d. -f2)
+          if [ "$KMAJ" -gt 6 ] || { [ "$KMAJ" -eq 6 ] && [ "$KMIN" -ge 19 ]; }; then
+            echo "::warning::Runner kernel $(uname -r) is >= 6.19; PSMDB 8.0 mongod will refuse to start (SERVER-121912)"
+          fi
+
       - name: percona/percona-docker repo checkout
         uses: actions/checkout@v3
         with:
