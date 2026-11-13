@@ -2,7 +2,7 @@ FROM redhat/ubi9-minimal
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
-ENV PSMDB_VERSION 7.0.45-24
+ENV PSMDB_VERSION 7.0.48-25
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 # tools and mongosh are versioned on their own

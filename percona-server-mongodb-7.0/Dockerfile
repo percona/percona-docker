@@ -23,7 +23,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-ENV PSMDB_VERSION 7.0.45-24
+ENV PSMDB_VERSION 7.0.48-25
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 # tools and mongosh are versioned on their own
