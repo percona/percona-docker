@@ -7,8 +7,8 @@ LABEL name="mysql-router" \
       org.opencontainers.image.authors="info@percona.com" \
       maintainer="Percona Development <info@percona.com>"
 
-ENV ROUTE_VERSION 8.4.7-7.1
-ENV MYSQL_SHELL_VERSION 8.4.7-1
+ENV ROUTE_VERSION 8.4.11-12.1
+ENV MYSQL_SHELL_VERSION 8.4.10-2
 ENV OS_VER el9
 ENV FULL_ROUTE_VERSION "$ROUTE_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"

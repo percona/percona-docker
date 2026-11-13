@@ -27,7 +27,7 @@ RUN set -ex; \
         -m -c "Default Application User" mysql
 
 ENV PS_VERSION 8.0.46-37.1
-ENV MYSQL_SHELL_VERSION 8.0.46-1
+ENV MYSQL_SHELL_VERSION 8.4.10-2
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PS_VERSION.$OS_VER"
 ENV FULL_MYSQL_SHELL_VERSION "$MYSQL_SHELL_VERSION.$OS_VER"
@@ -58,6 +58,7 @@ RUN set -ex; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY; \
     percona-release disable all; \
     percona-release enable ps-80 ${PS_REPO}; \
+    percona-release enable mysql-shell ${PS_REPO}; \
     percona-release enable telemetry ${PS_REPO}; \
     curl -O https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9; \
     echo "$KEY_RPM_DOWNLOAD_SHA256 RPM-GPG-KEY-EPEL-9" | sha256sum --strict --check; \
