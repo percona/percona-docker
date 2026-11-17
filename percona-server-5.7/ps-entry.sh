@@ -103,7 +103,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		mkdir -p "$DATADIR"
 
 		echo 'Initializing database'
-		"$@" --initialize-insecure --skip-ssl
+		"$@" --initialize-insecure --skip-ssl --default-time-zone=SYSTEM
 		echo 'Database initialized'
 
 		if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$DATADIR/server-key.pem" ]; then
@@ -114,7 +114,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		fi
 
 		SOCKET="$(_get_config 'socket' "$@")"
-		"$@" --skip-networking --socket="${SOCKET}" &
+		"$@" --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}" &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" --password="" )

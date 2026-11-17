@@ -104,11 +104,11 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 		echo 'Initializing database'
 		# "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
-		mysql_install_db --datadir="$DATADIR" --rpm --keep-my-cnf "${@:2}"
+		mysql_install_db --datadir="$DATADIR" --rpm --keep-my-cnf "${@:2}" --default-time-zone=SYSTEM
 		echo 'Database initialized'
 
 		SOCKET="$(_get_config 'socket' "$@")"
-		"$@" --skip-networking --socket="${SOCKET}" &
+		"$@" --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}" &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
