@@ -23,7 +23,7 @@ RUN set -ex; \
     rm -rf "$GNUPGHOME" /tmp/percona-release.rpm; \
     rpm --import /etc/pki/rpm-gpg/PERCONA-PACKAGING-KEY
 
-ENV PSMDB_VERSION 8.3.13-4
+ENV PSMDB_VERSION 8.3.17-5
 ENV OS_VER el9
 ENV FULL_PERCONA_VERSION "$PSMDB_VERSION.$OS_VER"
 # tools and mongosh are versioned on their own
@@ -32,7 +32,7 @@ ENV FULL_MONGO_TOOLS_VERSION "$MONGO_TOOLS_VERSION.$OS_VER"
 ENV MONGOSH_VERSION 2.14.1-1
 ENV FULL_MONGOSH_VERSION "$MONGOSH_VERSION.$OS_VER"
 ENV K8S_TOOLS_VERSION "0.5.0"
-ENV PSMDB_REPO testing
+ENV PSMDB_REPO release
 ENV GLIBC_TUNABLES=glibc.pthread.rseq=0
 
 # Do not report during Docker image creation.
@@ -68,6 +68,14 @@ RUN set -ex; \
     microdnf clean all; \
     rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db; \
     chown -R 1001:0 /data/db
+
+# krb5-libs CVE fix (RHSA-2026:99715) isn't in UBI yet, take the Rocky rebuild
+ENV KRB5_LIBS_VERSION 1.21.1-10.el9_9.2
+RUN set -ex; \
+    curl -Lf -o /tmp/krb5-libs.rpm https://dl.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/Packages/k/krb5-libs-${KRB5_LIBS_VERSION}.x86_64.rpm; \
+    echo "4cfe59b19c62f43aa6f3ecd08116ae13160796f1653c685dc6231f6a8cb21295  /tmp/krb5-libs.rpm" | sha256sum -c -; \
+    rpm -Uvh /tmp/krb5-libs.rpm; \
+    rm -f /tmp/krb5-libs.rpm
 
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -m -s /sbin/nologin \
