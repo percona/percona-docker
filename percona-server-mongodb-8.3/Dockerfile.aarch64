@@ -74,23 +74,6 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/cache/yum /data/db && mkdir -p /data/db; \
     chown -R 1001:0 /data/db
 
-# krb5-libs CVE fix (RHSA-2026:99715) isn't in UBI yet, take the Rocky rebuild
-ENV KRB5_LIBS_VERSION 1.21.1-10.el9_9.2
-RUN set -ex; \
-    ARCH="$(uname -m)"; \
-    case "${ARCH}" in \
-        aarch64 ) \
-          KRB5_LIBS_SHA256="eb591234fa16cc3e158e809c1892ff72dfc5d1bdeb6436c492559e23951e34fd"; \
-          ;; \
-        x86_64 ) \
-          KRB5_LIBS_SHA256="4cfe59b19c62f43aa6f3ecd08116ae13160796f1653c685dc6231f6a8cb21295"; \
-          ;; \
-    esac; \
-    curl -Lf -o /tmp/krb5-libs.rpm https://dl.rockylinux.org/pub/rocky/9/BaseOS/${ARCH}/os/Packages/k/krb5-libs-${KRB5_LIBS_VERSION}.${ARCH}.rpm; \
-    echo "${KRB5_LIBS_SHA256}  /tmp/krb5-libs.rpm" | sha256sum -c -; \
-    rpm -Uvh /tmp/krb5-libs.rpm; \
-    rm -f /tmp/krb5-libs.rpm
-
 # the numeric UID is needed for OpenShift
 RUN useradd -u 1001 -r -g 0 -m -s /sbin/nologin \
             -c "Default Application User" mongodb; \
