@@ -77,8 +77,12 @@ RUN set -eux; \
 VOLUME ["/data/db"]
 
 RUN set -ex; \
-    curl -fSL https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js -o /js-yaml.js; \
-    echo "45dc3dd03dc07a06705a2c2989b8c7f709013f04bd5386e3279d4e447f07ebd7  /js-yaml.js" | sha256sum -c -
+    mkdir -p /opt/js-yaml/; \
+    curl -fSL https://registry.npmjs.org/js-yaml/-/js-yaml-4.1.0.tgz -o /opt/js-yaml/js-yaml.tgz; \
+    echo "0dae332559cf22b21c26ea70e732afd8303ff99412f9c3d9d209faa8882cf2ca  /opt/js-yaml/js-yaml.tgz" | sha256sum -c -; \
+    tar -xz --strip-components=1 -f /opt/js-yaml/js-yaml.tgz -C /opt/js-yaml; \
+    rm -rf /opt/js-yaml/js-yaml.tgz /opt/js-yaml/bin /opt/js-yaml/lib; \
+    ln -s /opt/js-yaml/dist/js-yaml.js /js-yaml.js;
 
 ADD https://raw.githubusercontent.com/Percona-Lab/telemetry-agent/phase-0/call-home.sh /call-home.sh
 RUN chmod a+rx call-home.sh
